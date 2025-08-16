@@ -1,0 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=Commissioner:wght@100..900&family=Dancing+Script:wght@400..700&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Quicksand:wght@300..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Commissioner:wght@100..900&family=Dancing+Script:wght@400..700&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Quicksand:wght@300..700&family=Space+Grotesk:wght@300..700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+.swiper-pagination {
+  display: none !important;
+}
+
+/* --- Global CSS for ProductDisplayPage enhancements --- */
+
+/* Main Image Fade Transition */
+.image-fade-out {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out; /* Controls how fast the current image fades out */
+}
+
+.image-fade-in {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out; /* Controls how fast the new image fades in */
+}
+
+/* Review Section Fade-In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px); /* Starts slightly below and slides up */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  For the 'animate-pulse' on 'Out of Stock' message:
+  If you are using Tailwind CSS, ensure 'pulse' animation is configured
+  in your tailwind.config.js if you encounter issues.
+  A basic setup looks like this in tailwind.config.js:
+
+  module.exports = {
+    theme: {
+      extend: {
+        animation: {
+          pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        },
+        keyframes: {
+          pulse: {
+            '0%, 100%': { opacity: 1 },
+            '50%': { opacity: .5 },
+          }
+        }
+      },
+    },
+    plugins: [],
+  }
+*/
+
+
+/* For Chrome, Edge, and Safari */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Optional: scrollbar background */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #104a02; /* Scroll thumb */
+  border-radius: 10px;
+  border: 2px solid #f1f1f1; /* Optional: creates padding effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #0d3f01; /* Slightly darker on hover */
+}
+
+/* For Firefox */
+.icon-white {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+
+
