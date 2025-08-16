@@ -18,25 +18,13 @@ import emailRouter from './route/email.route.js';
 
 const app = express();
 
+// CORS Configuration
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, process.env.PRODUCTION_URL],
+    origin: ['https://anbunatureproducts-client.vercel.app'], // Explicitly list the frontend URL
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
-}))
-
-app.use((req, res, next) => {
-    const allowedOrigins = [process.env.FRONTEND_URL, process.env.PRODUCTION_URL];
-    const origin = req.headers.origin;
-    
-    if (allowedOrigins.includes(origin)) {
-        res.header("Access-Control-Allow-Origin", origin);
-    }
-
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    next();
-});
+}));
 
 // Middleware
 app.use(express.json());
@@ -50,27 +38,35 @@ app.use(helmet({
 const PORT = process.env.PORT || 8080;
 
 // Test Route
-app.get("/", (request, response) => {
-    response.json({
-        message: "Server is running on port " + PORT
+app.get("/", (req, res) => {
+    res.json({
+        message: `Server is running on port ${PORT}`
+    });
+});
+
+// Debug Environment Variables (temporary, remove after verification)
+app.get("/debug-env", (req, res) => {
+    res.json({
+        FRONTEND_URL: process.env.FRONTEND_URL,
+        PRODUCTION_URL: process.env.PRODUCTION_URL
     });
 });
 
 // API Routes
 app.use('/api/user', userRouter);
-app.use("/api/category", categoryRouter);
-app.use("/api/file", uploadRouter);
-app.use("/api/subcategory", subCategoryRouter);
-app.use("/api/product", productRouter);
-app.use("/api/cart", cartRouter);
-app.use("/api/address", addressRouter);
+app.use('/api/category', categoryRouter);
+app.use('/api/file', uploadRouter);
+app.use('/api/subcategory', subCategoryRouter);
+app.use('/api/product', productRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/address', addressRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/email', emailRouter);
 
 // Connect to Database
 connectDB().then(() => {
     app.listen(PORT, () => {
-        console.log("✅ Server is running on port", PORT);
+        console.log(`✅ Server is running on port ${PORT}`);
     });
 }).catch(err => {
     console.error("❌ Database connection failed", err);
