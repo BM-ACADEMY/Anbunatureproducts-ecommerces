@@ -19,16 +19,17 @@ import emailRouter from "./route/email.route.js";
 
 const app = express();
 
-// ✅ CORS setup
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  process.env.PRODUCTION_URL,
+  process.env.FRONTEND_URL?.trim(),
+  process.env.PRODUCTION_URL?.trim(),
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("🔍 Request Origin:", origin); // Debug log
+      console.log("🔍 Request Origin:", origin);
+      console.log("✅ Allowed origins:", allowedOrigins);
+
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -41,8 +42,8 @@ app.use(
   })
 );
 
-// ✅ Handle preflight requests
 app.options("*", cors());
+
 
 // Middleware
 app.use(express.json());
