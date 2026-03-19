@@ -1,4 +1,5 @@
 import SubCategoryModel from "../models/subCategory.model.js";
+import deleteImageLocal from "../utils/deleteImageLocal.js";
 
 export const AddSubCategoryController = async(request,response)=>{
     try {
@@ -69,6 +70,10 @@ export const updateSubCategoryController = async(request,response)=>{
             })
         }
 
+        if (image && checkSub.image !== image) {
+            await deleteImageLocal(checkSub.image);
+        }
+
         const updateSubCategory = await SubCategoryModel.findByIdAndUpdate(_id,{
             name,
             image,
@@ -95,6 +100,12 @@ export const deleteSubCategoryController = async(request,response)=>{
     try {
         const { _id } = request.body 
         console.log("Id",_id)
+
+        const checkSub = await SubCategoryModel.findById(_id);
+        if (checkSub && checkSub.image) {
+            await deleteImageLocal(checkSub.image);
+        }
+
         const deleteSub = await SubCategoryModel.findByIdAndDelete(_id)
 
         return response.json({

@@ -1,6 +1,7 @@
 import CategoryModel from "../models/category.model.js";
 import SubCategoryModel from "../models/subCategory.model.js";
 import ProductModel from "../models/product.model.js";
+import deleteImageLocal from "../utils/deleteImageLocal.js";
 
 export const AddCategoryController = async(request,response)=>{
     try {
@@ -67,6 +68,11 @@ export const updateCategoryController = async(request,response)=>{
     try {
         const { _id ,name, image } = request.body 
 
+        const existingCategory = await CategoryModel.findById(_id);
+        if (existingCategory && image && existingCategory.image !== image) {
+            await deleteImageLocal(existingCategory.image);
+        }
+
         const update = await CategoryModel.updateOne({
             _id : _id
         },{
@@ -111,6 +117,11 @@ export const deleteCategoryController = async(request,response)=>{
                 error : true,
                 success : false
             })
+        }
+
+        const existingCategory = await CategoryModel.findById(_id);
+        if (existingCategory && existingCategory.image) {
+            await deleteImageLocal(existingCategory.image);
         }
 
         const deleteCategory = await CategoryModel.deleteOne({ _id : _id})

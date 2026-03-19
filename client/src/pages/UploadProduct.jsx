@@ -99,7 +99,7 @@ const UploadProduct = () => {
 
     setImageLoading(true);
     try {
-      const uploadPromises = Array.from(files).map((file) => uploadImage(file));
+      const uploadPromises = Array.from(files).map((file) => uploadImage(file, 'product'));
       const responses = await Promise.all(uploadPromises);
 
       const newImageUrls = responses

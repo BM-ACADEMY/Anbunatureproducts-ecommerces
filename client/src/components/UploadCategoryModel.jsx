@@ -67,7 +67,7 @@ const UploadCategoryModel = ({ close, fetchData }) => {
     if (!file) return;
 
     setLoading(true);
-    const response = await uploadImage(file);
+    const response = await uploadImage(file, 'category');
     const { data: ImageResponse } = response;
     setLoading(false);
     setData((prev) => ({

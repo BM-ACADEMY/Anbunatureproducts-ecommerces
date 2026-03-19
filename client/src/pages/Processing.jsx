@@ -68,7 +68,7 @@ const Processing = () => {
     try {
       let customImageUrl = "";
       if (imageFile) {
-        const uploadResponse = await uploadImage(imageFile);
+        const uploadResponse = await uploadImage(imageFile, 'misc');
         if (uploadResponse.data.success) {
           customImageUrl = uploadResponse.data.data.url;
         } else {

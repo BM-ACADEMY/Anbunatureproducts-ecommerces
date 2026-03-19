@@ -82,7 +82,7 @@ const EditSubCategory = ({ close, data, fetchData }) => {
   const handleUploadSubCategoryImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const response = await uploadImage(file);
+    const response = await uploadImage(file, 'subcategory');
     const { data: ImageResponse } = response;
     setSubCategoryData((prev) => ({
       ...prev,

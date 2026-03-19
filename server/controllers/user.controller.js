@@ -1,4 +1,5 @@
-import uploadImageClodinary from '../utils/uploadImageClodinary.js';
+import uploadImageLocal from '../utils/uploadImageLocal.js';
+import deleteImageLocal from '../utils/deleteImageLocal.js';
 import sendEmail from '../config/sendEmail.js';
 import UserModel from '../models/user.model.js';
 import bcryptjs from 'bcryptjs';
@@ -252,7 +253,13 @@ export async function uploadAvatar(request, response) {
         const userId = request.userId; // auth middleware
         const image = request.file; // multer middleware
 
-        const upload = await uploadImageClodinary(image);
+        const user = await UserModel.findById(userId);
+
+        const upload = await uploadImageLocal(image, 'avatar');
+
+        if (user && user.avatar) {
+             await deleteImageLocal(user.avatar);
+        }
 
         const updateUser = await UserModel.findByIdAndUpdate(userId, {
             avatar: upload.url

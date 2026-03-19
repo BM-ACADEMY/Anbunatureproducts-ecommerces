@@ -1,5 +1,6 @@
 import ProductModel from "../models/product.model.js";
 import mongoose from "mongoose"; // Import mongoose to validate ObjectId
+import deleteImageLocal from "../utils/deleteImageLocal.js";
 
 /**
  * Helper function to validate the structure of attributes
@@ -298,6 +299,16 @@ export const updateProductDetails = async (request, response) => {
 
     console.log("Updated product data to save:", updatedProductData);
 
+    const existingProduct = await ProductModel.findById(_id);
+    if (existingProduct) {
+      if (image && Array.isArray(image) && existingProduct.image && Array.isArray(existingProduct.image)) {
+        const imagesToDelete = existingProduct.image.filter(img => !image.includes(img));
+        for (const imgUrl of imagesToDelete) {
+          await deleteImageLocal(imgUrl);
+        }
+      }
+    }
+
     const updatedProduct = await ProductModel.findByIdAndUpdate(_id, {
       $set: updatedProductData
     }, { new: true });
@@ -579,6 +590,13 @@ export const deleteProductDetails = async (request, response) => {
         error: true,
         success: false
       });
+    }
+
+    const existingProduct = await ProductModel.findById(_id);
+    if (existingProduct && existingProduct.image && Array.isArray(existingProduct.image)) {
+      for (const imgUrl of existingProduct.image) {
+        await deleteImageLocal(imgUrl);
+      }
     }
 
     const deleteResult = await ProductModel.deleteOne({ _id: _id });

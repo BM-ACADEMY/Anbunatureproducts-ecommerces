@@ -99,7 +99,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     if (!files || files.length === 0) return;
     setImageLoading(true);
     try {
-      const uploadPromises = Array.from(files).map((file) => uploadImage(file));
+      const uploadPromises = Array.from(files).map((file) => uploadImage(file, 'product'));
       const responses = await Promise.all(uploadPromises);
       const newImageUrls = responses
         .filter((response) => response?.data?.data?.url)

@@ -49,7 +49,7 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
 
     setLoading(true); // Set loading before image upload
     try {
-      const response = await uploadImage(file);
+      const response = await uploadImage(file, 'subcategory');
       const { data: ImageResponse } = response;
       setSubCategoryData((prev) => ({
         ...prev,

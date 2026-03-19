@@ -64,7 +64,7 @@ const EditCategory = ({ close, fetchData, data: CategoryData }) => {
     const file = e.target.files[0];
     if (!file) return;
     setLoading(true);
-    const response = await uploadImage(file);
+    const response = await uploadImage(file, 'category');
     const { data: ImageResponse } = response;
     setLoading(false);
     setData((prev) => ({ ...prev, image: ImageResponse.data.url }));

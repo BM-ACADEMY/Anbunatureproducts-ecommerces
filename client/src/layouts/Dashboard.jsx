@@ -1,30 +1,53 @@
-import React from 'react'
-import UserMenu from '../components/UserMenu'
-import { Outlet } from 'react-router-dom'
+import React, { useState } from 'react';
+import UserMenu from '../components/UserMenu';
+import { Outlet } from 'react-router-dom';
+import { FiMenu, FiX } from 'react-icons/fi';
+import '../assets/css/dashboard.css';
 
 const Dashboard = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
+  };
 
   return (
-    <section className='bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen'>
-      <div className='container mx-auto p-4 lg:p-6 grid lg:grid-cols-[280px,1fr] gap-6'>
-        
-        {/* Left Sidebar */}
-        <div className='hidden lg:block'>
-          <div className='bg-white rounded-2xl  p-4 sticky top-6 h-[calc(100vh-48px)] overflow-y-auto transition-all duration-300 shadow-xl'> 
-            <UserMenu />
-          </div>
-        </div>
+    <section className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dash-modal-overlay ${mobileMenuOpen ? 'open' : ''}`} 
+        onClick={closeMobileMenu}
+        style={{ zIndex: 40 }}
+      />
 
-        {/* Right Content Area */}
-        <div className='bg-white rounded-2xl  p-6 transition-all duration-300 shadow-xl'>
-          <div className='min-h-[75vh]'>
-            <Outlet />
-          </div>
+      {/* Sidebar */}
+      <aside className={`dashboard-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+        <UserMenu close={closeMobileMenu} />
+      </aside>
+
+      {/* Main Content */}
+      <main className="dashboard-main">
+        <div className="dashboard-content-card">
+          <Outlet />
         </div>
-      </div>
+      </main>
+
+      {/* Mobile Toggle Button */}
+      <button 
+        className="dash-mobile-toggle" 
+        onClick={toggleMobileMenu}
+        aria-label="Toggle Menu"
+      >
+        {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+      </button>
     </section>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
