@@ -28,6 +28,7 @@ import About from "../pages/About";
 import Manufacturing from "../pages/Manufacturing";
 import Contact from "../pages/Contact";
 import Processing from "../pages/Processing";
+import DashboardOverview from "../pages/DashboardOverview";
 // import Overview from "../pages/Overview";
 
 const router = createBrowserRouter([
@@ -81,12 +82,37 @@ const router = createBrowserRouter([
       },
       {
         path: "user",
-        element: <UserMenuMobile />,
+        children: [
+          {
+            path: "",
+            element: <UserMenuMobile />,
+          },
+          {
+            path: "profile",
+            element: <Profile />,
+          },
+          {
+            path: "myorders",
+            element: <MyOrders />,
+          },
+          {
+            path: "address",
+            element: <Address />,
+          },
+        ]
       },
       {
         path: "dashboard",
         element: <Dashboard />,
         children: [
+          {
+            index: true,
+            element: (
+              <AdminPermision>
+                <DashboardOverview />
+              </AdminPermision>
+            ),
+          },
           {
             path: "profile",
             element: <Profile />,

@@ -69,17 +69,22 @@ function App() {
     fetchSubCategory();
   }, []);
 
+  const isDashboardPage = location.pathname.startsWith("/dashboard");
+  const isSearchPage = location.pathname === "/search";
+  const hideHeaderFooter = isDashboardPage || isSearchPage;
+
   return (
     <GlobalProvider>
-      <Header />
+      {!hideHeaderFooter && <Header />}
       <main>
         <Outlet />
       </main>
-      <Footer />
+      {!hideHeaderFooter && <Footer />}
       <Toaster />
       <WhatsappFloatButton/>
     </GlobalProvider>
   );
 }
+
 
 export default App;

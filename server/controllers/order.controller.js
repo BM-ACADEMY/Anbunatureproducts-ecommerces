@@ -6,7 +6,9 @@ import ProductModel from "../models/product.model.js";
 import mongoose from "mongoose";
 import sendEmail from "../config/sendEmail.js";
 import orderConfirmationTemplate from "../email/templates/orderConfirmationTemplate.js";
-import AddressModel from "../models/address.model.js"; // Ensure AddressModel is imported
+import AddressModel from "../models/address.model.js";
+import CategoryModel from "../models/category.model.js";
+import SubCategoryModel from "../models/subCategory.model.js";
 
 export async function CashOnDeliveryOrderController(req, res) {
   try {
@@ -586,21 +588,81 @@ export async function getOrderStatsController(request, response) {
             tracking_status: "Delivered",
         });
 
+        // Calculate total revenue from non-cancelled orders
+        const revenueData = await OrderModel.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    isCancelled: false,
+                    payment_status: { $in: ["Online Payment", "paid", "COD", "Cash On Delivery"] } // Adjust based on your payment status values
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: "$totalAmt" }
+                }
+            }
+        ]);
+
+        const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+        const totalProducts = await ProductModel.countDocuments({ publish: true });
+        const totalCategories = await CategoryModel.countDocuments();
+        const totalSubCategories = await SubCategoryModel.countDocuments();
+
+        // Monthly sales data for the last 6 months
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const monthlySales = await OrderModel.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    isCancelled: false,
+                    createdAt: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$createdAt" },
+                        year: { $year: "$createdAt" }
+                    },
+                    revenue: { $sum: "$totalAmt" },
+                    orders: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        // Format monthly data for frontend
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const formattedMonthlyStats = monthlySales.map(item => ({
+            name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
+            revenue: item.revenue,
+            orders: item.orders
+        }));
+
         return response.json({
-            message: "Order statistics",
+            message: "Dashboard statistics",
             data: {
                 totalUsers,
                 totalOrders,
                 canceledOrders,
                 deliveredOrders,
-                receivedOrders: totalOrders - canceledOrders - deliveredOrders, // Pending, Processing, Shipped
+                receivedOrders: totalOrders - canceledOrders - deliveredOrders,
+                totalRevenue,
+                totalProducts,
+                totalCategories,
+                totalSubCategories,
+                monthlyStats: formattedMonthlyStats
             },
             error: false,
             success: true,
         });
     } catch (error) {
         return response.status(500).json({
-            message: error.message || "Failed to fetch order statistics",
+            message: error.message || "Failed to fetch dashboard statistics",
             error: true,
             success: false,
         });

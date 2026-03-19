@@ -63,26 +63,6 @@ html {
 */
 
 
-/* For Chrome, Edge, and Safari */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Optional: scrollbar background */
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #104a02; /* Scroll thumb */
-  border-radius: 10px;
-  border: 2px solid #f1f1f1; /* Optional: creates padding effect */
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: #0d3f01; /* Slightly darker on hover */
-}
-
 /* For Firefox */
 .icon-white {
   color: #ffffff !important;
