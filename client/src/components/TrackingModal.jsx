@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import TrackingStepper from "./TrackingStepper";
 
 const TrackingModal = ({ open, handleClose, order, onUpdate }) => {

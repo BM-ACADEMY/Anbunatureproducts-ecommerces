@@ -29,6 +29,7 @@ import Manufacturing from "../pages/Manufacturing";
 import Contact from "../pages/Contact";
 import Processing from "../pages/Processing";
 import DashboardOverview from "../pages/DashboardOverview";
+import BannerAdmin from "../pages/BannerAdmin";
 // import Overview from "../pages/Overview";
 
 const router = createBrowserRouter([
@@ -162,6 +163,14 @@ const router = createBrowserRouter([
             element: (
               <AdminPermision>
                 <AllOrders />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "banner",
+            element: (
+              <AdminPermision>
+                <BannerAdmin />
               </AdminPermision>
             ),
           },

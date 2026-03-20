@@ -30,6 +30,10 @@ const SummaryApi = {
     url: "/api/user/login",
     method: "post",
   },
+  googleLogin: {
+    url: "/api/user/google",
+    method: "post",
+  },
   forgot_password: {
     url: "/api/user/forgot-password",
     method: "put",
@@ -162,13 +166,6 @@ const SummaryApi = {
     url: "/api/address/disable",
     method: "delete",
   },
-  // Note: You have CashOnDeliveryOrder defined twice.
-  // I'm assuming the one under Payment/Order section is the one you intend to use.
-  // If not, please clarify which one is correct.
-  // CashOnDeliveryOrder: {
-  //   url: "/api/order/cash-on-delivery",
-  //   method: "post",
-  // },
   payment_url: {
     url: "/api/order/checkout",
     method: "post",
@@ -197,6 +194,22 @@ const SummaryApi = {
     url: "/api/order/stats",
     method: "get",
   },
+  addBanner: {
+    url: "/api/banner/add",
+    method: "post",
+  },
+  getBanners: {
+    url: "/api/banner/get",
+    method: "get",
+  },
+  deleteBanner: {
+    url: "/api/banner/delete",
+    method: "post",
+  },
+  updateBanner: {
+    url: "/api/banner/update",
+    method: "post"
+  }
 };
 
 export default SummaryApi;

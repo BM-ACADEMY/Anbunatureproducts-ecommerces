@@ -1,109 +1,119 @@
-import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-
-// Desktop banners
-import banner from "../assets/banners/banner1.png";
-import banner2 from "../assets/banners/banner2.png";
-
-// Mobile banners
-import bannerMobile from "../assets/banners/bannermobile1.png";
-import bannerMobile2 from "../assets/banners/bannermobile2.png";
+import React, { useEffect, useState } from "react";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import Axios from "../utils/Axios";
+import SummaryApi from "../common/SummaryApi";
+import AxiosToastError from "../utils/AxiosToastError";
 
 const BannerSlider = () => {
+  const [banners, setBanners] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Media query to check screen size
+  const fetchBanners = async () => {
+    try {
+      setLoading(true);
+      const response = await Axios({ ...SummaryApi.getBanners });
+      const { data: responseData } = response;
+      if (responseData.success) {
+        setBanners(responseData.data);
+      }
+    } catch (error) {
+      console.error("Error fetching banners:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024); // lg = 1024px
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
+    fetchBanners();
   }, []);
 
-  // Banners by device
-  const mobileBanners = [
-    { id: 1, src: bannerMobile, alt: "New Arrivals - Mobile Exclusive" },
-    { id: 2, src: bannerMobile2, alt: "Festival Offers - Limited Time Only" },
-  ];
-
-  const desktopBanners = [
-    { id: 1, src: banner, alt: "Premium Cloths Collection" },
-    { id: 2, src: banner2, alt: "Summer Sale - Up to 40% Off" },
-  ];
-
-  const banners = isMobile ? mobileBanners : desktopBanners;
-
-  // Auto slide
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 5000);
-    return () => clearInterval(interval);
+    if (banners.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % banners.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
   }, [banners.length]);
 
-  const nextSlide = () =>
+  const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % banners.length);
-  const prevSlide = () =>
+  };
+
+  const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full h-96 md:h-[500px] bg-slate-100 animate-pulse flex items-center justify-center">
+        <span className="text-slate-400">Loading Banners...</span>
+      </div>
+    );
+  }
+
+  if (banners.length === 0) {
+    return null; // Don't show anything if no banners
+  }
 
   return (
-    <div className="relative w-full max-w-[1800px] mx-auto px-4 py-8 overflow-hidden">
-      <div className="relative h-96 md:h-[420px] rounded-xl overflow-hidden  group">
+    <div className="relative w-full mx-auto overflow-hidden">
+      <div
+        className="flex transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+      >
         {banners.map((banner, index) => (
           <div
-            key={banner.id}
-            className={`absolute top-0 left-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-              index === currentSlide
-                ? "opacity-100"
-                : "opacity-0 pointer-events-none"
-            }`}
+            key={banner._id}
+            className="min-w-full relative h-[300px] md:h-[500px]"
           >
+            {/* Desktop Banner (LG) */}
             <img
-              src={banner.src}
-              alt={banner.alt}
-              className="w-full h-full object-cover"
-              loading="lazy"
+              src={banner.desktopImage}
+              alt={banner.altText}
+              className="hidden md:block w-full h-full object-cover"
             />
-            
+            {/* Mobile Banner (MD/SM) */}
+            <img
+              src={banner.mobileImage}
+              alt={banner.altText}
+              className="block md:hidden w-full h-full object-cover"
+            />
           </div>
         ))}
-
-        {/* Navigation Buttons - show on hover */}
-        {/* Left Button */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all duration-300 hover:scale-110 z-10 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
-        >
-          <ChevronLeft />
-        </button>
-
-        {/* Right Button */}
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all duration-300 hover:scale-110 z-10 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
-        >
-          <ChevronRight />
-        </button>
-
-        {/* Pagination Dots */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full ${
-                index === currentSlide
-                  ? "bg-white"
-                  : "bg-white/50 hover:bg-white/80"
-              } transition-all duration-300`}
-            />
-          ))}
-        </div>
       </div>
+
+      {/* Navigation Arrows */}
+      {banners.length > 1 && (
+        <>
+          <button
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 backdrop-blur-sm text-white hover:bg-black/50 transition-all z-10"
+          >
+            <FiChevronLeft size={24} />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 backdrop-blur-sm text-white hover:bg-black/50 transition-all z-10"
+          >
+            <FiChevronRight size={24} />
+          </button>
+
+          {/* Indicators */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  currentSlide === index ? "bg-white scale-125" : "bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import {
   LineChart,
   Line,

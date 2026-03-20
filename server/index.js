@@ -18,6 +18,7 @@ import cartRouter from "./route/cart.route.js";
 import addressRouter from "./route/address.route.js";
 import orderRouter from "./route/order.route.js";
 import emailRouter from "./route/email.route.js";
+import bannerRouter from "./route/banner.route.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,14 +34,16 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("🔍 Request Origin:", origin); // Debug log
-      // Allow requests with no origin (e.g., Postman or server-to-server requests)
+      // Allow requests with no origin (e.g., Postman)
       if (!origin) return callback(null, true);
-      // Check if the origin is in allowedOrigins or matches without trailing slash
-      if (
-        allowedOrigins.includes(origin) ||
-        allowedOrigins.includes(origin.replace(/\/$/, ""))
-      ) {
+      
+      // Allow any localhost origin during development
+      if (origin.startsWith('http://localhost:')) {
+        return callback(null, true);
+      }
+
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
         callback(new Error(`❌ Not allowed by CORS: ${origin}`));
@@ -82,6 +85,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/email", emailRouter);
+app.use("/api/banner", bannerRouter);
 
 // Connect DB + Start server
 connectDB()

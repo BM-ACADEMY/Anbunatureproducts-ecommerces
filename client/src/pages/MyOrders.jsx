@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { setOrder } from "../store/orderSlice";
 import UserTrackingModal from "../components/UserTrackingModal";
 

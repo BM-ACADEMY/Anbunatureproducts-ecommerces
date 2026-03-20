@@ -5,7 +5,7 @@ import uploadImage from '../utils/UploadImage';
 import { useSelector } from 'react-redux';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import {
   Dialog,

@@ -4,7 +4,7 @@
 // import { useDispatch, useSelector } from "react-redux";
 // import { handleAddItemCart } from "../store/cartProduct";
 // import AxiosToastError from "../utils/AxiosToastError";
-// import toast from "react-hot-toast";
+// import { toast } from "sonner";
 // import { handleAddAddress } from "../store/addressSlice";
 // import { setOrder } from "../store/orderSlice";
 
@@ -160,7 +160,7 @@ import SummaryApi from "../common/SummaryApi";
 import { useDispatch, useSelector } from "react-redux";
 import { handleAddItemCart } from "../store/cartProduct";
 import AxiosToastError from "../utils/AxiosToastError";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { handleAddAddress } from "../store/addressSlice";
 import { setOrder } from "../store/orderSlice";
 

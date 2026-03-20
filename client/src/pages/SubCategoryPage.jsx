@@ -6,7 +6,7 @@ import SummaryApi from "../common/SummaryApi";
 import ViewImage from "../components/ViewImage";
 import EditSubCategory from "../components/EditSubCategory";
 import CofirmBox from "../components/CofirmBox";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import AddIcon from "@mui/icons-material/Add";
 import {
   Grid,

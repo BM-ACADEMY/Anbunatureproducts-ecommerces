@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiUsers, FiShoppingBag, FiTrendingUp, FiDatabase, FiLayers, FiBox, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import {
     BarChart,
     Bar,

@@ -1,4 +1,4 @@
-import toast from "react-hot-toast"
+import { toast } from "sonner"
 import SummaryApi from "../common/SummaryApi"
 import Axios from "./Axios"
 import AxiosToastError from "./AxiosToastError"

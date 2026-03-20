@@ -21,7 +21,7 @@ import {
 import uploadImage from '../utils/UploadImage';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 
 const EditCategory = ({ close, fetchData, data: CategoryData }) => {

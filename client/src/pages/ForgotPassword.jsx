@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
@@ -10,6 +9,7 @@ const ForgotPassword = () => {
     const [data, setData] = useState({
         email: "",
     });
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -26,6 +26,7 @@ const ForgotPassword = () => {
 
     const handleSubmit = async(e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
             const response = await Axios({
                 ...SummaryApi.forgot_password,
@@ -47,59 +48,56 @@ const ForgotPassword = () => {
             }
         } catch (error) {
             AxiosToastError(error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <section className="flex items-center justify-center min-h-[calc(90vh-4rem)] bg-gradient-to-br from-blue-50 to-green-50">
-            <div className="bg-white w-full max-w-md rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
-                <div className="p-8">
-                    <div className="text-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-800">Forgot <span className="text-green-600">Password</span></h1>
-                        <p className="text-gray-600 mt-2">Enter your email to receive a password reset OTP</p>
-                    </div>
-
-                    <form className="space-y-5" onSubmit={handleSubmit}>
-                        <div className="space-y-2">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                            <input
-                                type="email"
-                                id="email"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                                name="email"
-                                value={data.email}
-                                onChange={handleChange}
-                                placeholder="Enter your email"
-                                required
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={!valideValue}
-                            className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-300 ${
-                                valideValue 
-                                    ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' 
-                                    : 'bg-gray-400 cursor-not-allowed'
-                            }`}
-                        >
-                            Send OTP
-                        </button>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-600">
-                            Remember your password?{' '}
-                            <Link 
-                                to="/login" 
-                                className="font-semibold text-green-600 hover:text-green-800 transition-colors duration-200 underline underline-offset-2"
-                            >
-                                Login
-                            </Link>
-                        </p>
-                    </div>
+        <section className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-50 p-4">
+            <form onSubmit={handleSubmit} className="max-w-96 w-full text-center border border-gray-300/60 rounded-2xl px-8 py-10 bg-white shadow-sm">
+                <h1 className="text-gray-900 text-3xl font-medium">Forgot Password</h1>
+                <p className="text-gray-500 text-sm mt-3 px-2">Enter your email address and we'll send you an OTP to reset your password.</p>
+                
+                <div className="flex items-center w-full mt-10 bg-white border border-gray-300/80 h-12 rounded-full overflow-hidden px-4 gap-2 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-colors">
+                    <svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M0 .55.571 0H15.43l.57.55v9.9l-.571.55H.57L0 10.45zm1.143 1.138V9.9h13.714V1.69l-6.503 4.8h-.697zM13.749 1.1H2.25L8 5.356z" fill="#6B7280"/>
+                    </svg>
+                    <input 
+                        name="email"
+                        type="email" 
+                        placeholder="Email id" 
+                        value={data.email}
+                        onChange={handleChange}
+                        className="bg-transparent text-gray-700 placeholder-gray-400 outline-none text-sm w-full h-full" 
+                        disabled={isLoading}
+                        required 
+                        autoFocus
+                    />                 
                 </div>
-            </div>
+
+                <button 
+                    type="submit" 
+                    disabled={!valideValue || isLoading}
+                    className="mt-8 w-full h-11 rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm flex items-center justify-center"
+                >
+                    {isLoading ? (
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    ) : (
+                        'Send OTP'
+                    )}
+                </button>
+
+                <p className="text-gray-500 text-sm mt-8">
+                    Remember your password?{' '}
+                    <Link className="text-indigo-500 hover:text-indigo-600 font-medium" to="/login">
+                        Login
+                    </Link>
+                </p>
+            </form>
         </section>
     );
 };

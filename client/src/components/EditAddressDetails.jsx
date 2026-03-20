@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from "react-hook-form";
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import { useGlobalContext } from '../provider/GlobalProvider';
 

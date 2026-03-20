@@ -9,18 +9,21 @@ import genertedRefreshToken from '../utils/generatedRefreshToken.js';
 import generatedOtp from '../utils/generatedOtp.js';
 import forgotPasswordTemplate from '../utils/forgotPasswordTemplate.js';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 
 export async function registerUserController(request, response) {
     try {
-        const { name, email, password } = request.body;
+        const { email, password } = request.body;
 
-        if (!name || !email || !password) {
+        if (!email || !password) {
             return response.status(400).json({
-                message: "Provide email, name, password",
+                message: "Provide email and password",
                 error: true,
                 success: false
             });
         }
+        
+        const name = request.body.name || email.split('@')[0];
 
         const user = await UserModel.findOne({ email });
 
@@ -219,8 +222,6 @@ export async function loginController(request, response) {
 
 export async function logoutController(request, response) {
     try {
-        const userid = request.userId; // middleware
-
         const cookiesOption = {
             httpOnly: true,
             secure: true,
@@ -230,9 +231,12 @@ export async function logoutController(request, response) {
         response.clearCookie("accessToken", cookiesOption);
         response.clearCookie("refreshToken", cookiesOption);
 
-        const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
-            refresh_token: ""
-        });
+        // If the user is authenticated, also clear the refresh token in DB
+        if (request.userId) {
+            await UserModel.findByIdAndUpdate(request.userId, {
+                refresh_token: ""
+            });
+        }
 
         return response.json({
             message: "Logout successfully",
@@ -542,6 +546,88 @@ export async function userDetails(request, response) {
     } catch (error) {
         return response.status(500).json({
             message: "Something is wrong",
+            error: true,
+            success: false
+        });
+    }
+}
+
+export async function googleAuthController(request, response) {
+    try {
+        const { token } = request.body;
+        if (!token) {
+            return response.status(400).json({
+                message: "Provide google token",
+                error: true,
+                success: false
+            });
+        }
+
+        const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+        const client = new OAuth2Client(clientId);
+
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: clientId,
+        });
+        const payload = ticket.getPayload();
+        const { email, name, picture } = payload;
+
+        let user = await UserModel.findOne({ email });
+
+        if (!user) {
+            // Create user
+            const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+            const salt = await bcryptjs.genSalt(10);
+            const hashPassword = await bcryptjs.hash(generatedPassword, salt);
+
+            const newUser = new UserModel({
+                name,
+                email,
+                password: hashPassword,
+                avatar: picture,
+                verify_email: true,
+                is_temp: false
+            });
+            user = await newUser.save();
+        }
+
+        if (user.status !== "Active") {
+            return response.status(400).json({
+                message: "Contact Admin",
+                error: true,
+                success: false
+            });
+        }
+
+        const accesstoken = await generatedAccessToken(user._id);
+        const refreshToken = await genertedRefreshToken(user._id);
+
+        await UserModel.findByIdAndUpdate(user._id, {
+            last_login_date: new Date()
+        });
+
+        const cookiesOption = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None"
+        };
+        response.cookie('accessToken', accesstoken, cookiesOption);
+        response.cookie('refreshToken', refreshToken, cookiesOption);
+
+        return response.json({
+            message: "Login successfully with Google",
+            error: false,
+            success: true,
+            data: {
+                accesstoken,
+                refreshToken,
+                verify_email: user.verify_email
+            }
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
             error: true,
             success: false
         });

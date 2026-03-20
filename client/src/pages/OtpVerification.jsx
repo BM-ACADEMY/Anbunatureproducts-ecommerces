@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-// import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { TextField, Button } from '@mui/material';
 
 const OtpVerification = () => {
     const [data, setData] = useState(["", "", "", "", "", ""]);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const inputRef = useRef([]);
     const location = useLocation();
@@ -23,6 +22,7 @@ const OtpVerification = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
 
         try {
             const response = await Axios({
@@ -49,8 +49,9 @@ const OtpVerification = () => {
                 });
             }
         } catch (error) {
-            console.log('error', error);
             AxiosToastError(error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -78,80 +79,57 @@ const OtpVerification = () => {
     };
 
     return (
-        <section className="flex items-center justify-center min-h-[calc(90vh-4rem)] bg-gradient-to-br from-blue-50 to-green-50">
-            <div className="bg-white w-full max-w-lg mx-auto rounded-xl shadow-2xl p-8 transition-all duration-300 hover:shadow-3xl">
-                <h1 className="text-2xl font-semibold text-gray-800 mb-2">Enter <span className="text-green-600">OTP</span></h1>
-                <p className="text-gray-600 mb-6">Enter the 6-digit OTP sent to your email</p>
+        <section className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-50 p-4">
+            <form onSubmit={handleSubmit} className="max-w-96 w-full text-center border border-gray-300/60 rounded-2xl px-8 py-10 bg-white shadow-sm">
+                <h1 className="text-gray-900 text-3xl font-medium">Verify OTP</h1>
+                <p className="text-gray-500 text-sm mt-3 px-2">Enter the 6-digit code sent to your email address.</p>
+                
+                <div className="flex items-center justify-between gap-2 mt-10 mb-8">
+                    {data.map((element, index) => (
+                        <input
+                            key={`otp${index}`}
+                            type="text"
+                            maxLength="1"
+                            value={element}
+                            ref={(el) => (inputRef.current[index] = el)}
+                            onChange={(e) => handleChange(index, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(index, e)}
+                            className="w-11 h-12 text-center text-xl font-semibold text-gray-700 bg-white border border-gray-300/80 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                            disabled={isLoading}
+                            required
+                            autoFocus={index === 0}
+                        />
+                    ))}
+                </div>
 
-                <form className="grid gap-6" onSubmit={handleSubmit}>
-                    <div className="grid gap-2">
-                        <label htmlFor="otp" className="block text-sm font-medium text-gray-700">Enter Your OTP</label>
-                        <div className="flex items-center gap-2 justify-between mt-3">
-                            {data.map((element, index) => (
-                                <TextField
-                                    key={`otp${index}`}
-                                    id={`otp-${index}`}
-                                    value={data[index]}
-                                    onChange={(e) => handleChange(index, e.target.value)}
-                                    onKeyDown={(e) => handleKeyDown(index, e)}
-                                    inputRef={(el) => (inputRef.current[index] = el)}
-                                    variant="outlined"
-                                    size="small"
-                                    inputProps={{
-                                        maxLength: 1,
-                                        pattern: '[0-9]*',
-                                        inputMode: 'numeric',
-                                        style: { textAlign: 'center', fontWeight: 600 }
-                                    }}
-                                    sx={{
-                                        width: '3.5rem',
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: '0.5rem',
-                                            backgroundColor: '#EFF6FF', // Matches bg-blue-50
-                                            '&:hover fieldset': {
-                                                borderColor: '#93C5FD' // Matches focus:border-primary-200
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#93C5FD'
-                                            }
-                                        }
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                <button 
+                    type="submit" 
+                    disabled={!valideValue || isLoading}
+                    className="w-full h-11 rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm flex items-center justify-center"
+                >
+                    {isLoading ? (
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    ) : (
+                        'Verify OTP'
+                    )}
+                </button>
 
-                    <Button
-                        type="submit"
-                        disabled={!valideValue}
-                        variant="contained"
-                        color="success"
-                        fullWidth
-                        sx={{
-                            borderRadius: '0.5rem',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            paddingY: 1.5,
-                            backgroundColor: valideValue ? '#16a34a' : '#9ca3af',
-                            '&:hover': {
-                                backgroundColor: valideValue ? '#15803d' : '#9ca3af'
-                            }
-                        }}
-                    >
-                        Verify OTP
-                    </Button>
-                </form>
-
-                <p className="mt-6 text-center text-gray-600">
-                    Already have an account?{' '}
-                    <Link
-                        to="/login"
-                        className="font-semibold text-green-600 hover:text-green-800 transition-colors duration-200 underline underline-offset-2"
-                    >
-                        Login
-                    </Link>
+                <p className="text-gray-500 text-sm mt-8">
+                    Didn't receive code?{' '}
+                    <button type="button" className="text-indigo-500 hover:text-indigo-600 font-medium">
+                        Resend
+                    </button>
                 </p>
-            </div>
+
+                <div className="mt-4">
+                    <Link className="text-xs text-gray-400 hover:text-gray-600 font-medium" to="/forgot-password">
+                        Back to Forgot Password
+                    </Link>
+                </div>
+            </form>
         </section>
     );
 };

@@ -4,7 +4,7 @@ import AddAddress from "../components/AddAddress";
 import EditAddressDetails from "../components/EditAddressDetails";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import AxiosToastError from "../utils/AxiosToastError";
 import {
   MdDelete,

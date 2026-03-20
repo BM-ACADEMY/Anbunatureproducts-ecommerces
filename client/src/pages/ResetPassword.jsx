@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa6';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import SummaryApi from '../common/SummaryApi';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import Axios from '../utils/Axios';
-import { TextField, Button, CircularProgress } from '@mui/material';
 
 const ResetPassword = () => {
   const location = useLocation();
@@ -65,7 +64,7 @@ const ResetPassword = () => {
         data: {
           email: data.email,
           newPassword: data.newPassword,
-          confirmPassword: data.confirmPassword, // Added confirmPassword
+          confirmPassword: data.confirmPassword,
         },
       });
 
@@ -92,138 +91,84 @@ const ResetPassword = () => {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-4">
-      <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl">
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Reset Your Password</h1>
-            <p className="text-gray-600">Enter a new password for your account</p>
-          </div>
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                New Password
-              </label>
-              <div className="relative">
-                <TextField
-                  id="newPassword"
-                  name="newPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={data.newPassword}
-                  onChange={handleChange}
-                  placeholder="Enter your new password"
-                  disabled={isLoading}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  inputProps={{
-                    minLength: 8,
-                  }}
-                  InputProps={{
-                    className: 'rounded-lg pr-10',
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#EFF6FF', // bg-blue-50
-                      '&:hover fieldset': {
-                        borderColor: '#93C5FD', // focus:border-primary-200
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#93C5FD',
-                      },
-                    },
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? <FaRegEye className="h-5 w-5" /> : <FaRegEyeSlash className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <TextField
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={data.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm your password"
-                  disabled={isLoading}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  inputProps={{
-                    minLength: 8,
-                  }}
-                  InputProps={{
-                    className: 'rounded-lg pr-10',
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#EFF6FF', // bg-blue-50
-                      '&:hover fieldset': {
-                        borderColor: '#93C5FD', // focus:border-primary-200
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#93C5FD',
-                      },
-                    },
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                >
-                  {showConfirmPassword ? <FaRegEye className="h-5 w-5" /> : <FaRegEyeSlash className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={!isValidValue || isLoading}
-              variant="contained"
-              color="success"
-              fullWidth
-              sx={{
-                borderRadius: '0.5rem',
-                textTransform: 'none',
-                fontWeight: 600,
-                paddingY: 1.5,
-                backgroundColor: isValidValue && !isLoading ? '#16a34a' : '#9ca3af',
-                '&:hover': {
-                  backgroundColor: isValidValue && !isLoading ? '#15803d' : '#9ca3af',
-                },
-              }}
-              startIcon={isLoading && <CircularProgress size={20} color="inherit" />}
-            >
-              {isLoading ? 'Changing...' : 'Change Password'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-semibold text-green-600 hover:text-green-800 transition-colors duration-200 underline underline-offset-2"
-              >
-                Login
-              </Link>
-            </p>
-          </div>
+    <section className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-50 p-4">
+      <form onSubmit={handleSubmit} className="max-w-96 w-full text-center border border-gray-300/60 rounded-2xl px-8 py-10 bg-white shadow-sm">
+        <h1 className="text-gray-900 text-3xl font-medium">Reset Password</h1>
+        <p className="text-gray-500 text-sm mt-3 px-2">Set a new password to secure your account and regain access.</p>
+        
+        {/* New Password Input */}
+        <div className="flex items-center mt-10 w-full bg-white border border-gray-300/80 h-12 rounded-full overflow-hidden px-4 gap-2 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-colors">
+          <svg width="13" height="17" viewBox="0 0 13 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 8.5c0-.938-.729-1.7-1.625-1.7h-.812V4.25C10.563 1.907 8.74 0 6.5 0S2.438 1.907 2.438 4.25V6.8h-.813C.729 6.8 0 7.562 0 8.5v6.8c0 .938.729 1.7 1.625 1.7h9.75c.896 0 1.625-.762 1.625-1.7zM4.063 4.25c0-1.406 1.093-2.55 2.437-2.55s2.438 1.144 2.438 4.25V6.8H4.061z" fill="#6B7280"/>
+          </svg>
+          <input 
+            name="newPassword"
+            type={showPassword ? "text" : "password"} 
+            placeholder="New Password" 
+            value={data.newPassword}
+            onChange={handleChange}
+            className="bg-transparent text-gray-700 placeholder-gray-400 outline-none text-sm w-full h-full flex-1" 
+            disabled={isLoading}
+            required 
+            autoFocus
+          />    
+          <button
+            type='button'
+            onClick={() => setShowPassword(prev => !prev)}
+            className='text-gray-400 hover:text-gray-600 focus:outline-none'
+            tabIndex="-1"
+          >
+            {showPassword ? <FaRegEye className='h-4 w-4' /> : <FaRegEyeSlash className='h-4 w-4' />}
+          </button>             
         </div>
-      </div>
+
+        {/* Confirm Password Input */}
+        <div className="flex items-center mt-4 w-full bg-white border border-gray-300/80 h-12 rounded-full overflow-hidden px-4 gap-2 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-colors">
+          <svg width="13" height="17" viewBox="0 0 13 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 8.5c0-.938-.729-1.7-1.625-1.7h-.812V4.25C10.563 1.907 8.74 0 6.5 0S2.438 1.907 2.438 4.25V6.8h-.813C.729 6.8 0 7.562 0 8.5v6.8c0 .938.729 1.7 1.625 1.7h9.75c.896 0 1.625-.762 1.625-1.7zM4.063 4.25c0-1.406 1.093-2.55 2.437-2.55s2.438 1.144 2.438 4.25V6.8H4.061z" fill="#6B7280"/>
+          </svg>
+          <input 
+            name="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"} 
+            placeholder="Confirm Password" 
+            value={data.confirmPassword}
+            onChange={handleChange}
+            className="bg-transparent text-gray-700 placeholder-gray-400 outline-none text-sm w-full h-full flex-1" 
+            disabled={isLoading}
+            required 
+          />    
+          <button
+            type='button'
+            onClick={() => setShowConfirmPassword(prev => !prev)}
+            className='text-gray-400 hover:text-gray-600 focus:outline-none'
+            tabIndex="-1"
+          >
+            {showConfirmPassword ? <FaRegEye className='h-4 w-4' /> : <FaRegEyeSlash className='h-4 w-4' />}
+          </button>             
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={!isValidValue || isLoading}
+          className="mt-8 w-full h-11 rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm flex items-center justify-center"
+        >
+          {isLoading ? (
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            'Change Password'
+          )}
+        </button>
+
+        <p className="text-gray-500 text-sm mt-8">
+          Back to{' '}
+          <Link className="text-indigo-500 hover:text-indigo-600 font-medium" to="/login">
+            Login
+          </Link>
+        </p>
+      </form>
     </section>
   );
 };

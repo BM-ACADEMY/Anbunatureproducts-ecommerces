@@ -2,26 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useGlobalContext } from '../provider/GlobalProvider';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from './Loading';
 import { useSelector } from 'react-redux';
-import { FaMinus, FaPlus, FaCartShopping } from 'react-icons/fa6';
+import { FaMinus, FaPlus } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
-import { Button, Box, Typography } from '@mui/material';
 
-
-// Add fullWidth to the destructuring of props, with a default of false
 const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d', textColor = 'white', fullWidth = false }) => {
   const { fetchCartItem, updateCartItem, deleteCartItem } = useGlobalContext();
   const [loading, setLoading] = useState(false);
   const cartItem = useSelector(state => state.cartItem.cart);
   const [isAvailableCart, setIsAvailableCart] = useState(false);
   const [qty, setQty] = useState(0);
-  const [cartItemDetails, setCartItemDetails] = useState(); // Corrected spelling for consistency
+  const [cartItemDetails, setCartItemDetails] = useState();
   const navigate = useNavigate();
-
-  console.log('AddToCartButton data:', data);
 
   const handleADDTocart = async (e) => {
     e.preventDefault();
@@ -31,15 +26,11 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
       setLoading(true);
 
       if (!data || !data._id) {
-        console.error('Invalid product data:', data);
         toast.error('Invalid product data');
         return;
       }
 
-      // Check if data.attributes exists and has length, or if data.selectedAttributes exists and has entries
-      // This allows products without attributes to still be added to cart if they have a base price
       if (data.attributes && data.attributes.length > 0 && (!data.selectedAttributes || Object.keys(data.selectedAttributes).length === 0)) {
-        console.error('No attributes selected:', data.selectedAttributes);
         toast.error('Please select product attributes');
         return;
       }
@@ -48,7 +39,6 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
       if (data.attributes && data.attributes.length > 0) {
         attributesToSend = Object.entries(data.selectedAttributes || {}).map(([attributeName, option]) => {
           if (!option || !option.name) {
-            console.error('Invalid option for attribute:', attributeName, option);
             throw new Error(`Invalid option for attribute ${attributeName}`);
           }
           return {
@@ -57,8 +47,6 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
           };
         });
       }
-
-      console.log('Request payload:', { productId: data._id, selectedAttributes: attributesToSend });
 
       const response = await Axios({
         ...SummaryApi.addTocart,
@@ -84,7 +72,6 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
         }
       }
     } catch (error) {
-      console.error('Add to cart error:', error.response?.data || error);
       if (error.response?.status === 401) {
         navigate('/login');
       } else {
@@ -98,14 +85,12 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
   useEffect(() => {
     if (!data?._id || !cartItem) return;
 
-    // Determine attributes to match against
     const targetAttributes = data.attributes && data.attributes.length > 0 ? Object.entries(data.selectedAttributes || {}) : [];
 
     const checkingitem = cartItem.some(
       item =>
         item.productId &&
         item.productId._id === data._id &&
-        // Check if selectedAttributes match (if attributes exist)
         (targetAttributes.length === 0 || item.selectedAttributes?.every(attr =>
           targetAttributes.some(
             ([attrName, selAttr]) => attr.attributeName === attrName && attr.optionName === selAttr.name
@@ -118,7 +103,6 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
       item =>
         item.productId &&
         item.productId._id === data._id &&
-        // Check if selectedAttributes match (if attributes exist)
         (targetAttributes.length === 0 || item.selectedAttributes?.every(attr =>
           targetAttributes.some(
             ([attrName, selAttr]) => attr.attributeName === attrName && attr.optionName === selAttr.name
@@ -156,97 +140,49 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
     }
   };
 
-  // Determine if the add to cart button should be disabled due to missing attribute selections
   const isDisabled = loading || (data.attributes && data.attributes.length > 0 && (!data.selectedAttributes || Object.keys(data.selectedAttributes).length === 0));
 
   return (
-    // Conditionally set maxWidth based on fullWidth prop
-    <Box sx={{ width: '100%', maxWidth: fullWidth ? '100%' : '150px' }}> 
+    <div className={`w-full ${fullWidth ? 'max-w-full' : 'max-w-[150px]'}`}> 
       {isAvailableCart ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-          <Button
+        <div className="flex items-center w-full">
+          <button
             onClick={decreaseQty}
-            variant="contained"
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              padding: { xs: '4px', lg: '6px' },
-              borderRadius: '9999px 0 0 9999px',
-              height: { xs: '32px', lg: '36px' },
-              bgcolor: buttonColor,
-              '&:hover': { bgcolor: hoverColor },
-              color: textColor,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
+            className="flex-1 flex items-center justify-center p-2 rounded-l-full h-8 lg:h-9 transition-colors text-white"
+            style={{ backgroundColor: buttonColor }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = buttonColor)}
           >
-           <FaMinus size={14} style={{ color: '#ffffff' }} className="icon-white" />
-
-          </Button>
-          <Typography
-            sx={{
-              flex: 1,
-              textAlign: 'center',
-              fontWeight: 'medium',
-              px: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'grey.100',
-              height: { xs: '32px', lg: '36px' },
-              borderTop: '1px solid',
-              borderBottom: '1px solid',
-              borderColor: 'grey.300',
-            }}
-          >
+            <FaMinus size={12} />
+          </button>
+          
+          <div className="flex-1 bg-gray-100 flex items-center justify-center h-8 lg:h-9 border-t border-b border-gray-300 font-medium text-sm px-2">
             {qty}
-          </Typography>
-          <Button
+          </div>
+
+          <button
             onClick={increaseQty}
-            variant="contained"
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              padding: { xs: '4px', lg: '6px' },
-              borderRadius: '0 9999px 9999px 0',
-              height: { xs: '32px', lg: '36px' },
-              bgcolor: buttonColor,
-              '&:hover': { bgcolor: hoverColor },
-              color: textColor,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
+            className="flex-1 flex items-center justify-center p-2 rounded-r-full h-8 lg:h-9 transition-colors text-white"
+            style={{ backgroundColor: buttonColor }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = buttonColor)}
           >
-            <FaPlus size={14} style={{ color: '#ffffff' }} className="icon-white"  />
-          </Button>
-        </Box>
+            <FaPlus size={12} />
+          </button>
+        </div>
       ) : (
-        <Button
+        <button
           onClick={handleADDTocart}
-          variant="contained"
-          sx={{
-            width: '100%',
-            px: { xs: 2, lg: 4 },
-            py: 1,
-            borderRadius: '4px',
-            bgcolor: buttonColor,
-            '&:hover': { bgcolor: hoverColor },
-            color: textColor,
-            fontSize: { xs: '0.875rem', lg: '1rem' },
-            textTransform: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-          }}
-          disabled={isDisabled} // Use the new isDisabled variable
+          className="w-full px-4 py-2 rounded-md font-medium text-sm lg:text-base flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: buttonColor, color: textColor }}
+          onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = hoverColor)}
+          onMouseLeave={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = buttonColor)}
+          disabled={isDisabled}
         >
-          {loading ? <Loading /> : "Add to Cart"}
-        </Button>
+          {loading ? <Loading className="w-5 h-5" /> : "Add to Cart"}
+        </button>
       )}
-    </Box>
+    </div>
   );
 };
 

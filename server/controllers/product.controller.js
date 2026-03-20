@@ -628,11 +628,15 @@ export const searchProduct = async (request, response) => {
   try {
     let { search, page = 1, limit = 10 } = request.body;
 
-    if (!search) {
-      return response.status(400).json({
-        message: "Please provide a search term.",
-        error: true,
-        success: false
+    if (!search || search.trim() === "") {
+      return response.json({
+        message: "Search term is empty",
+        data: [],
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: page,
+        error: false,
+        success: true
       });
     }
 
@@ -640,15 +644,16 @@ export const searchProduct = async (request, response) => {
     limit = parseInt(limit, 10);
 
     const query = {
-      $text: {
-        $search: search
-      }
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ]
     };
 
     const skip = (page - 1) * limit;
 
     const [data, totalCount] = await Promise.all([
-      ProductModel.find(query).sort({ score: { $meta: "textScore" } }).skip(skip).limit(limit).populate('category subCategory'),
+      ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
       ProductModel.countDocuments(query)
     ]);
 

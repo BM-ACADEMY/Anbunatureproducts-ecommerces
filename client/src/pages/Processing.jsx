@@ -5,7 +5,7 @@ import { DisplayPriceInRupees } from "../utils/DisplayPriceInRupees";
 import { useNavigate } from "react-router-dom";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import uploadImage from "../utils/UploadImage";
 import { FaCopy, FaCheckCircle } from "react-icons/fa"; // Import icons
 import Qrcodeiamge from '../assets/qrcodeimage.jpg'

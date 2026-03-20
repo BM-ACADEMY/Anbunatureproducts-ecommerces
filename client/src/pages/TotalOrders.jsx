@@ -8,7 +8,7 @@ import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { setOrder } from "../store/orderSlice";
 import NoData from "../components/NoData";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import InvoiceModal from "../components/InvoiceComponent";
 import TrackingModal from "../components/TrackingModal";
 import {

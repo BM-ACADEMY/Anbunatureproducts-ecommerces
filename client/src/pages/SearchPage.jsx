@@ -18,6 +18,11 @@ const SearchPage = () => {
   const searchText = params?.search?.slice(3)
 
   const fetchData = async() => {
+    if (!searchText || searchText.trim() === "") {
+        setData([])
+        setLoading(false)
+        return
+    }
     try {
       setLoading(true)
         const response = await Axios({

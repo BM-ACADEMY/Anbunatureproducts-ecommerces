@@ -1,303 +1,269 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import logo from "../assets/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LuUserRound } from "react-icons/lu";
+import { LuUserRound, LuSearch, LuTruck } from "react-icons/lu";
 import useMobile from "../hooks/useMobile";
 import { useSelector } from "react-redux";
 import { AiOutlineMenu } from "react-icons/ai";
-import { RiCloseLargeLine } from "react-icons/ri";
+import { IoCloseOutline } from "react-icons/io5";
 import UserMenu from "./UserMenu";
 import DisplayCartItem from "./DisplayCartItem";
 import { SlHandbag } from "react-icons/sl";
-import TopContactBar from "./Topbarnavbar";
 import isAdmin from "../utils/isAdmin";
-
-
-const getAvatarColor = (letter) => {
-  const colors = [
-    "#FF5733", "#33FF57", "#3357FF", "#F033FF", "#FF33F0",
-    "#33FFF5", "#FFC733", "#8E33FF", "#33FFBD", "#57FF33",
-    "#3385FF", "#FF33A8", "#33FF8E", "#FF8E33",
-  ];
-  const charCode = letter?.charCodeAt(0) || 0;
-  return colors[charCode % colors.length];
-};
+import Search from "./Search";
 
 const Header = () => {
-  const [isMobile] = useMobile();
-  const location = useLocation();
-  const navigate = useNavigate();
+    const [isMobile] = useMobile();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-  const user = useSelector((state) => state?.user);
-  const [openUserMenu, setOpenUserMenu] = useState(false);
-  const [closeTimeout, setCloseTimeout] = useState(null);
-  const userMenuRef = useRef(null);
-  const cartItem = useSelector((state) => state.cartItem.cart);
-  const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
+    const user = useSelector((state) => state?.user);
+    const [openUserMenu, setOpenUserMenu] = useState(false);
+    const [closeTimeout, setCloseTimeout] = useState(null);
+    const userMenuRef = useRef(null);
+    
+    const cartItem = useSelector((state) => state.cartItem.cart);
+    const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
 
-  const [openCartSection, setOpenCartSection] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [openCartSection, setOpenCartSection] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
 
-  const redirectToLoginPage = () => {
-    navigate("/login");
-  };
+    // Close user menu when user logs out
+    useEffect(() => {
+        if (!user?._id) {
+            setOpenUserMenu(false);
+        }
+    }, [user?._id]);
 
-  const handleCloseUserMenu = () => {
-    setOpenUserMenu(false);
-  };
+    const handleMouseEnter = () => {
+        if (closeTimeout) {
+            clearTimeout(closeTimeout);
+            setCloseTimeout(null);
+        }
+        setOpenUserMenu(true);
+    };
 
-  const handleMouseEnter = () => {
-    if (closeTimeout) {
-      clearTimeout(closeTimeout);
-      setCloseTimeout(null);
-    }
-    setOpenUserMenu(true);
-  };
+    const handleMouseLeave = () => {
+        const timeout = setTimeout(() => {
+            setOpenUserMenu(false);
+        }, 300);
+        setCloseTimeout(timeout);
+    };
 
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => {
-      setOpenUserMenu(false);
-    }, 300);
-    setCloseTimeout(timeout);
-  };
+    const toggleMobileMenu = () => {
+        setShowMobileMenu((prev) => !prev);
+    };
 
-  const toggleMobileMenu = () => {
-    setShowMobileMenu((prev) => !prev);
-  };
+    const navLinks = [
+        { label: "Home", path: "/" },
+        { label: "About", path: "/about" },
+        { label: "Contact", path: "/contact" },
+    ];
 
-  const userInitial = user?.name?.charAt(0) || user?.mobile?.charAt(0) || "U";
-  const avatarColor = getAvatarColor(userInitial);
-
-  return (
-    <>
-    {/* <TopContactBar/> */}
-    <header className="h-24 lg:h-20 sticky top-0 z-50 flex flex-col justify-center shadow-md gap-1 bg-white border-b border-gray-200">
-
-        <div className="container mx-auto flex items-center px-2 justify-between">
-          <div className="h-full">
-            <Link to="/" className="h-full flex justify-center items-center">
-              <img
-                src={logo}
-                width={130}
-                height={60}
-                alt="logo"
-                className="hidden lg:block"
-              />
-              <img
-                src={logo}
-                width={120}
-                height={60}
-                alt="logo"
-                className="lg:hidden"
-              />
-            </Link>
-          </div>
-
-          {!isAdmin(user?.role) && (
-            <div className="hidden lg:flex items-center gap-4 lg:gap-8">
-              <Link 
-                to="/" 
-                className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 font-medium text-[16px]"
-              >
-                Home
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 font-medium text-[16px]"
-              >
-                About
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 font-medium text-[16px]"
-              >
-                Contact
-              </Link>
+    return (
+        <>
+            {/* Announcement Bar with Marquee Effect */}
+            <div className="w-full bg-[#fdf5e6] py-2 overflow-hidden whitespace-nowrap border-b border-gray-100">
+                <div className="inline-block animate-marquee hover:pause-marquee cursor-default">
+                    <div className="flex items-center space-x-12">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                            <div key={i} className="flex items-center space-x-2">
+                                <LuTruck size={18} className="text-green-700" />
+                                <span className="text-sm font-semibold text-gray-800 uppercase tracking-widest whitespace-nowrap">
+                                    deliver with in 2 to 5 days all over india
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
-          )}
 
+            <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+                <div className="container mx-auto px-4 h-24 flex items-center justify-between">
+                    
+                    {/* Logo - Increased Size */}
+                    <Link to="/" className="flex-shrink-0 transition-transform">
+                        <img src={logo} alt="Anbu Logo" className="h-16 lg:h-[75px] w-auto" />
+                    </Link>
 
-          <div className="flex items-center gap-4 lg:gap-6">
-            <button
-              className="lg:hidden text-neutral-600 hover:text-gray-900 transition-colors duration-300"
-              onClick={toggleMobileMenu}
-            >
-              {showMobileMenu ? <RiCloseLargeLine size={26} /> : <AiOutlineMenu size={26} />}
-            </button>
+                    {/* Desktop Navigation */}
+                    <nav className="hidden lg:flex items-center space-x-8">
+                        {navLinks.map((link) => (
+                            <Link 
+                                key={link.label}
+                                to={link.path}
+                                className={`text-gray-700 hover:text-green-700 font-medium transition-colors ${
+                                    location.pathname === link.path ? 'text-green-700' : ''
+                                }`}
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                    </nav>
 
-            <div className="hidden lg:flex items-center gap-6">
-              {user?._id ? (
-                <div
-                  className="relative"
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                  ref={userMenuRef}
+                    {/* Right Icons (Desktop) */}
+                    <div className="hidden lg:flex items-center space-x-6">
+                        <button 
+                            onClick={() => setShowSearch(!showSearch)}
+                            className={`transition-colors ${showSearch ? 'text-green-700' : 'text-gray-700 hover:text-green-700'}`}
+                            title="Search"
+                        >
+                            <LuSearch size={24} />
+                        </button>
+
+                        <div 
+                            className="relative"
+                            onMouseEnter={() => user?._id && handleMouseEnter()}
+                            onMouseLeave={() => user?._id && handleMouseLeave()}
+                            ref={userMenuRef}
+                        >
+                            <button 
+                                className="transition-colors flex items-center"
+                                onClick={() => {
+                                    if (!user?._id) {
+                                        navigate('/login');
+                                    } else {
+                                        setOpenUserMenu(!openUserMenu);
+                                    }
+                                }}
+                            >
+                                {user?._id ? (
+                                    user?.avatar ? (
+                                        <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-green-500 shadow-sm">
+                                            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 border-green-500">
+                                            {user?.name?.charAt(0)?.toUpperCase() || user?.mobile?.charAt(0) || "U"}
+                                        </div>
+                                    )
+                                ) : (
+                                    <LuUserRound size={24} className="text-gray-700 hover:text-green-700" />
+                                )}
+                            </button>
+                            
+                            {user?._id && openUserMenu && (
+                                <div className="absolute right-0 top-full pt-2">
+                                    <UserMenu close={() => setOpenUserMenu(false)} />
+                                </div>
+                            )}
+                        </div>
+
+                        <button 
+                            onClick={() => setOpenCartSection(true)}
+                            className="bg-[#1a1a1a] text-white flex items-center space-x-2 px-6 py-2.5 rounded-full hover:bg-black transition-all shadow-md group"
+                        >
+                            <SlHandbag size={20} className="group-hover:scale-110 transition-transform" />
+                            <span className="font-semibold text-sm">Cart ({totalQty})</span>
+                        </button>
+                    </div>
+
+                    {/* Mobile Icons + Menu Toggle */}
+                    <div className="flex lg:hidden items-center space-x-4">
+                        <button 
+                            onClick={() => setShowSearch(!showSearch)}
+                            className={`transition-colors ${showSearch ? 'text-green-700' : 'text-gray-700'}`}
+                            title="Search"
+                        >
+                            <LuSearch size={22} />
+                        </button>
+                        
+                        <Link to="/user" className="text-gray-700">
+                            <LuUserRound size={22} />
+                        </Link>
+
+                        <button 
+                            onClick={() => setOpenCartSection(true)}
+                            className="relative text-gray-700"
+                        >
+                            <SlHandbag size={24} />
+                            {totalQty > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-[#70a139] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white">
+                                    {totalQty}
+                                </span>
+                            )}
+                        </button>
+
+                        <button 
+                            onClick={toggleMobileMenu}
+                            className="text-gray-700 focus:outline-none"
+                        >
+                            <AiOutlineMenu size={24} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile Menu Drawer */}
+                <div 
+                    className={`fixed inset-0 z-[60] bg-black bg-opacity-40 transition-opacity duration-300 ${
+                        showMobileMenu ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                    }`}
+                    onClick={toggleMobileMenu}
                 >
-                  <div
-                    onClick={() => setOpenUserMenu((prev) => !prev)}
-                    className="flex select-none items-center cursor-pointer"
-                  >
                     <div 
-                      className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden text-white font-bold text-base transition-transform duration-200 hover:scale-110"
-                      style={{ backgroundColor: user?.avatar ? 'transparent' : avatarColor }}
+                        className={`absolute top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl transition-transform duration-300 transform ${
+                            showMobileMenu ? 'translate-x-0' : 'translate-x-full'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
                     >
-                      {user?.avatar ? (
-                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                      ) : (
-                        userInitial.toUpperCase()
-                      )}
+                        <div className="p-6 flex flex-col h-full">
+                            <div className="flex items-center justify-between mb-8">
+                                <button onClick={toggleMobileMenu} className="text-gray-500">
+                                    <IoCloseOutline size={30} />
+                                </button>
+                                <img src={logo} alt="Anbu Logo" className="h-10 w-auto" />
+                                <div className="w-8" /> {/* Spacer */}
+                            </div>
+
+                            <nav className="flex flex-col space-y-2">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.label}
+                                        to={link.path}
+                                        onClick={toggleMobileMenu}
+                                        className={`px-4 py-3 rounded-xl text-lg font-medium transition-all ${
+                                            location.pathname === link.path && link.path === "/"
+                                                ? 'bg-[#70a139] text-white shadow-md' 
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                ))}
+                            </nav>
+
+                            <div className="mt-auto border-t pt-6 space-y-4">
+                                {isAdmin(user?.role) && (
+                                    <Link 
+                                        to="/dashboard" 
+                                        onClick={toggleMobileMenu}
+                                        className="block text-center py-3 bg-gray-100 rounded-xl font-medium text-gray-700"
+                                    >
+                                        Admin Dashboard
+                                    </Link>
+                                ) }
+                            </div>
+                        </div>
                     </div>
-                  </div>
+                </div>
 
-                  {openUserMenu && (
-                    <div
-                      className="absolute right-0 top-12 z-50"
-                      onMouseEnter={handleMouseEnter}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      <div className="bg-white rounded shadow-lg border border-gray-100">
-                        <UserMenu avatarColor={avatarColor} close={handleCloseUserMenu} />
-                      </div>
+                {/* Search Bar Overlay */}
+                {showSearch && (
+                    <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 py-4 px-4 shadow-md animate-fade-in z-40">
+                        <div className="container mx-auto max-w-3xl">
+                            <Search isFullWidth={true} close={() => setShowSearch(false)} />
+                        </div>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={redirectToLoginPage}
-                  className="text-lg px-2 flex items-center gap-2 text-neutral-600 hover:text-gray-900 transition-colors duration-300 text-[16px]"
-                >
-                  <LuUserRound size={20} />
-                  <span>Login</span>
-                </button>
-              )}
+                )}
 
-              <button
-                onClick={() => setOpenCartSection(true)}
-                className="p-2 text-neutral-600 hover:text-gray-900 transition-colors duration-300 relative"
-                title="Cart"
-              >
-                <div className="relative">
-                  <SlHandbag size={28} />
-                  {totalQty > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] min-w-[16px] h-4 rounded-full flex items-center justify-center px-1 border-2 border-white">
-                      {totalQty}
-                    </span>
-                  )}
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-
-      {/* Mobile Menu Drawer Replacement */}
-      <div 
-        className={`fixed inset-0 z-[60] transition-opacity duration-300 ${showMobileMenu ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-      >
-        <div 
-          className="absolute inset-0 bg-black bg-opacity-50" 
-          onClick={toggleMobileMenu}
-        />
-        <div 
-          className={`absolute top-0 left-0 bottom-0 w-[250px] bg-white transition-transform duration-300 ease-in-out p-4 overflow-y-auto ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}
-          style={{ boxShadow: '2px 0 10px rgba(0, 0, 0, 0.1)' }}
-        >
-          <div className="flex justify-start mb-10">
-            <img src={logo} width={120} height={60} alt="logo" />
-          </div>
-          
-          <div className="flex flex-col gap-6">
-            {!isAdmin(user?.role) && (
-              <>
-                <Link 
-                  to="/" 
-                  className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 px-4 py-2 text-[16px]"
-                  onClick={toggleMobileMenu}
-                >
-                  Home
-                </Link>
-                <Link 
-                  to="/about" 
-                  className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 px-4 py-2 text-[16px]"
-                  onClick={toggleMobileMenu}
-                >
-                  About
-                </Link>
-                <Link 
-                  to="/contact" 
-                  className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 px-4 py-2 text-[16px]"
-                  onClick={toggleMobileMenu}
-                >
-                  Contact
-                </Link>
-              </>
-            )}
-
-            <div className="mt-8 border-t pt-4">
-              {user?._id ? (
-                <Link
-                  to="/user"
-                  className="flex items-center gap-2 text-neutral-600 hover:text-gray-900 transition-colors duration-300 px-4 py-2 text-[16px]"
-                  onClick={toggleMobileMenu}
-                >
-                  <div 
-                    className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden text-white font-bold text-[10px]"
-                    style={{ backgroundColor: user?.avatar ? 'transparent' : avatarColor }}
-                  >
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      userInitial.toUpperCase()
-                    )}
-                  </div>
-                  <span className="truncate">My Account</span>
-                </Link>
-              ) : (
-                <button
-                  onClick={() => {
-                    toggleMobileMenu();
-                    redirectToLoginPage();
-                  }}
-                  className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 flex items-center gap-2 px-4 py-2 w-full text-left text-[16px]"
-                >
-                  <LuUserRound size={20} />
-                  <span>Login</span>
-                </button>
-              )}
-            </div>
-
-            <div className="mt-4 border-t pt-4">
-              <button
-                onClick={() => {
-                  toggleMobileMenu();
-                  setOpenCartSection(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2 w-full text-left"
-              >
-                <div className="relative">
-                  <SlHandbag size={28} />
-                  {totalQty > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] min-w-[16px] h-4 rounded-full flex items-center justify-center px-1 border-2 border-white">
-                      {totalQty}
-                    </span>
-                  )}
-                </div>
-                <span className="text-neutral-600 hover:text-gray-900 transition-colors duration-300 text-[16px]">Cart</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      {openCartSection && (
-        <DisplayCartItem close={() => setOpenCartSection(false)} />
-      )}
-    </header>
-
-    
-    </>
-    
-  );
+                {/* Cart Section Overlay */}
+                {openCartSection && (
+                    <DisplayCartItem close={() => setOpenCartSection(false)} />
+                )}
+            </header>
+        </>
+    );
 };
 
 export default Header;
