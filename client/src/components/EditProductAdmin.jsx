@@ -28,6 +28,8 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     altText: propsData.altText || '' // Added altText field
   });
 
+  const [imageFileMap, setImageFileMap] = useState({}); // Maps previewUrl to File object
+
   const [imageLoading, setImageLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [viewImageURL, setViewImageURL] = useState('');
@@ -65,37 +67,38 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
       comboOffer: e.target.checked,
     }));
   };
-
-  const handleUploadImages = async (e) => {
+  const handleUploadImages = (e) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (!files) return;
 
-    // Frontend validation: 2MB limit
-    const MAX_SIZE = 2 * 1024 * 1024;
-    const invalidFiles = Array.from(files).filter(file => file.size > MAX_SIZE);
-    
-    if (invalidFiles.length > 0) {
-      toast.error(`Some images exceed the 2MB limit: ${invalidFiles.map(f => f.name).join(', ')}`);
-      return;
-    }
+    const newImageFiles = Array.from(files);
+    const newImageData = {};
 
-    setImageLoading(true);
-    try {
-      const uploadPromises = Array.from(files).map((file) => uploadImage(file, 'product'));
-      const responses = await Promise.all(uploadPromises);
-      const newImageUrls = responses
-        .filter((response) => response?.data?.data?.url)
-        .map((response) => response.data.data.url);
-      setData((prev) => ({ ...prev, image: [...prev.image, ...newImageUrls] }));
-    } catch (error) {
-      AxiosToastError(error);
-    } finally {
-      setImageLoading(false);
-    }
+    newImageFiles.forEach(file => {
+      const previewUrl = URL.createObjectURL(file);
+      newImageData[previewUrl] = file;
+    });
+
+    setImageFileMap(prev => ({ ...prev, ...newImageData }));
+    setData((prev) => ({
+      ...prev,
+      image: [...prev.image, ...Object.keys(newImageData)],
+    }));
   };
 
   const handleDeleteImage = (index) => {
-    setData((prev) => ({ ...prev, image: prev.image.filter((_, i) => i !== index) }));
+    const urlToDelete = data.image[index];
+    const newImages = [...data.image];
+    newImages.splice(index, 1);
+    
+    // Cleanup if it was a local preview
+    if (imageFileMap[urlToDelete]) {
+      const { [urlToDelete]: removed, ...remainingMap } = imageFileMap;
+      setImageFileMap(remainingMap);
+      URL.revokeObjectURL(urlToDelete);
+    }
+    
+    setData((prev) => ({ ...prev, image: newImages }));
   };
 
   const handleRemoveCategory = (index) => {
@@ -267,10 +270,20 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         return;
       }
 
+      const imageUrls = await Promise.all(
+        data.image.map(async (url) => {
+          if (imageFileMap[url]) {
+            const uploadResponse = await uploadImage(imageFileMap[url], 'product');
+            return uploadResponse.data.data.url;
+          }
+          return url;
+        })
+      );
+
       const productDataToSend = {
         _id: data._id,
         name: data.name,
-        image: data.image,
+        image: imageUrls,
         category: data.category.map((c) => c._id),
         subCategory: data.subCategory.map((s) => s._id),
         description: data.description,
@@ -288,6 +301,11 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
       if (response.data.success) {
         successAlert(response.data.message);
+        
+        // Cleanup local previews
+        Object.keys(imageFileMap).forEach(url => URL.revokeObjectURL(url));
+        setImageFileMap({});
+
         close();
         fetchProductData();
       }
@@ -813,4 +831,4 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   );
 };
 
-export default EditProductAdmin;
+export default EditProductAdmin;

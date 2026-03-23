@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { IoClose } from "react-icons/io5";
-import { AiOutlineCamera } from "react-icons/ai";
+import { IoClose } from 'react-icons/io5';
+import { FiUploadCloud, FiType, FiHash } from 'react-icons/fi';
 import { MdOutlineImage } from "react-icons/md";
-import uploadImage from '../utils/UploadImage';
 import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
+
+import uploadImage from '../utils/UploadImage';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
-import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from './Loading';
 
@@ -19,6 +20,7 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
   });
   
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const allCategory = useSelector((state) => state.product.allCategory);
 
@@ -40,19 +42,13 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await uploadImage(file, 'subcategory');
-      const { data: ImageResponse } = response;
-      setSubCategoryData((prev) => ({
-        ...prev,
-        image: ImageResponse.data.url,
-      }));
-    } catch (error) {
-      AxiosToastError(error);
-    } finally {
-      setLoading(false);
-    }
+    // Create local preview
+    const previewUrl = URL.createObjectURL(file);
+    setImageFile(file);
+    setSubCategoryData((prev) => ({
+      ...prev,
+      image: previewUrl,
+    }));
   };
 
   const handleRemoveCategorySelected = (categoryId) => {
@@ -71,9 +67,27 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
 
     setLoading(true);
     try {
+      let imageUrl = subCategoryData.image;
+
+      // Upload image if a new file is selected
+      if (imageFile) {
+        const uploadResponse = await uploadImage(imageFile, 'subcategory');
+        const { data: uploadData } = uploadResponse;
+        if (uploadData.success) {
+          imageUrl = uploadData.data.url;
+        } else {
+          toast.error("Failed to upload image");
+          setLoading(false);
+          return;
+        }
+      }
+
       const response = await Axios({
         ...SummaryApi.createSubCategory,
-        data: subCategoryData,
+        data: {
+          ...subCategoryData,
+          image: imageUrl
+        },
       });
       const { data: responseData } = response;
       if (responseData.success) {
@@ -89,76 +103,93 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
   };
 
   return (
-    <section className='fixed inset-0 p-4 bg-neutral-800 bg-opacity-60 z-50 flex items-center justify-center'>
-      <div className='bg-white w-full max-w-lg p-4 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto'>
-        <div className='flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b'>
-          <h1 className='font-semibold text-lg'>Add Sub Category</h1>
-          <button onClick={close} className='text-neutral-600 hover:text-red-600 transition-colors'>
-            <IoClose size={25} />
+    <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4'>
+      <div className='absolute inset-0 bg-black/50 overflow-hidden' onClick={close} />
+      
+      <div className='relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200'>
+        {/* Header */}
+        <div className='flex items-center justify-between px-6 py-4 border-b bg-gray-50/50 sticky top-0 bg-white z-10'>
+          <h3 className='text-lg font-bold text-gray-800 flex items-center gap-2'>
+            <span className='w-2 h-2 bg-indigo-600 rounded-full animate-pulse' />
+            Add Sub Category
+          </h3>
+          <button onClick={close} className='p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all'>
+            <IoClose size={22} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmitSubCategory} className='grid gap-4'>
-          <div className='grid gap-1'>
-            <label htmlFor='name' className='font-medium'>Name</label>
-            <input
-              type='text'
-              id='name'
-              name='name'
-              placeholder='Enter subcategory name'
-              value={subCategoryData.name}
-              onChange={handleChange}
-              className='bg-blue-50 p-2 border border-blue-100 focus-within:border-primary-200 outline-none rounded'
-              required
-            />
+        <form onSubmit={handleSubmitSubCategory} className='p-8 space-y-7'>
+          {/* SubCategory Name */}
+          <div className='space-y-2'>
+            <label htmlFor='name' className='block text-[14px] font-bold text-gray-700 uppercase tracking-tight ml-1'>
+               Sub Category Name
+            </label>
+            <div className='relative group'>
+              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition-colors'>
+                <FiType size={18} />
+              </div>
+              <input
+                type='text'
+                id='name'
+                name='name'
+                placeholder='Type here'
+                value={subCategoryData.name}
+                onChange={handleChange}
+                className='w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-gray-700 placeholder:text-gray-400'
+                required
+              />
+            </div>
           </div>
 
-          <div className='grid gap-1'>
-            <label htmlFor='altText' className='font-medium'>SEO Alt Text</label>
-            <input
-              type='text'
-              id='altText'
-              name='altText'
-              placeholder='Enter image description for SEO'
-              value={subCategoryData.altText}
-              onChange={handleChange}
-              className='bg-blue-50 p-2 border border-blue-100 focus-within:border-primary-200 outline-none rounded'
-            />
-          </div>
-
-          <div className='grid gap-1'>
-            <p className='font-medium'>Image</p>
-            <div className='flex flex-col sm:flex-row items-center gap-3'>
+          {/* Image Upload Section */}
+          <div className='space-y-3'>
+            <label className='block text-[14px] font-bold text-gray-700 uppercase tracking-tight ml-1'>
+               Sub Category Image
+            </label>
+            <div className='flex flex-wrap items-start gap-5'>
+              {/* Preview Box */}
               <div 
-                className='border bg-blue-50 h-36 w-36 flex items-center justify-center rounded cursor-pointer overflow-hidden'
+                className={`relative w-32 h-32 border-2 rounded-2xl flex items-center justify-center overflow-hidden transition-all group ${subCategoryData.image ? 'border-indigo-100 bg-indigo-50/30' : 'border-dashed border-gray-200 bg-gray-50'}`}
                 onClick={() => subCategoryData.image && setShowImagePreview(true)}
               >
                 {subCategoryData.image ? (
-                  <img
-                    src={subCategoryData.image}
-                    alt='SubCategory'
-                    className='w-full h-full object-scale-down'
-                  />
+                  <>
+                    <img src={subCategoryData.image} alt='SubCategory' className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
+                    <div className='absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-zoom-in'>
+                      <span className='text-[10px] text-white font-bold uppercase tracking-wider backdrop-blur-sm px-2 py-1 rounded-full'>Preview</span>
+                    </div>
+                  </>
                 ) : (
-                  <div className='flex flex-col items-center text-neutral-400'>
-                    <MdOutlineImage size={40} />
-                    <p className='text-xs'>No Image</p>
+                  <div className='flex flex-col items-center gap-1 text-gray-300'>
+                    <MdOutlineImage size={32} />
+                    <span className='text-[10px] font-bold uppercase'>No Image</span>
                   </div>
                 )}
               </div>
-              <label htmlFor='uploadSubImg'>
-                <div className={`px-4 py-2 border border-primary-100 text-primary-200 rounded cursor-pointer hover:bg-primary-100 transition-colors flex items-center gap-2 ${loading && "opacity-50 cursor-not-allowed"}`}>
-                  {loading ? <Loading /> : (
-                    <>
-                      <AiOutlineCamera size={20} />
-                      <span>Upload Image</span>
-                    </>
-                  )}
-                </div>
+
+              {/* Upload Box */}
+              <label htmlFor='uploadSubImg' className='flex-grow h-32 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all active:scale-[0.98] group'>
+                {loading ? (
+                    <div className='flex flex-col items-center gap-2'>
+                        <div className='w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin' />
+                        <span className='text-xs font-bold text-indigo-600'>Processing...</span>
+                    </div>
+                ) : (
+                  <>
+                    <div className='p-3 bg-white rounded-xl shadow-sm border border-gray-100 group-hover:bg-indigo-600 group-hover:text-white transition-all'>
+                      <FiUploadCloud size={24} />
+                    </div>
+                    <div className='text-center'>
+                      <p className='text-xs font-bold text-gray-700 uppercase tracking-wider'>Click to upload</p>
+                      <p className='text-[10px] text-gray-400 mt-0.5'>Max Size: 2MB</p>
+                    </div>
+                  </>
+                )}
                 <input
                   type='file'
                   id='uploadSubImg'
                   className='hidden'
+                  accept='image/*'
                   onChange={handleUploadSubCategoryImage}
                   disabled={loading}
                 />
@@ -166,10 +197,34 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
             </div>
           </div>
 
-          <div className='grid gap-1'>
-            <label className='font-medium'>Select Category</label>
+          {/* SEO Alt Text */}
+          <div className='space-y-2 pt-2'>
+            <label htmlFor='altText' className='block text-[14px] font-bold text-gray-700 uppercase tracking-tight ml-1'>
+               SEO Alt Text
+            </label>
+            <div className='relative group'>
+              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition-colors'>
+                <FiHash size={18} />
+              </div>
+              <input
+                type='text'
+                id='altText'
+                name='altText'
+                placeholder='Type here'
+                value={subCategoryData.altText}
+                onChange={handleChange}
+                className='w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-gray-700 placeholder:text-gray-400'
+              />
+            </div>
+          </div>
+
+          {/* Category Select */}
+          <div className='space-y-2'>
+            <label className='block text-[14px] font-bold text-gray-700 uppercase tracking-tight ml-1'>
+               Select Main Categories
+            </label>
             <select
-              className='bg-blue-50 p-2 border border-blue-100 focus-within:border-primary-200 outline-none rounded'
+              className='w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-gray-700'
               onChange={(e) => {
                 const value = e.target.value;
                 const categoryDetails = allCategory.find((el) => el._id === value);
@@ -182,69 +237,78 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
               }}
               value=""
             >
-              <option value="" disabled>Select Category</option>
+              <option value="" disabled>Choose Category...</option>
               {allCategory.map((category) => (
                 <option key={category._id} value={category._id}>
                   {category.name}
                 </option>
               ))}
             </select>
-            <div className='flex flex-wrap gap-2 mt-2'>
+            
+            <div className='flex flex-wrap gap-2 mt-3'>
               {subCategoryData.category.map((cat) => (
-                <div key={cat._id} className='bg-white border shadow-sm px-2 py-1 rounded flex items-center gap-2'>
-                  <span className='text-sm'>{cat.name}</span>
+                <div key={cat._id} className='bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-top-1'>
+                  <span>{cat.name}</span>
                   <button 
                     type='button'
                     onClick={() => handleRemoveCategorySelected(cat._id)}
-                    className='text-red-500 hover:text-red-700 transition-colors'
+                    className='text-indigo-400 hover:text-red-500 transition-colors'
                   >
-                    <IoClose size={18} />
+                    <IoClose size={16} />
                   </button>
                 </div>
               ))}
+              {subCategoryData.category.length === 0 && (
+                <p className='text-[11px] text-gray-400 italic ml-1'>No categories selected</p>
+              )}
             </div>
           </div>
 
-          <div className='flex items-center justify-end gap-3 mt-4'>
+          {/* Footer Actions */}
+          <div className='flex items-center gap-4 pt-6'>
             <button
               type='button'
               onClick={close}
-              className='px-4 py-2 text-red-600 border border-red-600 rounded hover:bg-red-50 transition-colors'
+              className='flex-1 px-6 py-3.5 text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all active:scale-95'
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type='submit'
-              className={`px-4 py-2 bg-primary-200 text-white rounded hover:bg-primary-300 transition-colors ${(!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length || loading) && "opacity-50 cursor-not-allowed"}`}
               disabled={!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length || loading}
+              className='flex-[2] px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-95 disabled:bg-indigo-300 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]'
             >
-              {loading ? "Loading..." : "Add Sub Category"}
+              {loading ? (
+                <div className='flex items-center gap-2'>
+                   <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin' />
+                   <span>Processing...</span>
+                </div>
+              ) : "Add Sub Category"}
             </button>
           </div>
         </form>
       </div>
 
       {showImagePreview && (
-        <div className='fixed inset-0 bg-neutral-800 bg-opacity-70 z-[60] flex items-center justify-center p-4'>
-          <div className='bg-white p-2 rounded-lg max-w-2xl w-full relative'>
+        <div className='fixed inset-0 bg-black/80 z-[1100] flex items-center justify-center p-4 backdrop-blur-sm' onClick={() => setShowImagePreview(false)}>
+          <div className='relative max-w-4xl w-full animate-in fade-in zoom-in duration-300' onClick={e => e.stopPropagation()}>
              <button 
               onClick={() => setShowImagePreview(false)} 
-              className='absolute -top-10 right-0 text-white hover:text-red-500 transition-colors'
+              className='absolute -top-12 right-0 text-white hover:text-indigo-400 transition-colors p-2'
              >
-                <IoClose size={30} />
+                <IoClose size={32} />
              </button>
              <img
               src={subCategoryData.image}
               alt='Preview'
-              className='w-full h-auto max-h-[80vh] object-contain rounded'
+              className='w-full h-auto max-h-[85vh] object-contain rounded-2xl shadow-2xl'
              />
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 };
 
 export default UploadSubCategoryModel;
-

@@ -18,6 +18,8 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
     link: ''
   });
   const [loading, setLoading] = useState(false);
+  const [desktopImageFile, setDesktopImageFile] = useState(null);
+  const [mobileImageFile, setMobileImageFile] = useState(null);
   const [uploadingDesktop, setUploadingDesktop] = useState(false);
   const [uploadingMobile, setUploadingMobile] = useState(false);
 
@@ -56,27 +58,16 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
 
     if (!validateFile(file)) return;
 
-    if (type === 'desktop') setUploadingDesktop(true);
-    if (type === 'mobile') setUploadingMobile(true);
-
-    try {
-        const response = await uploadImage(file, 'banners');
-        const { data: imageResponse } = response;
-        
-        if (imageResponse.success) {
-            setData((prev) => ({
-                ...prev,
-                [type === 'desktop' ? 'desktopImage' : 'mobileImage']: imageResponse.data.url
-            }));
-            toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} image uploaded`);
-        } else {
-            toast.error(imageResponse.message || "Upload failed");
-        }
-    } catch (error) {
-        AxiosToastError(error);
-    } finally {
-        if (type === 'desktop') setUploadingDesktop(false);
-        if (type === 'mobile') setUploadingMobile(false);
+    // Create local preview
+    const previewUrl = URL.createObjectURL(file);
+    if (type === 'desktop') {
+        setDesktopImageFile(file);
+        setData(prev => ({ ...prev, desktopImage: previewUrl }));
+        toast.success("Desktop image preview ready");
+    } else {
+        setMobileImageFile(file);
+        setData(prev => ({ ...prev, mobileImage: previewUrl }));
+        toast.success("Mobile image preview ready");
     }
   };
 
@@ -89,10 +80,48 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
 
     try {
       setLoading(true);
+
+      let desktopUrl = data.desktopImage;
+      let mobileUrl = data.mobileImage;
+
+      // Upload desktop image if new
+      if (desktopImageFile) {
+        setUploadingDesktop(true);
+        const res = await uploadImage(desktopImageFile, 'banners');
+        if (res.data.success) {
+            desktopUrl = res.data.data.url;
+        } else {
+            toast.error("Failed to upload desktop image");
+            setLoading(false);
+            setUploadingDesktop(false);
+            return;
+        }
+        setUploadingDesktop(false);
+      }
+
+      // Upload mobile image if new
+      if (mobileImageFile) {
+        setUploadingMobile(true);
+        const res = await uploadImage(mobileImageFile, 'banners');
+        if (res.data.success) {
+            mobileUrl = res.data.data.url;
+        } else {
+            toast.error("Failed to upload mobile image");
+            setLoading(false);
+            setUploadingMobile(false);
+            return;
+        }
+        setUploadingMobile(false);
+      }
+
       const api = bannerData ? SummaryApi.updateBanner : SummaryApi.addBanner;
       const response = await Axios({
         ...api,
-        data
+        data: {
+            ...data,
+            desktopImage: desktopUrl,
+            mobileImage: mobileUrl
+        }
       });
       const { data: responseData } = response;
 

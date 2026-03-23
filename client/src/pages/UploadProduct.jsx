@@ -25,6 +25,8 @@ const UploadProduct = () => {
     altText: '' // Added altText field
   });
 
+  const [imageFileMap, setImageFileMap] = useState({}); // Maps previewUrl to File object
+
   const [imageLoading, setImageLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [ViewImageURL, setViewImageURL] = useState('');
@@ -78,30 +80,33 @@ const UploadProduct = () => {
       return;
     }
 
-    setImageLoading(true);
-    try {
-      const uploadPromises = Array.from(files).map((file) => uploadImage(file, 'product'));
-      const responses = await Promise.all(uploadPromises);
+    const newImageFiles = Array.from(files);
+    const newImageData = {};
 
-      const newImageUrls = responses
-        .filter((response) => response?.data?.data?.url)
-        .map((response) => response.data.data.url);
+    newImageFiles.forEach(file => {
+      const previewUrl = URL.createObjectURL(file);
+      newImageData[previewUrl] = file;
+    });
 
-      setData((prev) => ({
-        ...prev,
-        image: [...prev.image, ...newImageUrls],
-      }));
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      AxiosToastError(error);
-    } finally {
-      setImageLoading(false);
-    }
+    setImageFileMap(prev => ({ ...prev, ...newImageData }));
+    setData((prev) => ({
+      ...prev,
+      image: [...prev.image, ...Object.keys(newImageData)],
+    }));
   };
 
   const handleDeleteImage = (index) => {
+    const urlToDelete = data.image[index];
     const newImages = [...data.image];
     newImages.splice(index, 1);
+    
+    // Cleanup if it was a local preview
+    if (imageFileMap[urlToDelete]) {
+      const { [urlToDelete]: removed, ...remainingMap } = imageFileMap;
+      setImageFileMap(remainingMap);
+      URL.revokeObjectURL(urlToDelete);
+    }
+    
     setData((prev) => ({ ...prev, image: newImages }));
   };
 
@@ -301,9 +306,19 @@ const UploadProduct = () => {
         }
       }
 
+      const imageUrls = await Promise.all(
+        data.image.map(async (url) => {
+          if (imageFileMap[url]) {
+            const uploadResponse = await uploadImage(imageFileMap[url], 'product');
+            return uploadResponse.data.data.url;
+          }
+          return url;
+        })
+      );
+
       const productDataToSend = {
         name: data.name,
-        image: data.image,
+        image: imageUrls,
         category: data.category.map((c) => c._id),
         subCategory: data.subCategory.map((s) => s._id),
         description: data.description,
@@ -322,6 +337,10 @@ const UploadProduct = () => {
 
       if (responseData.success) {
         successAlert(responseData.message);
+        // Cleanup local previews
+        Object.keys(imageFileMap).forEach(url => URL.revokeObjectURL(url));
+        setImageFileMap({});
+
         setData({
           name: '',
           image: [],
