@@ -68,18 +68,37 @@ const BannerSlider = () => {
             key={banner._id}
             className="min-w-full relative h-[300px] md:h-[500px]"
           >
-            {/* Desktop Banner (LG) */}
-            <img
-              src={banner.desktopImage}
-              alt={banner.altText}
-              className="hidden md:block w-full h-full object-cover"
-            />
-            {/* Mobile Banner (MD/SM) */}
-            <img
-              src={banner.mobileImage}
-              alt={banner.altText}
-              className="block md:hidden w-full h-full object-cover"
-            />
+            {banner.link ? (
+              <a href={banner.link} target="_blank" rel="noopener noreferrer">
+                {/* Desktop Banner (LG) */}
+                <img
+                  src={banner.desktopImage}
+                  alt={banner.altText}
+                  className="hidden md:block w-full h-full object-cover"
+                />
+                {/* Mobile Banner (MD/SM) */}
+                <img
+                  src={banner.mobileImage}
+                  alt={banner.altText}
+                  className="block md:hidden w-full h-full object-cover"
+                />
+              </a>
+            ) : (
+              <>
+                {/* Desktop Banner (LG) */}
+                <img
+                  src={banner.desktopImage}
+                  alt={banner.altText}
+                  className="hidden md:block w-full h-full object-cover"
+                />
+                {/* Mobile Banner (MD/SM) */}
+                <img
+                  src={banner.mobileImage}
+                  alt={banner.altText}
+                  className="block md:hidden w-full h-full object-cover"
+                />
+              </>
+            )}
           </div>
         ))}
       </div>

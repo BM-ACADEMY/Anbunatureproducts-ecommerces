@@ -2,7 +2,7 @@ import BannerModel from "../models/banner.model.js";
 
 export const addBannerController = async (request, response) => {
     try {
-        const { desktopImage, mobileImage, altText, order } = request.body;
+        const { desktopImage, mobileImage, altText, order, link } = request.body;
 
         if (!desktopImage || !mobileImage) {
             return response.status(400).json({
@@ -26,7 +26,8 @@ export const addBannerController = async (request, response) => {
             desktopImage,
             mobileImage,
             altText,
-            order: order || 0
+            order: order || 0,
+            link: link || ""
         });
 
         const savedBanner = await newBanner.save();
@@ -105,7 +106,7 @@ export const deleteBannerController = async (request, response) => {
 
 export const updateBannerController = async (request, response) => {
     try {
-        const { _id, desktopImage, mobileImage, altText, order } = request.body;
+        const { _id, desktopImage, mobileImage, altText, order, link } = request.body;
 
         if (!_id) {
             return response.status(400).json({
@@ -119,7 +120,8 @@ export const updateBannerController = async (request, response) => {
             desktopImage,
             mobileImage,
             altText,
-            order
+            order,
+            link
         }, { new: true });
 
         if (!updateBanner) {

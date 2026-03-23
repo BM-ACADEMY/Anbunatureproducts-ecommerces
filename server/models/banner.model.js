@@ -22,6 +22,10 @@ const bannerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    link: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

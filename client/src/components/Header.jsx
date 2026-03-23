@@ -64,7 +64,7 @@ const Header = () => {
     return (
         <>
             {/* Announcement Bar with Marquee Effect */}
-            <div className="w-full bg-[#fdf5e6] py-2 overflow-hidden whitespace-nowrap border-b border-gray-100">
+            <div className="w-full bg-[#fdf5e6] py-1 overflow-hidden whitespace-nowrap border-b border-gray-100">
                 <div className="inline-block animate-marquee hover:pause-marquee cursor-default">
                     <div className="flex items-center space-x-12">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
@@ -80,11 +80,11 @@ const Header = () => {
             </div>
 
             <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-                <div className="container mx-auto px-4 h-24 flex items-center justify-between">
+                <div className="container mx-auto px-4 h-20 flex items-center justify-between">
                     
                     {/* Logo - Increased Size */}
                     <Link to="/" className="flex-shrink-0 transition-transform">
-                        <img src={logo} alt="Anbu Logo" className="h-16 lg:h-[75px] w-auto" />
+                        <img src={logo} alt="Anbu Logo" className="h-12 lg:h-16 w-auto" />
                     </Link>
 
                     {/* Desktop Navigation */}
