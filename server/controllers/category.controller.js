@@ -17,7 +17,8 @@ export const AddCategoryController = async(request,response)=>{
 
         const addCategory = new CategoryModel({
             name,
-            image
+            image,
+            altText : request.body.altText || ""
         })
 
         const saveCategory = await addCategory.save()
@@ -77,7 +78,8 @@ export const updateCategoryController = async(request,response)=>{
             _id : _id
         },{
            name, 
-           image 
+           image,
+           altText : request.body.altText
         })
 
         return response.json({

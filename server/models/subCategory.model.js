@@ -9,6 +9,10 @@ const subCategorySchema = new mongoose.Schema({
         type : String,
         default : ""
     },
+    altText : {
+        type : String,
+        default : ""
+    },
     category : [
         {
             type : mongoose.Schema.ObjectId,

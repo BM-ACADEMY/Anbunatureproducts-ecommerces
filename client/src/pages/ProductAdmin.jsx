@@ -4,18 +4,7 @@ import AxiosToastError from '../utils/AxiosToastError';
 import Axios from '../utils/Axios';
 import Loading from '../components/Loading';
 import ProductCardAdmin from '../components/ProductCardAdmin';
-
-import {
-  Box,
-  Typography,
-  Grid,
-  Paper,
-  Pagination,
-  Stack,
-  InputBase,
-  IconButton,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import { IoSearchOutline } from "react-icons/io5";
 
 const ProductAdmin = () => {
   const [productData, setProductData] = useState([]);
@@ -23,9 +12,8 @@ const ProductAdmin = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [totalPageCount, setTotalPageCount] = useState(0);
-  const itemsPerPage = 10;
+  const itemsPerPage = 12; // Adjusted for 6-column grid
 
-  // Fetch products from backend
   const fetchProductData = async () => {
     try {
       setLoading(true);
@@ -57,93 +45,85 @@ const ProductAdmin = () => {
     fetchProductData();
   }, [page]);
 
-  const handlePageChange = (_, value) => {
+  const handlePageChange = (value) => {
     setPage(value);
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   const handleSearch = () => {
-    setPage(1); // reset to first page for new search
+    setPage(1);
     fetchProductData();
   };
 
   return (
-    <Box>
-      {/* Top bar */}
-      <Paper
-        elevation={2}
-        sx={{
-          p: 2,
-          mb: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Typography variant="h6" fontWeight="bold">
-          Product Management
-        </Typography>
+    <section className=''>
+      {/* Header */}
+      <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded flex-wrap'>
+          <h2 className='font-semibold text-lg sm:text-xl'>Product Management</h2>
+          <div className='flex items-center bg-blue-50 focus-within:bg-white border focus-within:border-primary-200 px-3 py-1.5 rounded w-full max-w-sm transition-all'>
+             <IoSearchOutline size={20} className='text-neutral-500' />
+             <input 
+                type='text' 
+                placeholder='Search product...'
+                className='bg-transparent outline-none px-2 w-full text-sm sm:text-base'
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+             />
+             <button onClick={handleSearch} className='text-primary-200 hover:text-primary-300 font-medium text-sm'>
+               Search
+             </button>
+          </div>
+      </div>
 
-        {/* Search bar */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#f1f3f9',
-            borderRadius: 1,
-            px: 1,
-          }}
-        >
-          <InputBase
-            placeholder="Search product..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ ml: 1, flex: 1 }}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <IconButton onClick={handleSearch}>
-            <SearchIcon />
-          </IconButton>
-        </Box>
-      </Paper>
-
-      {/* Loader */}
       {loading && <Loading />}
 
-      {/* Product Grid */}
-      <Box sx={{ px: 2, py: 3, backgroundColor: '#f0f4ff', borderRadius: 2 }}>
-        <Box sx={{ minHeight: '55vh' }}>
+      <div className='min-h-[60vh] py-6'>
           {productData.length === 0 && !loading ? (
-            <Typography variant="h6" align="center" color="text.secondary" sx={{ mt: 5 }}>
-              No products found.
-            </Typography>
+            <div className='flex flex-col items-center justify-center py-20 bg-white rounded shadow-sm'>
+               <p className='text-neutral-500 text-lg'>No products found.</p>
+            </div>
           ) : (
-            <Grid container spacing={2}>
-              {productData.map((product, index) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={product._id || index}>
-                  <ProductCardAdmin data={product} fetchProductData={fetchProductData} />
-                </Grid>
-              ))}
-            </Grid>
+            <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'>
+               {productData.map((product, index) => (
+                  <ProductCardAdmin key={product._id || index} data={product} fetchProductData={fetchProductData} />
+               ))}
+            </div>
           )}
-        </Box>
+      </div>
 
-        {/* Pagination */}
-        {totalPageCount > 1 && (
-          <Stack direction="row" justifyContent="center" mt={4}>
-            <Pagination
-              count={totalPageCount}
-              page={page}
-              onChange={handlePageChange}
-              color="primary"
-              shape="rounded"
-              size="medium"
-            />
-          </Stack>
-        )}
-      </Box>
-    </Box>
+      {/* Pagination */}
+      {totalPageCount > 1 && (
+        <div className='flex items-center justify-center gap-2 mt-6 pb-10'>
+             <button 
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base'
+             >
+                Prev
+             </button>
+             {[...Array(totalPageCount)].map((_, i) => (
+                <button
+                    key={i}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`px-3 py-1 rounded border text-sm sm:text-base ${page === i + 1 ? 'bg-primary-200 text-white border-primary-200' : 'hover:bg-neutral-100'}`}
+                >
+                    {i + 1}
+                </button>
+             ))}
+             <button 
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPageCount}
+                className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base'
+             >
+                Next
+             </button>
+        </div>
+      )}
+    </section>
   );
 };
 

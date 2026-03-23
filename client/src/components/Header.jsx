@@ -145,7 +145,7 @@ const Header = () => {
                             
                             {user?._id && openUserMenu && (
                                 <div className="absolute right-0 top-full pt-2">
-                                    <UserMenu close={() => setOpenUserMenu(false)} />
+                                    <UserMenu close={() => setOpenUserMenu(false)} isHome={true} />
                                 </div>
                             )}
                         </div>

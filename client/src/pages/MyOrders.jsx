@@ -1,43 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import NoData from "../components/NoData";
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  TextField,
-  Typography,
-  IconButton,
-  Menu,
-  MenuItem,
-  Divider,
-  Chip,
-  Box
-} from "@mui/material";
 import { 
-  Info, 
-  X, 
-  MoreVertical, 
-  Truck, 
-  ShoppingBag, 
-  User, 
-  AlertTriangle,
-  AlertCircle,
-  Check,
-  Clock,
-  Package,
-  RotateCcw,
-  ArrowRight,
-  MapPin,
-  CreditCard,
-  AlertOctagon
-} from 'lucide-react';
+  FiInfo, 
+  FiX, 
+  FiMoreVertical, 
+  FiTruck, 
+  FiShoppingBag, 
+  FiAlertCircle,
+  FiCheck,
+  FiClock,
+  FiPackage,
+  FiRotateCcw,
+  FiMapPin,
+  FiCreditCard,
+  FiAlertOctagon,
+  FiChevronRight
+} from 'react-icons/fi';
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
@@ -53,7 +32,6 @@ const MyOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
   const [customReason, setCustomReason] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null);
   const [menuOrderId, setMenuOrderId] = useState(null);
 
   const fetchOrders = async () => {
@@ -71,49 +49,50 @@ const MyOrders = () => {
     fetchOrders();
   }, []);
 
-  const getStatusStyles = (status) => {
+  const getStatusConfig = (status) => {
     switch (status) {
       case "Delivered":
         return {
-          bgcolor: "#16a34a",
-          color: "#ffffff",
+          bg: "bg-emerald-50",
+          text: "text-emerald-600",
+          border: "border-emerald-100",
+          icon: <FiCheck size={14} />
         };
       case "Pending":
         return {
-          bgcolor: "#f59e0b",
-          color: "#ffffff",
+          bg: "bg-amber-50",
+          text: "text-amber-600",
+          border: "border-amber-100",
+          icon: <FiClock size={14} />
         };
       case "Processing":
         return {
-          bgcolor: "#3b82f6",
-          color: "#ffffff",
+          bg: "bg-indigo-50",
+          text: "text-indigo-600",
+          border: "border-indigo-100",
+          icon: <FiRotateCcw size={14} />
         };
       case "Shipped":
         return {
-          bgcolor: "#8b5cf6",
-          color: "#ffffff",
+          bg: "bg-blue-50",
+          text: "text-blue-600",
+          border: "border-blue-100",
+          icon: <FiTruck size={14} />
         };
       case "Cancelled":
         return {
-          bgcolor: "#ef4444",
-          color: "#ffffff",
+          bg: "bg-rose-50",
+          text: "text-rose-600",
+          border: "border-rose-100",
+          icon: <FiX size={14} />
         };
       default:
         return {
-          bgcolor: "#6b7280",
-          color: "#ffffff",
+          bg: "bg-slate-50",
+          text: "text-slate-600",
+          border: "border-slate-100",
+          icon: <FiPackage size={14} />
         };
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "Delivered": return <Check size={16} />;
-      case "Pending": return <Clock size={16} />;
-      case "Processing": return <RotateCcw size={16} />;
-      case "Shipped": return <Truck size={16} />;
-      case "Cancelled": return <X size={16} />;
-      default: return <Package size={16} />;
     }
   };
 
@@ -124,45 +103,18 @@ const MyOrders = () => {
     }
     setSelectedOrder(order);
     setOpenCancelModal(true);
-    handleCloseMenu();
+    setMenuOrderId(null);
   };
 
   const handleOpenTrackingModal = (order) => {
     setSelectedOrder(order);
     setOpenTrackingModal(true);
-    handleCloseMenu();
+    setMenuOrderId(null);
   };
 
   const handleOpenDetailsModal = (order) => {
     setSelectedOrder(order);
     setOpenDetailsModal(true);
-    handleCloseMenu();
-  };
-
-  const handleCloseCancelModal = () => {
-    setOpenCancelModal(false);
-    setSelectedOrder(null);
-    setCancellationReason("");
-    setCustomReason("");
-  };
-
-  const handleCloseTrackingModal = () => {
-    setOpenTrackingModal(false);
-    setSelectedOrder(null);
-  };
-
-  const handleCloseDetailsModal = () => {
-    setOpenDetailsModal(false);
-    setSelectedOrder(null);
-  };
-
-  const handleMenuOpen = (event, orderId) => {
-    setAnchorEl(event.currentTarget);
-    setMenuOrderId(orderId);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
     setMenuOrderId(null);
   };
 
@@ -194,422 +146,340 @@ const MyOrders = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to cancel order");
     } finally {
-      handleCloseCancelModal();
+      setOpenCancelModal(false);
+      setSelectedOrder(null);
+      setCancellationReason("");
+      setCustomReason("");
     }
   };
 
   return (
-    <div className="p-4">
-      <div className="bg-white shadow-md p-4 rounded-md mb-4">
-        <h1 className="text-lg font-semibold text-gray-800">My Orders</h1>
+    <div className="bg-white min-h-full">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">My Orders</h1>
+          <p className="text-gray-500 mt-1 font-medium">Track and manage your recent purchases</p>
+        </div>
       </div>
 
       {!orders.length ? (
         <NoData />
       ) : (
-        <div className="grid gap-4">
-          {orders.map((order, index) => (
-            <div
-              key={order._id + index + "order"}
-              className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow border border-gray-100 relative"
-            >
-              <div className="mb-2 text-sm text-gray-600">
-                <span className="font-medium text-gray-800">Order No:</span>{" "}
-                {order?.orderId || "N/A"}
-              </div>
+        <div className="space-y-6">
+          {orders.map((order, index) => {
+            const status = getStatusConfig(order?.tracking_status);
+            return (
+              <div
+                key={order._id + index}
+                className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+              >
+                <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100">
+                      <FiShoppingBag className="text-indigo-600" size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Order ID</p>
+                      <h3 className="text-sm font-extrabold text-gray-900 mt-1">#{order?.orderId || "N/A"}</h3>
+                    </div>
+                  </div>
+                  
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${status.bg} ${status.text} ${status.border} text-[11px] font-bold uppercase tracking-wider`}>
+                    {status.icon}
+                    <span>{order?.tracking_status || "Unknown"}</span>
+                  </div>
+                </div>
 
-              <div className="flex items-center gap-4">
-                <img
-                  src={order?.product_details?.image?.[0] || "/placeholder.jpg"}
-                  alt={order?.product_details?.name || "Product"}
-                  className="w-16 h-16 object-cover rounded border"
-                />
-                <div>
-                  <h2 className={`font-semibold text-gray-800 text-sm sm:text-base ${
-                    order.isCancelled ? "line-through text-gray-500" : ""
-                  }`}>
-                    {order?.product_details?.name || "N/A"}
-                  </h2>
-                  <p className="text-gray-500 text-sm flex items-center gap-2">
-                    <span>Price: ₹{order?.totalAmt || 0}</span> | 
-                    <span>Quantity: {order?.quantity || 1}</span> | 
-                    <Chip
-                      label={order?.tracking_status || "Unknown"}
-                      icon={getStatusIcon(order?.tracking_status)}
-                      sx={{
-                        ...getStatusStyles(order?.tracking_status),
-                        fontSize: "0.75rem",
-                        fontWeight: "medium",
-                        height: "24px",
-                        borderRadius: "999px",
-                        "& .MuiChip-icon": {
-                          color: "inherit",
-                          marginLeft: "4px"
-                        }
-                      }}
-                    />
-                  </p>
+                <div className="p-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="relative w-24 h-24 bg-gray-50 rounded-2xl border border-gray-100 p-2 flex-shrink-0">
+                      <img
+                        src={order?.product_details?.image?.[0] || "/placeholder.jpg"}
+                        alt={order?.product_details?.name || "Product"}
+                        className={`w-full h-full object-scale-down ${order.isCancelled ? "grayscale opacity-50" : ""}`}
+                      />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h2 className={`text-lg font-bold text-gray-900 truncate ${order.isCancelled ? "line-through text-gray-400" : ""}`}>
+                        {order?.product_details?.name || "N/A"}
+                      </h2>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2">
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                          <span className="text-xs text-gray-400 font-medium">Price:</span>
+                          <span>₹{order?.totalAmt?.toLocaleString() || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                          <span className="text-xs text-gray-400 font-medium">Qty:</span>
+                          <span>{order?.quantity || 1}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs">
+                          <FiCreditCard size={12} />
+                          <span className="uppercase tracking-widest">{order?.payment_status || "N/A"}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-start gap-2 text-xs text-gray-500 font-medium max-w-lg">
+                        <FiMapPin className="text-gray-300 mt-0.5 flex-shrink-0" size={14} />
+                        <span className="leading-relaxed">
+                          {order?.delivery_address?.address_line}, {order?.delivery_address?.city}, {order?.delivery_address?.state} {order?.delivery_address?.pincode}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex md:flex-col justify-end md:justify-start gap-2">
+                       <button 
+                          onClick={() => handleOpenDetailsModal(order)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-xs rounded-xl transition-all"
+                       >
+                          <FiInfo size={16} />
+                          <span>Details</span>
+                       </button>
+                       <button 
+                          onClick={() => handleOpenTrackingModal(order)}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 font-bold text-xs rounded-xl transition-all"
+                       >
+                          <FiTruck size={16} />
+                          <span>Track</span>
+                       </button>
+                       {!order?.isCancelled && (
+                         <button 
+                            onClick={() => handleOpenCancelModal(order)}
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-500 font-bold text-xs rounded-xl transition-all"
+                         >
+                            <FiX size={16} />
+                            <span>Cancel</span>
+                         </button>
+                       )}
+                    </div>
+                  </div>
+
+                  {order?.isCancelled && (
+                    <div className="mt-6 p-4 bg-rose-50/50 rounded-2xl border border-rose-100 flex items-start gap-3">
+                      <FiAlertOctagon className="text-rose-500 mt-0.5" size={18} />
+                      <div>
+                        <p className="text-xs font-bold text-rose-900 uppercase tracking-widest leading-none">Order Cancelled</p>
+                        <p className="text-sm text-rose-600 mt-1 font-medium italic">
+                          "{order.cancellationReason || "N/A"}" 
+                          <span className="text-rose-300 not-italic ml-2">
+                            • {new Date(order.cancellationDate).toLocaleDateString()}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div className="mt-3 text-sm text-gray-500">
-                <p>Payment: {order?.payment_status || "N/A"}</p>
-                <p>
-                  Address:{" "}
-                  {order?.delivery_address
-                    ? `${order.delivery_address.address_line || "N/A"}, ${
-                        order.delivery_address.city || "N/A"
-                      }, ${order.delivery_address.state || "N/A"}, ${
-                        order.delivery_address.pincode || "N/A"
-                      }`
-                    : "No address available"}
-                </p>
-                {order?.isCancelled && (
-                  <p className="text-red-500">
-                    Cancelled: {order.cancellationReason || "N/A"} on{" "}
-                    {order.cancellationDate
-                      ? new Date(order.cancellationDate).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                )}
-              </div>
-
-              <IconButton
-                aria-controls={menuOrderId === order._id ? "order-menu" : undefined}
-                aria-haspopup="true"
-                onClick={(event) => handleMenuOpen(event, order._id)}
-                sx={{ position: "absolute", top: 16, right: 16 }}
-              >
-                <MoreVertical size={20} />
-              </IconButton>
-
-              <Menu
-                id="order-menu"
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl) && menuOrderId === order._id}
-                onClose={handleCloseMenu}
-              >
-                {!order?.isCancelled && (
-                  <MenuItem onClick={() => handleOpenCancelModal(order)}>
-                    <X size={16} className="mr-1" />
-                    Cancel Order
-                  </MenuItem>
-                )}
-                <MenuItem onClick={() => handleOpenTrackingModal(order)}>
-                  <Truck size={16} className="mr-1" />
-                  View Tracking
-                </MenuItem>
-                <MenuItem onClick={() => handleOpenDetailsModal(order)}>
-                  <Info size={16} className="mr-1" />
-                  Details
-                </MenuItem>
-              </Menu>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Cancel Modal */}
-      <Dialog
-        open={openCancelModal}
-        onClose={handleCloseCancelModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <div className="flex items-center gap-2">
-            <AlertOctagon size={20} className="text-red-500" />
-            Cancel Order #{selectedOrder?.orderId || "N/A"}
-          </div>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" gutterBottom>
-            Why do you want to cancel this order?
-          </Typography>
-          <FormControl component="fieldset">
-            <RadioGroup
-              value={cancellationReason}
-              onChange={(e) => setCancellationReason(e.target.value)}
-            >
-              <FormControlLabel
-                value="Changed my mind"
-                control={<Radio />}
-                label="Changed my mind"
-              />
-              <FormControlLabel
-                value="Found a better alternative"
-                control={<Radio />}
-                label="Found a better alternative"
-              />
-              <FormControlLabel
-                value="Order placed by mistake"
-                control={<Radio />}
-                label="Order placed by mistake"
-              />
-              <FormControlLabel value="Other" control={<Radio />} label="Other" />
-            </RadioGroup>
+      {openCancelModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onClick={() => setOpenCancelModal(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 z-10 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-500">
+                <FiAlertOctagon size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Cancel Order</h3>
+                <p className="text-sm text-gray-400 font-medium tracking-tight">Order #{selectedOrder?.orderId}</p>
+              </div>
+            </div>
+
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Reason for cancellation</p>
+            <div className="space-y-3">
+              {["Changed my mind", "Found a better alternative", "Order placed by mistake", "Other"].map((reason) => (
+                <label 
+                  key={reason} 
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl border cursor-pointer transition-all ${
+                    cancellationReason === reason 
+                    ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-bold ring-2 ring-indigo-500/10" 
+                    : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-white hover:border-gray-200"
+                  }`}
+                >
+                  <input 
+                    type="radio" 
+                    name="cancellation" 
+                    className="hidden" 
+                    value={reason} 
+                    onChange={(e) => setCancellationReason(e.target.value)} 
+                  />
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                     cancellationReason === reason ? "border-indigo-600 bg-indigo-600" : "border-gray-300"
+                  }`}>
+                    {cancellationReason === reason && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
+                  </div>
+                  <span className="text-sm">{reason}</span>
+                </label>
+              ))}
+            </div>
+
             {cancellationReason === "Other" && (
-              <TextField
-                fullWidth
-                label="Please specify"
+              <textarea
+                placeholder="Please describe why you are cancelling..."
+                className="w-full mt-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm outline-none focus:bg-white focus:border-indigo-500 transition-all resize-none h-24"
                 value={customReason}
                 onChange={(e) => setCustomReason(e.target.value)}
-                margin="normal"
-                variant="outlined"
               />
             )}
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseCancelModal} color="inherit">
-            Close
-          </Button>
-          <Button
-            onClick={handleCancelOrder}
-            color="error"
-            startIcon={<X size={18} />}
-            disabled={!selectedOrder}
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+            <div className="flex gap-4 mt-8">
+              <button
+                onClick={() => setOpenCancelModal(false)}
+                className="flex-1 px-6 py-3 text-sm font-bold text-gray-400 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={handleCancelOrder}
+                className="flex-1 px-6 py-3 text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-2xl shadow-lg shadow-rose-100 transition-all active:scale-95"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {openDetailsModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onClick={() => setOpenDetailsModal(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden z-10 animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <FiInfo size={20} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Order Information</h3>
+              </div>
+              <button onClick={() => setOpenDetailsModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
+                <FiX size={20} className="text-gray-400" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {/* Product Section */}
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Product Details</p>
+                    <div className="flex gap-6">
+                      <div className="w-24 h-24 bg-gray-50 rounded-2xl border border-gray-100 p-3 flex-shrink-0">
+                        <img
+                          src={selectedOrder.product_details?.image?.[0] || "/placeholder.jpg"}
+                          alt={selectedOrder.product_details?.name || "Product"}
+                          className="w-full h-full object-scale-down"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-gray-900 leading-tight">{selectedOrder.product_details?.name}</h4>
+                        <div className="mt-3 flex items-center gap-4">
+                          <div className="text-xs bg-gray-50 px-2 py-1 rounded-lg">
+                            <span className="text-gray-400 font-medium">Qty:</span>
+                            <span className="ml-1 text-gray-900 font-bold">{selectedOrder.quantity || 1}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr className="border-gray-50" />
+
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Pricing Summary</p>
+                    <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400 font-medium">Subtotal</span>
+                        <span className="text-gray-900 font-bold">₹{selectedOrder.totalAmt?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-emerald-500 font-bold">
+                        <span>Shipping</span>
+                        <span>FREE</span>
+                      </div>
+                      <div className="pt-3 border-t border-gray-100 flex justify-between">
+                        <span className="text-gray-900 font-extrabold">Total Amount</span>
+                        <span className="text-lg font-black text-indigo-600 font-mono tracking-tight">₹{selectedOrder.totalAmt?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Section */}
+                <div className="space-y-8">
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Delivery Address</p>
+                      <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                          <FiMapPin size={20} />
+                        </div>
+                        <div className="text-sm leading-relaxed">
+                          <p className="text-gray-900 font-bold mb-1">{selectedOrder.userId?.name || selectedOrder.userName || "Customer"}</p>
+                          <p className="text-gray-500 font-medium">{selectedOrder.delivery_address?.address_line}</p>
+                          <p className="text-gray-500 font-medium">{selectedOrder.delivery_address?.city}, {selectedOrder.delivery_address?.state}</p>
+                          <p className="text-gray-900 font-bold mt-1 tracking-wider">{selectedOrder.delivery_address?.pincode}</p>
+                        </div>
+                      </div>
+                   </div>
+
+                   <hr className="border-gray-50" />
+
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Status Overview</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 rounded-2xl border border-gray-100 bg-white shadow-sm">
+                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Tracking</p>
+                          <p className="text-sm font-bold text-indigo-500 mt-1">{selectedOrder.tracking_status}</p>
+                        </div>
+                        <div className="p-4 rounded-2xl border border-gray-100 bg-white shadow-sm">
+                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Payment</p>
+                          <p className={`text-sm font-bold mt-1 capitalize ${selectedOrder.payment_status === 'paid' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {selectedOrder.payment_status}
+                          </p>
+                        </div>
+                      </div>
+                   </div>
+
+                   {selectedOrder?.isCancelled && (
+                     <div className="p-5 bg-rose-50 rounded-2xl border border-rose-100 space-y-2">
+                       <div className="flex items-center gap-2 text-rose-600">
+                         <FiAlertCircle size={18} />
+                         <span className="text-xs font-bold uppercase tracking-widest">Cancellation Info</span>
+                       </div>
+                       <p className="text-sm text-rose-900 font-medium italic leading-relaxed">"{selectedOrder.cancellationReason}"</p>
+                       <p className="text-[10px] text-rose-300 font-bold uppercase mt-2">Date: {new Date(selectedOrder.cancellationDate).toLocaleString()}</p>
+                     </div>
+                   )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button 
+                onClick={() => setOpenDetailsModal(false)}
+                className="px-8 py-3 bg-white border border-gray-200 hover:border-indigo-200 text-gray-600 hover:text-indigo-600 font-bold text-sm rounded-2xl shadow-sm transition-all active:scale-95"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tracking Modal */}
       {selectedOrder && (
         <UserTrackingModal
           open={openTrackingModal}
-          handleClose={handleCloseTrackingModal}
+          handleClose={() => setOpenTrackingModal(false)}
           order={selectedOrder}
         />
       )}
-
-      {/* Details Modal */}
-      <Dialog className="font-outfit"
-        open={openDetailsModal}
-        onClose={handleCloseDetailsModal}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          py: 2
-        }}>
-          <Info size={20} />
-          <span>Order Details</span>
-          <Chip
-            label={selectedOrder?.tracking_status || "Unknown"}
-            icon={getStatusIcon(selectedOrder?.tracking_status)}
-            sx={{ 
-              ...getStatusStyles(selectedOrder?.tracking_status),
-              ml: 'auto',
-              fontWeight: 'medium',
-              "& .MuiChip-icon": {
-                color: "inherit",
-                marginLeft: "4px"
-              }
-            }}
-          />
-        </DialogTitle>
-        
-        <DialogContent dividers sx={{ p: 0 }}>
-          {selectedOrder ? (
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-              {/* Left Column - Product Info */}
-              <Box sx={{ 
-                flex: 1, 
-                p: 3, 
-                borderRight: { md: '1px solid' },
-                borderColor: { md: 'divider' }
-              }}>
-                <Typography variant="h6" sx={{ 
-                  mb: 2, 
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  color: 'primary.main'
-                }}>
-                  <ShoppingBag size={18} />
-                  Product Info
-                </Typography>
-                
-                <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-                  <img
-                    src={selectedOrder.product_details?.image?.[0] || "/placeholder.jpg"}
-                    alt={selectedOrder.product_details?.name || "Product"}
-                    style={{
-                      width: 100,
-                      height: 100,
-                      objectFit: 'contain',
-                      borderRadius: '8px',
-                      border: '1px solid #e0e0e0'
-                    }}
-                  />
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'light' }}>
-                      {selectedOrder.product_details?.name || "N/A"}
-                    </Typography>
-                    <Typography sx={{ mt: 1, fontWeight: 'light' }}>
-                      <b >Quantity:</b> {selectedOrder.quantity || 1}
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Divider sx={{ my: 2 }} />
-                
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Order Summary
-                  </Typography>
-                  <Box sx={{ 
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: '8px',
-                    p: 2
-                  }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography>Subtotal:</Typography>
-                      <Typography>₹{selectedOrder.totalAmt || 0}</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography>Shipping:</Typography>
-                      <Typography>Free</Typography>
-                    </Box>
-                    <Divider sx={{ my: 1 }} />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                      <Typography>Total:</Typography>
-                      <Typography>₹{selectedOrder.totalAmt || 0}</Typography>
-                    </Box>
-                  </Box>
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Payment Info
-                  </Typography>
-                  <Chip
-                    label={selectedOrder.payment_status?.toUpperCase() || "N/A"}
-                    sx={{ 
-                      backgroundColor: selectedOrder.payment_status === 'paid' ? '#4caf50' : '#f44336',
-                      color: 'white',
-                      fontWeight: 'bold'
-                    }}
-                  />
-                </Box>
-              </Box>
-              
-              {/* Right Column - User & Shipping Info */}
-              <Box sx={{ flex: 1, p: 3 }}>
-                
-                <Typography variant="h6" sx={{ 
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  color: 'primary.main'
-                }}>
-                  <Truck size={18} />
-                  Shipping Info
-                </Typography>
-                
-                {selectedOrder.delivery_address ? (
-                  <Box sx={{ 
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: '8px',
-                    p: 2
-                  }}>
-                    
-                    <Typography sx={{ fontWeight: 'medium', mb: 1 }}>
-                    </Typography>
-                    <Typography sx={{ mb: 1 }}> {selectedOrder.userId?.name || selectedOrder.userName || "N/A"}
-                  </Typography>
-                    <Typography>
-                      {selectedOrder.delivery_address.address_line || "N/A"}
-                    </Typography>
-                    <Typography>
-                      {selectedOrder.delivery_address.city || "N/A"}, 
-                      {selectedOrder.delivery_address.state || "N/A"} - 
-                      {selectedOrder.delivery_address.pincode || "N/A"}
-                    </Typography>
-                  </Box>
-                ) : (
-                  <Box sx={{ 
-                    backgroundColor: '#fff8e1',
-                    borderRadius: '8px',
-                    p: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <AlertTriangle size={16} className="text-yellow-600" />
-                    <Typography>No shipping address available</Typography>
-                  </Box>
-                )}
-                
-                {selectedOrder?.isCancelled && (
-                  <>
-                    <Divider sx={{ my: 2 }} />
-                    <Box sx={{ 
-                      backgroundColor: '#ffebee',
-                      borderRadius: '8px',
-                      p: 2
-                    }}>
-                      <Typography sx={{ 
-                        fontWeight: 'medium', 
-                        mb: 1,
-                        color: '#d32f2f',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1
-                      }}>
-                        <AlertCircle size={16} />
-                        Order Cancelled
-                      </Typography>
-                      <Typography>
-                        <b>Reason:</b> {selectedOrder.cancellationReason || "N/A"}
-                      </Typography>
-                      <Typography>
-                        <b>Date:</b> {selectedOrder.cancellationDate ? 
-                          new Date(selectedOrder.cancellationDate).toLocaleString() : "N/A"}
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-              </Box>
-            </Box>
-          ) : (
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              p: 4,
-              textAlign: 'center'
-            }}>
-              <AlertCircle size={48} className="text-red-500 mb-2" />
-              <Typography variant="h6" color="textSecondary">
-                No order details available
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button 
-          color="error"
-            onClick={handleCloseDetailsModal} 
-            startIcon={<X size={18} />}
-          >
-            Close
-          </Button>
-          
-        </DialogActions>
-      </Dialog>
     </div>
   );
 };
 
-export default MyOrders;
+export default MyOrders;

@@ -8,19 +8,7 @@ import EditCategory from '../components/EditCategory';
 import CofirmBox from '../components/CofirmBox';
 import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
-import AddIcon from '@mui/icons-material/Add';
-
-import {
-    Grid,
-    Card,
-    CardMedia,
-    CardContent,
-    CardActions,
-    Button,
-    Typography,
-    Box,
-    Pagination
-} from '@mui/material';
+import { IoAdd } from "react-icons/io5";
 
 const CategoryPage = () => {
     const [openUploadCategory, setOpenUploadCategory] = useState(false);
@@ -38,13 +26,13 @@ const CategoryPage = () => {
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const itemsPerPage = 8;
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = categoryData.slice(indexOfFirstItem, indexOfLastItem);
 
-    const handlePageChange = (event, value) => {
+    const handlePageChange = (value) => {
         setCurrentPage(value);
     };
 
@@ -88,102 +76,87 @@ const CategoryPage = () => {
     }, []);
 
     return (
-        <Box sx={{ p: 0 }}>
+        <section className=''>
             {/* Header */}
-            <Box
-                sx={{
-                    p: 2,
-                    mb: 3,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderRadius: 2,
-                }}
-            >
-                <Typography
-                    variant="h6"
-                    sx={{
-                        fontWeight: 600,
-                        fontSize: { xs: "18px", sm: "20px", md: "22px" },
-                    }}
+            <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded'>
+                <h2 className='font-semibold text-lg sm:text-xl'>Category</h2>
+                <button 
+                  onClick={() => setOpenUploadCategory(true)}
+                  className='bg-primary-200 hover:bg-primary-300 text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
                 >
-                    Category
-                </Typography>
-
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setOpenUploadCategory(true)}
-                    sx={{ fontSize: { xs: "12px", sm: "14px" } }}
-                >
-                    <AddIcon sx={{ mr: 0.5 }} /> Add
-                </Button>
-            </Box>
+                  <IoAdd size={24} />
+                  <span>Add Category</span>
+                </button>
+            </div>
 
             {/* No Data */}
             {!categoryData[0] && !loading && <NoData />}
 
             {/* Category Grid */}
-            <Grid container spacing={2}>
+            <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 py-6'>
                 {currentItems.map((category) => (
-                    <Grid item key={category._id} xs={12} sm={12} md={6} lg={3}>
-                        <Card
-                            sx={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                '&:hover': {
-                                    boxShadow: 6,
-                                },
-                            }}
-                        >
-                            <CardMedia
-                                component="img"
-                                image={category.image}
-                                alt={category.name}
-                                sx={{ height: 140, objectFit: 'contain', p: 1 }}
+                    <div key={category._id} className='bg-white group rounded shadow hover:shadow-md transition-all flex flex-col'>
+                        <div className='aspect-square w-full p-4 flex items-center justify-center overflow-hidden'>
+                            <img
+                                src={category.image}
+                                alt={category.altText || category.name}
+                                className='h-full w-full object-scale-down transition-transform group-hover:scale-105'
                             />
-                            <CardContent sx={{ flexGrow: 1 }}>
-                                <Typography variant="subtitle1" align="center">{category.name}</Typography>
-                            </CardContent>
-                            <CardActions>
-                                <Button
-                                    fullWidth
-                                    color="success"
-                                    onClick={() => {
-                                        setOpenEdit(true);
-                                        setEditData(category);
-                                    }}
-                                >
-                                    Edit
-                                </Button>
-                                <Button
-                                    fullWidth
-                                    color="error"
-                                    onClick={() => {
-                                        setOpenConfirmBoxDelete(true);
-                                        setDeleteCategory(category);
-                                    }}
-                                >
-                                    Delete
-                                </Button>
-                            </CardActions>
-                        </Card>
-                    </Grid>
+                        </div>
+                        <div className='px-4 py-2 border-t'>
+                            <h3 className='text-center font-medium truncate' title={category.name}>{category.name}</h3>
+                        </div>
+                        <div className='p-2 grid grid-cols-2 gap-2 mt-auto'>
+                            <button
+                                onClick={() => {
+                                    setOpenEdit(true);
+                                    setEditData(category);
+                                }}
+                                className='text-sm bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition-colors'
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setOpenConfirmBoxDelete(true);
+                                    setDeleteCategory(category);
+                                }}
+                                className='text-sm bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition-colors'
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
                 ))}
-            </Grid>
+            </div>
 
             {/* Pagination */}
             {categoryData.length > itemsPerPage && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                    <Pagination
-                        count={Math.ceil(categoryData.length / itemsPerPage)}
-                        page={currentPage}
-                        onChange={handlePageChange}
-                        color="primary"
-                        size="medium"
-                    />
-                </Box>
+                <div className='flex items-center justify-center gap-2 mt-6 pb-10'>
+                     <button 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                     >
+                        Prev
+                     </button>
+                     {[...Array(Math.ceil(categoryData.length / itemsPerPage))].map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => handlePageChange(i + 1)}
+                            className={`px-3 py-1 rounded border ${currentPage === i + 1 ? 'bg-primary-200 text-white border-primary-200' : 'hover:bg-neutral-100'}`}
+                        >
+                            {i + 1}
+                        </button>
+                     ))}
+                     <button 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === Math.ceil(categoryData.length / itemsPerPage)}
+                        className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                     >
+                        Next
+                     </button>
+                </div>
             )}
 
             {/* Loading */}
@@ -212,7 +185,7 @@ const CategoryPage = () => {
                     close={() => setOpenConfirmBoxDelete(false)}
                 />
             )}
-        </Box>
+        </section>
     );
 };
 

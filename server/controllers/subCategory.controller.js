@@ -16,7 +16,8 @@ export const AddSubCategoryController = async(request,response)=>{
         const payload = {
             name,
             image,
-            category
+            category,
+            altText : request.body.altText || ""
         }
 
         const createSubCategory = new SubCategoryModel(payload)
@@ -77,7 +78,8 @@ export const updateSubCategoryController = async(request,response)=>{
         const updateSubCategory = await SubCategoryModel.findByIdAndUpdate(_id,{
             name,
             image,
-            category
+            category,
+            altText : request.body.altText
         })
 
         return response.json({

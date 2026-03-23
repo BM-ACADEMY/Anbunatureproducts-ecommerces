@@ -1,38 +1,25 @@
 import React, { useState } from 'react';
 import { IoClose } from "react-icons/io5";
-import { AiOutlineCamera } from "react-icons/ai"; // Import camera icon
+import { AiOutlineCamera } from "react-icons/ai";
+import { MdOutlineImage } from "react-icons/md";
 import uploadImage from '../utils/UploadImage';
 import { useSelector } from 'react-redux';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Chip,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Stack,
-  CircularProgress
-} from '@mui/material';
+import Loading from './Loading';
 
 const UploadSubCategoryModel = ({ close, fetchData }) => {
   const [subCategoryData, setSubCategoryData] = useState({
     name: "",
     image: "",
     category: [],
+    altText: ""
   });
   
-  const [loading, setLoading] = useState(false);  // Add loading state
+  const [loading, setLoading] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const allCategory = useSelector((state) => state.product.allCategory);
 
   const handleChange = (e) => {
@@ -47,7 +34,13 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setLoading(true); // Set loading before image upload
+    // Size validation: 2MB limit
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image size should be less than 2MB");
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await uploadImage(file, 'subcategory');
       const { data: ImageResponse } = response;
@@ -56,9 +49,9 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
         image: ImageResponse.data.url,
       }));
     } catch (error) {
-      toast.error("Error uploading image");
+      AxiosToastError(error);
     } finally {
-      setLoading(false); // Reset loading after image upload
+      setLoading(false);
     }
   };
 
@@ -71,7 +64,12 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
 
   const handleSubmitSubCategory = async (e) => {
     e.preventDefault();
-    setLoading(true);  // Set loading while submitting the form
+    if (!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await Axios({
         ...SummaryApi.createSubCategory,
@@ -80,144 +78,173 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
       const { data: responseData } = response;
       if (responseData.success) {
         toast.success(responseData.message);
-        if (close) close();
-        if (fetchData) fetchData();
+        close();
+        fetchData();
       }
     } catch (error) {
       AxiosToastError(error);
-      toast.error("Error creating subcategory");
     } finally {
-      setLoading(false);  // Reset loading after submission
+      setLoading(false);
     }
   };
 
   return (
-    <Dialog open onClose={close} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">Add Sub Category</Typography>
-        <IconButton onClick={close}>
-          <IoClose size={25} />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent>
-        <Box component="form" onSubmit={handleSubmitSubCategory} sx={{ display: 'grid', gap: 3, pt: 2 }}>
-          {/* Name Input */}
-          <TextField
-            label="Name"
-            name="name"
-            value={subCategoryData.name}
-            onChange={handleChange}
-            fullWidth
-            variant="outlined"
-          />
-          {/* Image Upload Section */}
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>Image</Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Box
-                sx={{
-                  width: 144,
-                  height: 144,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'grey.100',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                }}
+    <section className='fixed inset-0 p-4 bg-neutral-800 bg-opacity-60 z-50 flex items-center justify-center'>
+      <div className='bg-white w-full max-w-lg p-4 rounded-lg shadow-lg max-h-[90vh] overflow-y-auto'>
+        <div className='flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b'>
+          <h1 className='font-semibold text-lg'>Add Sub Category</h1>
+          <button onClick={close} className='text-neutral-600 hover:text-red-600 transition-colors'>
+            <IoClose size={25} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmitSubCategory} className='grid gap-4'>
+          <div className='grid gap-1'>
+            <label htmlFor='name' className='font-medium'>Name</label>
+            <input
+              type='text'
+              id='name'
+              name='name'
+              placeholder='Enter subcategory name'
+              value={subCategoryData.name}
+              onChange={handleChange}
+              className='bg-blue-50 p-2 border border-blue-100 focus-within:border-primary-200 outline-none rounded'
+              required
+            />
+          </div>
+
+          <div className='grid gap-1'>
+            <label htmlFor='altText' className='font-medium'>SEO Alt Text</label>
+            <input
+              type='text'
+              id='altText'
+              name='altText'
+              placeholder='Enter image description for SEO'
+              value={subCategoryData.altText}
+              onChange={handleChange}
+              className='bg-blue-50 p-2 border border-blue-100 focus-within:border-primary-200 outline-none rounded'
+            />
+          </div>
+
+          <div className='grid gap-1'>
+            <p className='font-medium'>Image</p>
+            <div className='flex flex-col sm:flex-row items-center gap-3'>
+              <div 
+                className='border bg-blue-50 h-36 w-36 flex items-center justify-center rounded cursor-pointer overflow-hidden'
+                onClick={() => subCategoryData.image && setShowImagePreview(true)}
               >
                 {subCategoryData.image ? (
                   <img
                     src={subCategoryData.image}
-                    alt="subCategory"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    alt='SubCategory'
+                    className='w-full h-full object-scale-down'
                   />
                 ) : (
-                  <Typography variant="body2" color="text.secondary">No Image</Typography>
+                  <div className='flex flex-col items-center text-neutral-400'>
+                    <MdOutlineImage size={40} />
+                    <p className='text-xs'>No Image</p>
+                  </div>
                 )}
-              </Box>
-              <Button
-                variant="outlined"
-                component="label"
-                sx={{ textTransform: 'none' }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <>
-                    <AiOutlineCamera size={20} style={{ marginRight: 8 }} />
-                    Upload Image
-                  </>
-                )}
+              </div>
+              <label htmlFor='uploadSubImg'>
+                <div className={`px-4 py-2 border border-primary-100 text-primary-200 rounded cursor-pointer hover:bg-primary-100 transition-colors flex items-center gap-2 ${loading && "opacity-50 cursor-not-allowed"}`}>
+                  {loading ? <Loading /> : (
+                    <>
+                      <AiOutlineCamera size={20} />
+                      <span>Upload Image</span>
+                    </>
+                  )}
+                </div>
                 <input
-                  type="file"
-                  hidden
+                  type='file'
+                  id='uploadSubImg'
+                  className='hidden'
                   onChange={handleUploadSubCategoryImage}
+                  disabled={loading}
                 />
-              </Button>
-            </Stack>
-          </Box>
-          {/* Category Selection */}
-          <Box>
-            <FormControl fullWidth>
-              <InputLabel id="category-select-label">Select Category</InputLabel>
-              <Select
-                labelId="category-select-label"
-                label="Select Category"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const categoryDetails = allCategory.find((el) => el._id === value);
-                  if (categoryDetails && !subCategoryData.category.some((cat) => cat._id === value)) {
-                    setSubCategoryData((prev) => ({
-                      ...prev,
-                      category: [...prev.category, categoryDetails],
-                    }));
-                  }
-                }}
-                value="" // Reset to empty string to allow re-selection
-              >
-                <MenuItem value="" disabled>Select Category</MenuItem>
-                {allCategory.map((category) => (
-                  <MenuItem key={category._id} value={category._id}>
-                    {category.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {subCategoryData.category.map((cat) => (
-                <Chip
-                  key={cat._id}
-                  label={cat.name}
-                  onDelete={() => handleRemoveCategorySelected(cat._id)}
-                  sx={{ m: 0.5 }}
-                />
+              </label>
+            </div>
+          </div>
+
+          <div className='grid gap-1'>
+            <label className='font-medium'>Select Category</label>
+            <select
+              className='bg-blue-50 p-2 border border-blue-100 focus-within:border-primary-200 outline-none rounded'
+              onChange={(e) => {
+                const value = e.target.value;
+                const categoryDetails = allCategory.find((el) => el._id === value);
+                if (categoryDetails && !subCategoryData.category.some((cat) => cat._id === value)) {
+                  setSubCategoryData((prev) => ({
+                    ...prev,
+                    category: [...prev.category, categoryDetails],
+                  }));
+                }
+              }}
+              value=""
+            >
+              <option value="" disabled>Select Category</option>
+              {allCategory.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
               ))}
-            </Box>
-          </Box>
-          {/* Cancel and Submit Buttons */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
-            <Button
+            </select>
+            <div className='flex flex-wrap gap-2 mt-2'>
+              {subCategoryData.category.map((cat) => (
+                <div key={cat._id} className='bg-white border shadow-sm px-2 py-1 rounded flex items-center gap-2'>
+                  <span className='text-sm'>{cat.name}</span>
+                  <button 
+                    type='button'
+                    onClick={() => handleRemoveCategorySelected(cat._id)}
+                    className='text-red-500 hover:text-red-700 transition-colors'
+                  >
+                    <IoClose size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className='flex items-center justify-end gap-3 mt-4'>
+            <button
+              type='button'
               onClick={close}
-              color='error'
-              sx={{ textTransform: 'none', mr: 2 }}
+              className='px-4 py-2 text-red-600 border border-red-600 rounded hover:bg-red-50 transition-colors'
+              disabled={loading}
             >
               Cancel
-            </Button>
-            <Button
-              type="submit"
-              color='success'
-              disabled={!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length}
-              sx={{ textTransform: 'none' }}
+            </button>
+            <button
+              type='submit'
+              className={`px-4 py-2 bg-primary-200 text-white rounded hover:bg-primary-300 transition-colors ${(!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length || loading) && "opacity-50 cursor-not-allowed"}`}
+              disabled={!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length || loading}
             >
-              Submit
-            </Button>
-          </Box>
-        </Box>
-      </DialogContent>
-    </Dialog>
+              {loading ? "Loading..." : "Add Sub Category"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {showImagePreview && (
+        <div className='fixed inset-0 bg-neutral-800 bg-opacity-70 z-[60] flex items-center justify-center p-4'>
+          <div className='bg-white p-2 rounded-lg max-w-2xl w-full relative'>
+             <button 
+              onClick={() => setShowImagePreview(false)} 
+              className='absolute -top-10 right-0 text-white hover:text-red-500 transition-colors'
+             >
+                <IoClose size={30} />
+             </button>
+             <img
+              src={subCategoryData.image}
+              alt='Preview'
+              className='w-full h-auto max-h-[80vh] object-contain rounded'
+             />
+          </div>
+        </div>
+      )}
+    </section>
   );
 };
 
 export default UploadSubCategoryModel;
+

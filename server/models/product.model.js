@@ -53,6 +53,10 @@ const productSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  altText: {
+    type: String,
+    default: ""
+  },
   category: [{
     type: mongoose.Schema.ObjectId,
     ref: 'category'

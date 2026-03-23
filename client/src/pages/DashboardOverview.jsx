@@ -43,7 +43,7 @@ const DashboardOverview = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
             </div>
         );
     }
@@ -53,15 +53,15 @@ const DashboardOverview = () => {
             title: "Total Revenue",
             value: `₹${stats?.totalRevenue?.toLocaleString() || 0}`,
             icon: <FiTrendingUp size={24} />,
-            color: "bg-emerald-50 text-emerald-600",
-            borderColor: "border-emerald-100"
+            color: "bg-indigo-50 text-indigo-600",
+            borderColor: "border-indigo-100/50"
         },
         {
             title: "Total Orders",
             value: stats?.totalOrders || 0,
             icon: <FiShoppingBag size={24} />,
             color: "bg-blue-50 text-blue-600",
-            borderColor: "border-blue-100"
+            borderColor: "border-blue-100/50"
         },
         {
             title: "Total Customers",
@@ -98,7 +98,7 @@ const DashboardOverview = () => {
             title: "Delivered Orders",
             value: stats?.deliveredOrders || 0,
             icon: <FiCheckCircle size={20} />,
-            color: "text-emerald-500",
+            color: "text-indigo-500",
             percentage: stats?.totalOrders ? Math.round((stats.deliveredOrders / stats.totalOrders) * 100) : 0
         },
         {
@@ -118,7 +118,7 @@ const DashboardOverview = () => {
     ];
 
     return (
-        <div className="p-4 lg:p-6 bg-gray-50/50 min-h-full">
+        <div className="bg-white min-h-full">
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
                 <p className="text-gray-500 mt-1">Real-time statistics for your store</p>
@@ -138,7 +138,7 @@ const DashboardOverview = () => {
                                     {card.value}
                                 </h2>
                             </div>
-                            <div className={`${card.color} p-4 rounded-xl transition-transform duration-300 group-hover:scale-110`}>
+                            <div className={`${card.color} p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/10`}>
                                 {card.icon}
                             </div>
                         </div>
@@ -153,8 +153,8 @@ const DashboardOverview = () => {
                         <h3 className="text-lg font-bold text-gray-800">Revenue Analysis</h3>
                         <div className="flex items-center gap-2">
                              <div className="flex items-center gap-1.5">
-                                <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-                                <span className="text-xs text-gray-500 font-medium uppercase">Revenue</span>
+                                <span className="w-3 h-3 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/50"></span>
+                                <span className="text-xs text-gray-500 font-bold uppercase tracking-tight">Revenue</span>
                              </div>
                         </div>
                     </div>
@@ -163,8 +163,8 @@ const DashboardOverview = () => {
                             <AreaChart data={stats?.monthlyStats || []}>
                                 <defs>
                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -192,8 +192,8 @@ const DashboardOverview = () => {
                                 <Area 
                                     type="monotone" 
                                     dataKey="revenue" 
-                                    stroke="#10b981" 
-                                    strokeWidth={3}
+                                    stroke="#6366f1" 
+                                    strokeWidth={4}
                                     fillOpacity={1} 
                                     fill="url(#colorRev)" 
                                 />
@@ -228,9 +228,12 @@ const DashboardOverview = () => {
                         ))}
                     </div>
                     
-                    <div className="mt-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                        <p className="text-sm text-emerald-800 font-medium">Business Performance</p>
-                        <p className="text-xs text-emerald-600 mt-1">Your store is performing well this month. Keep it up!</p>
+                    <div className="mt-8 p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-3 opacity-10">
+                            <FiTrendingUp size={40} className="text-indigo-600" />
+                        </div>
+                        <p className="text-sm text-indigo-900 font-bold">Business Performance</p>
+                        <p className="text-xs text-indigo-600/80 mt-1 font-medium leading-relaxed">Your store is performing exceptionally well this month. Growth is up by 12% compared to last period.</p>
                     </div>
                 </div>
             </div>
@@ -267,8 +270,8 @@ const DashboardOverview = () => {
                             />
                             <Bar 
                                 dataKey="orders" 
-                                fill="#3b82f6" 
-                                radius={[4, 4, 0, 0]} 
+                                fill="#6366f1" 
+                                radius={[6, 6, 0, 0]} 
                                 barSize={40}
                             />
                         </BarChart>

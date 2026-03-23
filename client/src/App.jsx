@@ -13,7 +13,7 @@ import SummaryApi from './common/SummaryApi';
 import { handleAddItemCart } from './store/cartProduct';
 import GlobalProvider from './provider/GlobalProvider';
 import { FaCartShopping } from "react-icons/fa6";
-import WhatsappFloatButton from './components/WhatsappFloatButton';
+// import WhatsappFloatButton from './components/WhatsappFloatButton';
 // import CartMobileLink from './components/CartMobile';
 
 function App() {
@@ -81,7 +81,7 @@ function App() {
       </main>
       {!hideHeaderFooter && <Footer />}
       <Toaster position="top-right" />
-      <WhatsappFloatButton/>
+      {/* <WhatsappFloatButton/> */}
     </GlobalProvider>
   );
 }

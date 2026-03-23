@@ -7,20 +7,7 @@ import ViewImage from "../components/ViewImage";
 import EditSubCategory from "../components/EditSubCategory";
 import CofirmBox from "../components/CofirmBox";
 import { toast } from "sonner";
-import AddIcon from "@mui/icons-material/Add";
-import {
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  Button,
-  Typography,
-  Box,
-  Chip,
-  Stack,
-  Pagination,
-} from "@mui/material";
+import { IoAdd } from "react-icons/io5";
 
 const SubCategoryPage = () => {
   const [openAddSubCategory, setOpenAddSubCategory] = useState(false);
@@ -34,13 +21,13 @@ const SubCategoryPage = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handlePageChange = (event, value) => {
+  const handlePageChange = (value) => {
     setCurrentPage(value);
   };
 
@@ -82,138 +69,94 @@ const SubCategoryPage = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 0 }}>
+    <section className=''>
       {/* Header */}
-      <Box
-        sx={{
-          p: 2,
-          mb: 3,
-          display: "flex",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 1,
-          borderRadius: 2,
-        }}
-      >
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: "18px", sm: "20px", md: "22px" },
-          }}
-        >
-          SubCategory
-        </Typography>
-
-        <Box sx={{ ml: "auto" }}>
-          <Button
-            variant="contained"
-            color="primary"
+      <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded'>
+          <h2 className='font-semibold text-lg sm:text-xl'>Sub Category</h2>
+          <button 
             onClick={() => setOpenAddSubCategory(true)}
-            sx={{ fontSize: { xs: "12px", sm: "14px" } }}
+            className='bg-primary-200 hover:bg-primary-300 text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
           >
-            <AddIcon sx={{ mr: 0.5 }} /> Add
-          </Button>
-        </Box>
-      </Box>
+            <IoAdd size={24} />
+            <span>Add Sub Category</span>
+          </button>
+      </div>
 
       {/* Grid */}
-      <Grid container spacing={2}>
+      <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 py-6'>
         {currentItems.map((item) => (
-          <Grid item key={item._id} xs={12} sm={6} md={4} lg={3} xl={2}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                width: "100%",
-                boxShadow: 3,
-                "&:hover": {
-                  boxShadow: 6,
-                },
-              }}
+          <div key={item._id} className='bg-white group rounded shadow hover:shadow-md transition-all flex flex-col'>
+            <div 
+              className='aspect-square w-full p-4 flex items-center justify-center overflow-hidden cursor-pointer'
+              onClick={() => setImageURL(item.image)}
             >
-              <CardMedia
-                component="img"
-                image={item.image}
-                alt={item.name}
-                sx={{
-                  height: 140,
-                  objectFit: "contain",
-                  p: 1,
-                  cursor: "pointer",
-                }}
-                onClick={() => setImageURL(item.image)}
+              <img
+                src={item.image}
+                alt={item.altText || item.name}
+                className='h-full w-full object-scale-down transition-transform group-hover:scale-105'
               />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography
-                  variant="subtitle1"
-                  align="center"
-                  sx={{ fontSize: { xs: "14px", sm: "16px", md: "18px" } }}
-                >
-                  {item.name}
-                </Typography>
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{
-                    mt: 1,
-                    justifyContent: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {item.category.map((cat) => (
-                    <Chip
-                      key={cat._id}
-                      label={cat.name}
-                      size="small"
-                      sx={{
-                        fontSize: { xs: "10px", sm: "12px", md: "13px" },
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </CardContent>
-              <CardActions>
-                <Button
-                  fullWidth
-                  color="success"
-                  sx={{ fontSize: { xs: "12px", sm: "14px" } }}
-                  onClick={() => {
-                    setOpenEdit(true);
-                    setEditData(item);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  fullWidth
-                  color="error"
-                  sx={{ fontSize: { xs: "12px", sm: "14px" } }}
-                  onClick={() => {
-                    setOpenDeleteConfirmBox(true);
-                    setDeleteSubCategory(item);
-                  }}
-                >
-                  Delete
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+            </div>
+            <div className='px-4 py-2 border-t flex-grow'>
+              <h3 className='text-center font-medium truncate' title={item.name}>{item.name}</h3>
+              <div className='flex flex-wrap justify-center gap-1 mt-1'>
+                {item.category.map((cat) => (
+                  <span key={cat._id} className='text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100'>
+                    {cat.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className='p-2 grid grid-cols-2 gap-2 mt-auto'>
+              <button
+                onClick={() => {
+                  setOpenEdit(true);
+                  setEditData(item);
+                }}
+                className='text-sm bg-green-100 text-green-700 py-1 px-2 rounded hover:bg-green-200 transition-colors'
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  setOpenDeleteConfirmBox(true);
+                  setDeleteSubCategory(item);
+                }}
+                className='text-sm bg-red-100 text-red-700 py-1 px-2 rounded hover:bg-red-200 transition-colors'
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         ))}
-      </Grid>
+      </div>
 
       {/* Pagination */}
       {data.length > itemsPerPage && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <Pagination
-            count={Math.ceil(data.length / itemsPerPage)}
-            page={currentPage}
-            onChange={handlePageChange}
-            color="primary"
-            size="medium"
-          />
-        </Box>
+        <div className='flex items-center justify-center gap-2 mt-6 pb-10'>
+             <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed'
+             >
+                Prev
+             </button>
+             {[...Array(Math.ceil(data.length / itemsPerPage))].map((_, i) => (
+                <button
+                    key={i}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`px-3 py-1 rounded border ${currentPage === i + 1 ? 'bg-primary-200 text-white border-primary-200' : 'hover:bg-neutral-100'}`}
+                >
+                    {i + 1}
+                </button>
+             ))}
+             <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === Math.ceil(data.length / itemsPerPage)}
+                className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed'
+             >
+                Next
+             </button>
+        </div>
       )}
 
       {/* Modals */}
@@ -241,7 +184,7 @@ const SubCategoryPage = () => {
       )}
 
       {imageURL && <ViewImage url={imageURL} close={() => setImageURL("")} />}
-    </Box>
+    </section>
   );
 };
 

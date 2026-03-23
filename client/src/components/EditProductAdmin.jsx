@@ -1,33 +1,7 @@
 // EditProductAdmin.jsx
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Divider,
-  Rating,
-  CircularProgress,
-  Switch,
-  FormControlLabel,
-} from '@mui/material';
-import {
-  CloudUpload as CloudUploadIcon,
-  Delete as DeleteIcon,
-  Close as CloseIcon,
-  Add as AddIcon,
-} from '@mui/icons-material';
+import { IoCloudUploadOutline, IoClose, IoAdd, IoTrashOutline, IoStar, IoStarOutline } from "react-icons/io5";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
 import ViewImage from './ViewImage';
@@ -35,6 +9,7 @@ import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import successAlert from '../utils/SuccessAlert';
+import { toast } from 'sonner';
 
 const predefinedAttributeNames = ['Size', 'Weight', 'Material', 'Memory', 'Storage', 'Processor', 'Color', 'Capacity'];
 
@@ -50,6 +25,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     attributes: propsData.attributes || [],
     reviews: propsData.reviews || [],
     comboOffer: propsData.comboOffer || false,
+    altText: propsData.altText || '' // Added altText field
   });
 
   const [imageLoading, setImageLoading] = useState(false);
@@ -78,25 +54,31 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
 
-  useEffect(() => {
-    console.log('Current product data in state:', data);
-  }, [data]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleComboOfferToggle = (event) => {
+  const handleComboOfferToggle = (e) => {
     setData((prev) => ({
       ...prev,
-      comboOffer: event.target.checked,
+      comboOffer: e.target.checked,
     }));
   };
 
   const handleUploadImages = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
+    // Frontend validation: 2MB limit
+    const MAX_SIZE = 2 * 1024 * 1024;
+    const invalidFiles = Array.from(files).filter(file => file.size > MAX_SIZE);
+    
+    if (invalidFiles.length > 0) {
+      toast.error(`Some images exceed the 2MB limit: ${invalidFiles.map(f => f.name).join(', ')}`);
+      return;
+    }
+
     setImageLoading(true);
     try {
       const uploadPromises = Array.from(files).map((file) => uploadImage(file, 'product'));
@@ -126,7 +108,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   const handleAddMoreDetailField = () => {
     if (!fieldName.trim()) {
-      alert('Field name cannot be empty.');
+      toast.error('Field name cannot be empty.');
       return;
     }
     setData((prev) => ({ ...prev, more_details: { ...prev.more_details, [fieldName]: '' } }));
@@ -140,11 +122,11 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   const handleAddAttributeType = () => {
     if (!newAttributeTypeName.trim()) {
-      alert('Attribute type name cannot be empty.');
+      toast.error('Attribute type name cannot be empty.');
       return;
     }
     if (data.attributes.some((attr) => attr.name.toLowerCase() === newAttributeTypeName.trim().toLowerCase())) {
-      alert(`Attribute type "${newAttributeTypeName}" already exists.`);
+      toast.error(`Attribute type "${newAttributeTypeName}" already exists.`);
       return;
     }
     setData((prev) => ({
@@ -158,19 +140,19 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   const handleAddAttributeOption = () => {
     if (!selectedAttributeTypeForOption) {
-      alert('Please select an attribute type.');
+      toast.error('Please select an attribute type.');
       return;
     }
     if (!newOptionValue.trim()) {
-      alert('Attribute option value cannot be empty.');
+      toast.error('Attribute option value cannot be empty.');
       return;
     }
     if (newOptionPrice === '' || isNaN(Number(newOptionPrice)) || Number(newOptionPrice) < 0) {
-      alert('Please enter a valid price for the attribute option.');
+      toast.error('Please enter a valid price for the attribute option.');
       return;
     }
     if (newOptionStock !== null && (isNaN(Number(newOptionStock)) || Number(newOptionStock) < 0)) {
-      alert('Please enter a valid number for stock, or leave it empty.');
+      toast.error('Please enter a valid number for stock, or leave it empty.');
       return;
     }
 
@@ -181,7 +163,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
             (option) => option.name.toLowerCase() === newOptionValue.trim().toLowerCase()
           );
           if (isDuplicate) {
-            alert(`Option "${newOptionValue.trim()}" already exists for ${selectedAttributeTypeForOption}.`);
+            toast.error(`Option "${newOptionValue.trim()}" already exists for ${selectedAttributeTypeForOption}.`);
             return attrGroup;
           }
           return {
@@ -233,7 +215,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   const handleAddReview = () => {
     if (!reviewName.trim() || !reviewComment.trim() || reviewStars === 0) {
-      alert('Please fill in reviewer name, stars (1-5), and comment for the review.');
+      toast.error('Please fill in reviewer name, stars (1-5), and comment for the review.');
       return;
     }
 
@@ -270,37 +252,17 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
       );
 
       if (data.image.length === 0) {
-        alert('Please upload at least one image.');
+        toast.error('Please upload at least one image.');
         setSubmitLoading(false);
         return;
       }
       if (data.category.length === 0) {
-        alert('Please select at least one category.');
+        toast.error('Please select at least one category.');
         setSubmitLoading(false);
         return;
       }
       if (!data.name.trim() || !data.description.trim()) {
-        alert('Please fill in all required text fields (Name, Description).');
-        setSubmitLoading(false);
-        return;
-      }
-      if (!Array.isArray(data.reviews)) {
-        alert('Reviews must be an array.');
-        setSubmitLoading(false);
-        return;
-      }
-
-      let hasAnyAttributePrice = false;
-      if (data.attributes.length > 0) {
-        for (const attrGroup of data.attributes) {
-          if (attrGroup.options && attrGroup.options.some((option) => typeof option.price === 'number' && !isNaN(option.price) && option.price >= 0)) {
-            hasAnyAttributePrice = true;
-            break;
-          }
-        }
-      }
-      if (!hasAnyAttributePrice && data.attributes.length > 0) {
-        alert('Please define at least one attribute option with a valid price.');
+        toast.error('Please fill in Name and Description.');
         setSubmitLoading(false);
         return;
       }
@@ -316,9 +278,8 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         attributes: data.attributes,
         reviews: data.reviews,
         comboOffer: data.comboOffer,
+        altText: data.altText, // Include altText
       };
-
-      console.log('Product data to send:', JSON.stringify(productDataToSend, null, 2));
 
       const response = await Axios({
         ...SummaryApi.updateProductDetails,
@@ -338,471 +299,518 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   };
 
   return (
-    <Dialog open={true} onClose={close} fullWidth maxWidth="md">
-      <DialogTitle>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Edit Product</Typography>
-          <IconButton onClick={close}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent dividers>
-          <TextField
-            label="Name"
-            fullWidth
-            margin="normal"
-            name="name"
-            value={data.name}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Description"
-            fullWidth
-            multiline
-            rows={3}
-            margin="normal"
-            name="description"
-            value={data.description}
-            onChange={handleChange}
-            required
-          />
+    <section className='fixed inset-0 bg-neutral-900 bg-opacity-70 flex items-center justify-center z-50 p-4 overflow-y-auto'>
+       <div className='bg-white w-full max-w-4xl p-6 rounded-lg shadow-xl relative animate-zoom-in my-8'>
+          <div className='flex items-center justify-between mb-6'>
+             <h2 className='font-bold text-xl'>Edit Product</h2>
+             <button onClick={close} className='p-2 hover:bg-neutral-100 rounded-full transition-all'>
+                <IoClose size={24} />
+             </button>
+          </div>
 
-          <FormControlLabel
-            control={
-              <Switch
-                checked={data.comboOffer}
-                onChange={handleComboOfferToggle}
-                color="primary"
-              />
-            }
-            label="Enable Combo Offer"
-            sx={{ mb: 2 }}
-          />
+          <form className='grid gap-6' onSubmit={handleSubmit}>
+            <div className='grid gap-1'>
+               <label htmlFor='name' className='font-medium'>Name</label>
+               <input 
+                 type='text'
+                 id='name'
+                 name='name'
+                 className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
+                 value={data.name}
+                 onChange={handleChange}
+                 required
+               />
+            </div>
 
-          {/* Image Upload Section */}
-          <Box mt={2}>
-            <Typography variant="subtitle1" fontWeight="medium" gutterBottom>
-              Images
-            </Typography>
-            <label htmlFor="editProductImages">
-              <Button
-                component="span"
-                variant="outlined"
-                startIcon={<CloudUploadIcon />}
-                sx={{ height: '96px', width: '100%' }}
-              >
-                {imageLoading ? <Loading /> : 'Upload More Images'}
-              </Button>
-              <input
-                type="file"
-                id="editProductImages"
-                style={{ display: 'none' }}
-                accept="image/*"
-                onChange={handleUploadImages}
-                multiple
-              />
-            </label>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
-              {data.image.map((img, index) => (
-                <Box key={img + index} sx={{ position: 'relative', width: 80, height: 80 }}>
-                  <img
-                    src={img}
-                    alt="product"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'pointer' }}
-                    onClick={() => setViewImageURL(img)}
+            <div className='grid gap-1'>
+               <label htmlFor='description' className='font-medium'>Description</label>
+               <textarea 
+                 id='description'
+                 name='description'
+                 rows={3}
+                 className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded resize-none'
+                 value={data.description}
+                 onChange={handleChange}
+                 required
+               />
+            </div>
+
+            <div className='flex items-center gap-2'>
+               <input 
+                 type='checkbox'
+                 id='comboOffer'
+                 className='w-5 h-5 cursor-pointer'
+                 checked={data.comboOffer}
+                 onChange={handleComboOfferToggle}
+               />
+               <label htmlFor='comboOffer' className='font-medium cursor-pointer'>Enable Combo Offer</label>
+            </div>
+
+            {/* Image Upload */}
+            <div className='grid gap-1'>
+               <label className='font-medium'>Images (Max 2MB each)</label>
+               <label htmlFor='editProductImages' className='bg-blue-50 h-24 border border-dashed border-primary-200 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition-all'>
+                  {imageLoading ? <Loading /> : (
+                    <>
+                      <IoCloudUploadOutline size={30} className='text-primary-200' />
+                      <p className='text-sm mt-1 text-neutral-600'>Upload More Images</p>
+                    </>
+                  )}
+                  <input 
+                    type='file'
+                    id='editProductImages'
+                    className='hidden'
+                    accept='image/*'
+                    multiple
+                    onChange={handleUploadImages}
                   />
-                  <IconButton
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      bgcolor: 'error.main',
-                      color: 'white',
-                      '&:hover': { bgcolor: 'error.dark' },
+               </label>
+               <div className='flex flex-wrap gap-3 mt-2'>
+                  {data.image.map((img, index) => (
+                    <div key={img + index} className='relative w-24 h-24 bg-blue-50 rounded border p-1 group'>
+                       <img 
+                         src={img} 
+                         alt='product' 
+                         className='w-full h-full object-scale-down cursor-pointer'
+                         onClick={() => setViewImageURL(img)}
+                       />
+                       <button 
+                         type='button'
+                         onClick={() => handleDeleteImage(index)}
+                         className='absolute bottom-0 right-0 bg-red-500 text-white p-1 rounded-tl-md opacity-0 group-hover:opacity-100 transition-all'
+                       >
+                         <IoTrashOutline size={16} />
+                       </button>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            {/* Alt Text for SEO */}
+            <div className='grid gap-1'>
+               <label htmlFor='altText' className='font-medium text-primary-200 flex items-center gap-1'>
+                  SEO Alt Image Text
+               </label>
+               <input 
+                 type='text'
+                 id='altText'
+                 name='altText'
+                 placeholder='Describe images for SEO'
+                 className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
+                 value={data.altText}
+                 onChange={handleChange}
+               />
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+               <div className='grid gap-1'>
+                  <label className='font-medium'>Category</label>
+                  <select 
+                    className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded cursor-pointer'
+                    value={selectCategory}
+                    onChange={(e) => {
+                       const value = e.target.value;
+                       const category = allCategory.find(el => el._id === value);
+                       if (category && !data.category.some(c => c._id === category._id)) {
+                         setData(prev => ({ ...prev, category: [...prev.category, category] }));
+                         setSelectCategory("");
+                       }
                     }}
-                    onClick={() => handleDeleteImage(index)}
                   >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              ))}
-            </Box>
-          </Box>
+                     <option value="">Select Category</option>
+                     {allCategory.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  </select>
+                  <div className='flex flex-wrap gap-2 mt-1'>
+                     {data.category.map((c, index) => (
+                       <span key={c._id + index} className='bg-primary-100 text-primary-200 px-3 py-1 rounded-full text-xs flex items-center gap-2 font-medium'>
+                          {c.name}
+                          <IoClose className='cursor-pointer' onClick={() => handleRemoveCategory(index)} />
+                       </span>
+                     ))}
+                  </div>
+               </div>
 
-          {/* Category & SubCategory Section */}
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={selectCategory}
-              onChange={(e) => {
-                const value = e.target.value;
-                const category = allCategory.find((c) => c._id === value);
-                if (category && !data.category.some((c) => c._id === category._id)) {
-                  setData((prev) => ({ ...prev, category: [...prev.category, category] }));
-                  setSelectCategory('');
-                }
-              }}
-              label="Category"
-            >
-              <MenuItem value="">Select Category</MenuItem>
-              {allCategory.map((c) => (
-                <MenuItem key={c._id} value={c._id}>{c.name}</MenuItem>
-              ))}
-            </Select>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-              {data.category.map((c, index) => (
-                <Chip
-                  key={c._id + index}
-                  label={c.name}
-                  onDelete={() => handleRemoveCategory(index)}
-                  deleteIcon={<CloseIcon />}
-                />
-              ))}
-            </Box>
-          </FormControl>
-
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Sub Category</InputLabel>
-            <Select
-              value={selectSubCategory}
-              onChange={(e) => {
-                const value = e.target.value;
-                const subCategory = allSubCategory.find((s) => s._id === value);
-                if (subCategory && !data.subCategory.some((s) => s._id === subCategory._id)) {
-                  setData((prev) => ({ ...prev, subCategory: [...prev.subCategory, subCategory] }));
-                  setSelectSubCategory('');
-                }
-              }}
-              label="Sub Category"
-            >
-              <MenuItem value="">Select Sub Category</MenuItem>
-              {allSubCategory.map((s) => (
-                <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
-              ))}
-            </Select>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-              {data.subCategory.map((s, index) => (
-                <Chip
-                  key={s._id + index}
-                  label={s.name}
-                  onDelete={() => handleRemoveSubCategory(index)}
-                  deleteIcon={<CloseIcon />}
-                />
-              ))}
-            </Box>
-          </FormControl>
-
-          {/* More Details Section */}
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6" fontWeight="medium">More Details (General Key-Value Pairs)</Typography>
-          {Object.keys(data.more_details).map((key) => (
-            <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <TextField
-                label={key}
-                fullWidth
-                value={data.more_details[key]}
-                onChange={(e) => handleMoreDetailsChange(key, e.target.value)}
-              />
-              <IconButton
-                onClick={() =>
-                  setData((prev) => ({
-                    ...prev,
-                    more_details: Object.fromEntries(
-                      Object.entries(prev.more_details).filter(([k]) => k !== key)
-                    ),
-                  }))
-                }
-                color="error"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
-          ))}
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenAddField(true)}
-            sx={{ width: 'fit-content' }}
-          >
-            Add More Detail Field
-          </Button>
-
-          {/* Attributes Section */}
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6" fontWeight="medium">Product Attributes</Typography>
-          {data.attributes.map((attributeGroup) => (
-            <Box key={attributeGroup.name} sx={{ border: '1px solid #ccc', p: 2, borderRadius: 1, mb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="subtitle1" fontWeight="medium">{attributeGroup.name}:</Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDeleteAttributeType(attributeGroup.name)}
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                {attributeGroup.options.map((option, idx) => (
-                  <Chip
-                    key={option.name + idx}
-                    label={`${option.name} ${option.price !== undefined && option.price !== null ? `(${option.price > 0 ? '+' : ''}${option.price})` : ''} ${option.unit ? option.unit : ''}`}
-                    onDelete={() => handleDeleteAttributeOption(attributeGroup.name, option.name)}
-                    deleteIcon={<CloseIcon />}
-                    color="primary"
-                    variant="outlined"
-                  />
-                ))}
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Add Options to {attributeGroup.name}</InputLabel>
-                  <Select
-                    value={selectedAttributeTypeForOption === attributeGroup.name ? attributeGroup.name : ''}
-                    onChange={(e) => setSelectedAttributeTypeForOption(e.target.value)}
-                    label={`Add Options to ${attributeGroup.name}`}
-                    disabled={selectedAttributeTypeForOption && selectedAttributeTypeForOption !== attributeGroup.name}
+               <div className='grid gap-1'>
+                  <label className='font-medium'>Sub Category</label>
+                  <select 
+                    className='bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded cursor-pointer'
+                    value={selectSubCategory}
+                    onChange={(e) => {
+                       const value = e.target.value;
+                       const subCategory = allSubCategory.find(el => el._id === value);
+                       if (subCategory && !data.subCategory.some(s => s._id === subCategory._id)) {
+                         setData(prev => ({ ...prev, subCategory: [...prev.subCategory, subCategory] }));
+                         setSelectSubCategory("");
+                       }
+                    }}
                   >
-                    <MenuItem value="">Select to Add Options</MenuItem>
-                    <MenuItem value={attributeGroup.name}>{attributeGroup.name}</MenuItem>
-                  </Select>
-                </FormControl>
-                {selectedAttributeTypeForOption === attributeGroup.name && (
-                  <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                    <TextField
-                      label="Option Value (e.g., 128GB, 1kg, Red)"
-                      variant="outlined"
-                      size="small"
-                      value={newOptionValue}
-                      onChange={(e) => setNewOptionValue(e.target.value)}
-                      sx={{ flexGrow: 1 }}
-                    />
-                    <TextField
-                      label="Price"
-                      variant="outlined"
-                      size="small"
-                      type="number"
-                      value={newOptionPrice}
-                      onChange={(e) => setNewOptionPrice(e.target.value)}
-                      sx={{ width: '120px' }}
-                    />
-                    <TextField
-                      label="Stock"
-                      variant="outlined"
-                      size="small"
-                      type="number"
-                      value={newOptionStock === null ? '' : newOptionStock}
-                      onChange={(e) => setNewOptionStock(e.target.value === '' ? null : Number(e.target.value))}
-                      sx={{ width: '100px' }}
-                    />
-                    <TextField
-                      label="Unit (e.g., kg, g, ml)"
-                      variant="outlined"
-                      size="small"
-                      value={newOptionUnit}
-                      onChange={(e) => setNewOptionUnit(e.target.value)}
-                      sx={{ width: '120px' }}
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={handleAddAttributeOption}
-                      sx={{ flexShrink: 0 }}
-                    >
-                      Add Option
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => {
-                        setSelectedAttributeTypeForOption('');
-                        setNewOptionValue('');
-                        setNewOptionPrice('');
-                        setNewOptionStock(null);
-                        setNewOptionUnit('');
-                      }}
-                      sx={{ flexShrink: 0 }}
-                    >
-                      Cancel
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </Box>
-          ))}
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              setOpenAddAttribute(true);
-              setNewAttributeTypeName('');
-              setAttributeNameInputType('select');
-            }}
-            sx={{ width: 'fit-content' }}
-          >
-            Add New Attribute Type
-          </Button>
+                     <option value="">Select Sub Category</option>
+                     {allSubCategory.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  </select>
+                  <div className='flex flex-wrap gap-2 mt-1'>
+                     {data.subCategory.map((s, index) => (
+                       <span key={s._id + index} className='bg-primary-100 text-primary-200 px-3 py-1 rounded-full text-xs flex items-center gap-2 font-medium'>
+                          {s.name}
+                          <IoClose className='cursor-pointer' onClick={() => handleRemoveSubCategory(index)} />
+                       </span>
+                     ))}
+                  </div>
+               </div>
+            </div>
 
-          {/* Reviews Section */}
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6" fontWeight="medium">Product Reviews</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {data.reviews.map((review, index) => (
-              <Box
-                key={index}
-                sx={{ border: '1px solid #eee', p: 2, borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <Box>
-                  <Typography variant="subtitle1" fontWeight="medium">{review.name}</Typography>
-                  <Rating value={review.stars} readOnly size="small" />
-                  <Typography variant="body2">{review.comment}</Typography>
-                </Box>
-                <IconButton
-                  onClick={() => handleDeleteReview(index)}
-                  color="error"
-                  size="small"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ))}
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenAddReview(true)}
-              sx={{ width: 'fit-content', mt: 1 }}
-            >
-              Add New Review
-            </Button>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={close} color="secondary">
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={submitLoading}
-          >
-            {submitLoading ? <CircularProgress size={24} /> : 'Update Product'}
-          </Button>
-        </DialogActions>
-      </form>
+            <hr />
 
-      {viewImageURL && <ViewImage url={viewImageURL} close={() => setViewImageURL('')} />}
+            {/* More Details */}
+            <div className='grid gap-4'>
+               <div className='flex items-center justify-between'>
+                  <h3 className='font-semibold italic text-neutral-600'>More Details Section</h3>
+                  <button 
+                    type='button'
+                    onClick={() => setOpenAddField(true)}
+                    className='text-primary-200 hover:bg-primary-100 p-1 px-3 rounded flex items-center gap-1 text-sm font-medium border border-primary-100 transition-all'
+                  >
+                    <IoAdd size={18} /> Add Field
+                  </button>
+               </div>
+               
+               {Object.keys(data.more_details).map((k) => (
+                 <div key={k} className='grid gap-1'>
+                    <label className='font-medium text-sm text-neutral-500 capitalize'>{k}</label>
+                    <div className='flex items-center gap-2'>
+                       <input 
+                         type='text'
+                         value={data.more_details[k]}
+                         onChange={(e) => handleMoreDetailsChange(k, e.target.value)}
+                         className='flex-grow bg-blue-50 p-2 outline-none border focus-within:border-primary-200 rounded'
+                         required
+                       />
+                       <button 
+                          type='button'
+                          onClick={() => {
+                             const newDetails = { ...data.more_details };
+                             delete newDetails[k];
+                             setData(prev => ({ ...prev, more_details: newDetails }));
+                          }}
+                          className='p-2 text-red-500 hover:bg-red-50 rounded'
+                       >
+                          <IoTrashOutline size={20} />
+                       </button>
+                    </div>
+                 </div>
+               ))}
+            </div>
 
-      <Dialog open={openAddField} onClose={() => setOpenAddField(false)}>
-        <DialogTitle>Add New More Detail Field</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Field Name (e.g., Material, Weight)"
-            fullWidth
-            value={fieldName}
-            onChange={(e) => setFieldName(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAddField(false)}>Cancel</Button>
-          <Button onClick={handleAddMoreDetailField}>Add</Button>
-        </DialogActions>
-      </Dialog>
+            <hr />
 
-      <Dialog open={openAddAttribute} onClose={() => setOpenAddAttribute(false)}>
-        <DialogTitle>Add New Attribute Type</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth sx={{ mt: 1 }}>
-            <InputLabel>Attribute Type</InputLabel>
-            <Select
-              value={attributeNameInputType}
-              onChange={(e) => setAttributeNameInputType(e.target.value)}
-              label="Attribute Type"
-            >
-              <MenuItem value="select">Select from predefined</MenuItem>
-              <MenuItem value="custom">Custom</MenuItem>
-            </Select>
-          </FormControl>
-          {attributeNameInputType === 'select' ? (
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel>Predefined Attribute Name</InputLabel>
-              <Select
-                value={newAttributeTypeName}
-                onChange={(e) => setNewAttributeTypeName(e.target.value)}
-                label="Predefined Attribute Name"
-              >
-                <MenuItem value="">Select Attribute</MenuItem>
-                {predefinedAttributeNames.map((name) => (
-                  <MenuItem key={name} value={name}>{name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ) : (
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Custom Attribute Name"
-              fullWidth
-              value={newAttributeTypeName}
-              onChange={(e) => setNewAttributeTypeName(e.target.value)}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setOpenAddAttribute(false);
-              setNewAttributeTypeName('');
-              setAttributeNameInputType('select');
-            }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleAddAttributeType}>Add</Button>
-        </DialogActions>
-      </Dialog>
+            {/* Attributes */}
+            <div className='grid gap-4'>
+               <div className='flex items-center justify-between'>
+                  <h3 className='font-semibold italic text-neutral-600'>Product (Size or quantity)</h3>
+                  <button 
+                    type='button'
+                    onClick={() => setOpenAddAttribute(true)}
+                    className='text-primary-200 hover:bg-primary-100 p-1 px-3 rounded flex items-center gap-1 text-sm font-medium border border-primary-100 transition-all'
+                  >
+                    <IoAdd size={18} /> Add New Attribute Type
+                  </button>
+               </div>
 
-      <Dialog open={openAddReview} onClose={() => setOpenAddReview(false)}>
-        <DialogTitle>Add New Review</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Reviewer Name"
-            fullWidth
-            value={reviewName}
-            onChange={(e) => setReviewName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Typography component="legend">Stars</Typography>
-          <Rating
-            name="review-stars"
-            value={reviewStars}
-            onChange={(event, newValue) => setReviewStars(newValue)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="Comment"
-            fullWidth
-            multiline
-            rows={3}
-            value={reviewComment}
-            onChange={(e) => setReviewComment(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAddReview(false)}>Cancel</Button>
-          <Button onClick={handleAddReview}>Add Review</Button>
-        </DialogActions>
-      </Dialog>
-    </Dialog>
+               {data.attributes.map((attrGroup) => (
+                  <div key={attrGroup.name} className='border p-4 rounded bg-neutral-50 shadow-inner'>
+                     <div className='flex items-center justify-between mb-3'>
+                        <h4 className='font-bold text-primary-200'>{attrGroup.name}</h4>
+                        <button 
+                          type='button'
+                          onClick={() => handleDeleteAttributeType(attrGroup.name)}
+                          className='text-red-500 p-1 hover:bg-red-50 rounded'
+                        >
+                          <IoTrashOutline size={20} />
+                        </button>
+                     </div>
+
+                     <div className='flex flex-wrap gap-2 mb-4'>
+                        {attrGroup.options.map((option, idx) => (
+                          <span key={option.name + idx} className='bg-white border border-primary-100 text-primary-200 px-3 py-1 rounded-md flex items-center gap-2 text-xs font-semibold'>
+                             {option.name} ({option.price > 0 ? '+' : ''}{option.price}) {option.unit}
+                             <IoClose className='cursor-pointer text-neutral-400 hover:text-red-500' onClick={() => handleDeleteAttributeOption(attrGroup.name, option.name)} />
+                          </span>
+                        ))}
+                     </div>
+
+                     <div className='grid gap-3'>
+                        <button 
+                          type='button'
+                          onClick={() => setSelectedAttributeTypeForOption(attrGroup.name)}
+                          className='w-fit text-primary-200 text-xs font-bold hover:underline'
+                        >
+                          + Add Option to {attrGroup.name}
+                        </button>
+
+                        {selectedAttributeTypeForOption === attrGroup.name && (
+                           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 border rounded shadow-md mt-2'>
+                              <div className='grid gap-1'>
+                                 <label className='text-xs font-medium text-neutral-500'>Value</label>
+                                 <input 
+                                   type='text' 
+                                   placeholder='e.g. 1kg, Red'
+                                   className='bg-blue-50 p-2 outline-none border rounded text-sm'
+                                   value={newOptionValue}
+                                   onChange={e => setNewOptionValue(e.target.value)}
+                                 />
+                              </div>
+                              <div className='grid gap-1'>
+                                 <label className='text-xs font-medium text-neutral-500'>Price Add</label>
+                                 <input 
+                                   type='number' 
+                                   placeholder='0'
+                                   className='bg-blue-50 p-2 outline-none border rounded text-sm'
+                                   value={newOptionPrice}
+                                   onChange={e => setNewOptionPrice(e.target.value)}
+                                 />
+                              </div>
+                              <div className='grid gap-1'>
+                                 <label className='text-xs font-medium text-neutral-500'>Stock</label>
+                                 <input 
+                                   type='number' 
+                                   placeholder='Leave empty for none'
+                                   className='bg-blue-50 p-2 outline-none border rounded text-sm'
+                                   value={newOptionStock === null ? "" : newOptionStock}
+                                   onChange={e => setNewOptionStock(e.target.value === "" ? null : Number(e.target.value))}
+                                 />
+                              </div>
+                              <div className='grid gap-1'>
+                                 <label className='text-xs font-medium text-neutral-500'>Unit</label>
+                                 <input 
+                                   type='text' 
+                                   placeholder='e.g. kg'
+                                   className='bg-blue-50 p-2 outline-none border rounded text-sm'
+                                   value={newOptionUnit}
+                                   onChange={e => setNewOptionUnit(e.target.value)}
+                                 />
+                              </div>
+                              <div className='flex gap-2 sm:col-span-4 justify-end mt-2'>
+                                 <button 
+                                   type='button'
+                                   onClick={() => setSelectedAttributeTypeForOption("")}
+                                   className='px-4 py-2 text-xs border rounded hover:bg-neutral-50 font-medium'
+                                 >
+                                   Cancel
+                                 </button>
+                                 <button 
+                                   type='button'
+                                   onClick={handleAddAttributeOption}
+                                   className='px-4 py-2 text-xs bg-primary-200 text-white rounded hover:bg-primary-200/90 shadow-md font-medium transition-all'
+                                 >
+                                   Add Option
+                                 </button>
+                              </div>
+                           </div>
+                        )}
+                     </div>
+                  </div>
+               ))}
+            </div>
+
+            <hr />
+
+            {/* Reviews */}
+            <div className='grid gap-4'>
+               <div className='flex items-center justify-between'>
+                  <h3 className='font-semibold italic text-neutral-600'>Product Reviews (Manual)</h3>
+                  <button 
+                    type='button'
+                    onClick={() => setOpenAddReview(true)}
+                    className='text-primary-200 hover:bg-primary-100 p-1 px-3 rounded flex items-center gap-1 text-sm font-medium border border-primary-100 transition-all'
+                  >
+                    <IoAdd size={18} /> Add New Review
+                  </button>
+               </div>
+
+               <div className='grid gap-3'>
+                  {data.reviews.map((review, index) => (
+                    <div key={index} className='p-4 bg-neutral-50 rounded-lg border flex justify-between items-start gap-4'>
+                       <div className='grid gap-1'>
+                          <div className='flex items-center gap-2'>
+                             <p className='font-bold text-neutral-800'>{review.name}</p>
+                             <div className='flex text-yellow-500'>
+                                {[...Array(5)].map((_, i) => (
+                                  i < review.stars ? <IoStar key={i} /> : <IoStarOutline key={i} />
+                                ))}
+                             </div>
+                          </div>
+                          <p className='text-sm text-neutral-600 leading-relaxed'>{review.comment}</p>
+                       </div>
+                       <button 
+                         type='button'
+                         onClick={() => handleDeleteReview(index)}
+                         className='text-red-500 hover:bg-red-100 p-2 rounded-full transition-all'
+                       >
+                         <IoTrashOutline size={18} />
+                       </button>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className='flex gap-4 mt-4'>
+               <button 
+                 type='button'
+                 onClick={close}
+                 className='flex-grow border border-neutral-300 py-3 rounded-lg font-bold hover:bg-neutral-50 transition-all'
+               >
+                 Cancel
+               </button>
+               <button 
+                 type='submit'
+                 disabled={submitLoading}
+                 className='flex-grow bg-primary-100 text-primary-200 hover:bg-primary-200 hover:text-white py-3 rounded-lg font-bold transition-all shadow-md'
+               >
+                 {submitLoading ? "Updating..." : "Update Product"}
+               </button>
+            </div>
+          </form>
+       </div>
+
+       {/* Add Field Dialog */}
+       {openAddField && (
+          <div className='fixed inset-0 bg-neutral-900 bg-opacity-70 flex items-center justify-center z-[60] p-4'>
+             <div className='bg-white p-6 rounded-lg w-full max-w-sm shadow-2xl animate-zoom-in'>
+                <div className='flex items-center justify-between mb-4'>
+                   <h3 className='font-bold text-lg'>Add More Detail Field</h3>
+                   <button onClick={() => setOpenAddField(false)}><IoClose size={24} /></button>
+                </div>
+                <input 
+                  type='text'
+                  autoFocus
+                  placeholder='Field Name (e.g. Material)'
+                  className='w-full bg-blue-50 p-3 outline-none border focus:border-primary-200 rounded mb-4'
+                  value={fieldName}
+                  onChange={e => setFieldName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddMoreDetailField()}
+                />
+                <div className='flex justify-end gap-3'>
+                   <button onClick={() => setOpenAddField(false)} className='px-4 py-2 border rounded hover:bg-neutral-50 font-medium'>Cancel</button>
+                   <button onClick={handleAddMoreDetailField} className='px-4 py-2 bg-primary-200 text-white rounded hover:bg-primary-200/90 font-medium shadow-md'>Add</button>
+                </div>
+             </div>
+          </div>
+       )}
+
+       {/* Add Attribute Dialog */}
+       {openAddAttribute && (
+          <div className='fixed inset-0 bg-neutral-900 bg-opacity-70 flex items-center justify-center z-[60] p-4'>
+             <div className='bg-white p-6 rounded-lg w-full max-w-sm shadow-2xl animate-zoom-in'>
+                <div className='flex items-center justify-between mb-4'>
+                   <h3 className='font-bold text-lg'>Add Attribute Type</h3>
+                   <button onClick={() => { setOpenAddAttribute(false); setNewAttributeTypeName(''); }}><IoClose size={24} /></button>
+                </div>
+                
+                <div className='grid gap-4 mb-4'>
+                   <div className='grid gap-1'>
+                      <label className='text-xs font-medium text-neutral-500'>Input Type</label>
+                      <select 
+                        className='bg-blue-50 p-2 border rounded outline-none focus:border-primary-200'
+                        value={attributeNameInputType}
+                        onChange={e => setAttributeNameInputType(e.target.value)}
+                      >
+                         <option value="select">Select Predefined</option>
+                         <option value="custom">Custom</option>
+                      </select>
+                   </div>
+
+                   {attributeNameInputType === 'select' ? (
+                      <div className='grid gap-1'>
+                         <label className='text-xs font-medium text-neutral-500'>Predefined</label>
+                         <select 
+                           className='bg-blue-50 p-2 border rounded outline-none focus:border-primary-200'
+                           value={newAttributeTypeName}
+                           onChange={e => setNewAttributeTypeName(e.target.value)}
+                         >
+                            <option value="">Choose Attribute</option>
+                            {predefinedAttributeNames.map(n => <option key={n} value={n}>{n}</option>)}
+                         </select>
+                      </div>
+                   ) : (
+                      <div className='grid gap-1'>
+                         <label className='text-xs font-medium text-neutral-500'>Custom Name</label>
+                         <input 
+                           type='text'
+                           autoFocus
+                           placeholder='e.g. Color'
+                           className='bg-blue-50 p-3 outline-none border focus:border-primary-200 rounded'
+                           value={newAttributeTypeName}
+                           onChange={e => setNewAttributeTypeName(e.target.value)}
+                           onKeyDown={e => e.key === 'Enter' && handleAddAttributeType()}
+                         />
+                      </div>
+                   )}
+                </div>
+
+                <div className='flex justify-end gap-3'>
+                   <button onClick={() => { setOpenAddAttribute(false); setNewAttributeTypeName(''); }} className='px-4 py-2 border rounded hover:bg-neutral-50 font-medium'>Cancel</button>
+                   <button onClick={handleAddAttributeType} className='px-4 py-2 bg-primary-200 text-white rounded hover:bg-primary-200/90 font-medium shadow-md'>Add</button>
+                </div>
+             </div>
+          </div>
+       )}
+
+       {/* Add Review Dialog */}
+       {openAddReview && (
+          <div className='fixed inset-0 bg-neutral-900 bg-opacity-70 flex items-center justify-center z-[60] p-4'>
+             <div className='bg-white p-6 rounded-lg w-full max-w-md shadow-2xl animate-zoom-in'>
+                <div className='flex items-center justify-between mb-4'>
+                   <h3 className='font-bold text-lg'>Add New Review</h3>
+                   <button onClick={() => setOpenAddReview(false)}><IoClose size={24} /></button>
+                </div>
+                <div className='grid gap-4'>
+                   <div className='grid gap-1'>
+                      <label className='text-sm font-medium text-neutral-600'>Reviewer Name</label>
+                      <input 
+                        type='text'
+                        placeholder='Full Name'
+                        className='bg-blue-50 p-3 outline-none border focus:border-primary-200 rounded'
+                        value={reviewName}
+                        onChange={e => setReviewName(e.target.value)}
+                      />
+                   </div>
+                   <div className='grid gap-1'>
+                      <label className='text-sm font-medium text-neutral-600'>Stars (1-5)</label>
+                      <div className='flex items-center gap-3 text-yellow-500'>
+                         {[1, 2, 3, 4, 5].map((s) => (
+                            <button 
+                              key={s} 
+                              type='button'
+                              onClick={() => setReviewStars(s)}
+                              className='transition-transform hover:scale-125 active:scale-90 active:duration-75'
+                            >
+                               {reviewStars >= s ? <IoStar size={32} /> : <IoStarOutline size={32} />}
+                            </button>
+                         ))}
+                         <span className='ml-2 text-neutral-800 font-extrabold text-lg'>({reviewStars})</span>
+                      </div>
+                   </div>
+                   <div className='grid gap-1'>
+                      <label className='text-sm font-medium text-neutral-600'>Comment</label>
+                      <textarea 
+                        rows={3}
+                        placeholder='Write your feedback...'
+                        className='bg-blue-50 p-3 outline-none border focus:border-primary-200 rounded resize-none'
+                        value={reviewComment}
+                        onChange={e => setReviewComment(e.target.value)}
+                      />
+                   </div>
+                </div>
+                <div className='flex justify-end gap-3 mt-8'>
+                   <button onClick={() => setOpenAddReview(false)} className='px-5 py-2 border rounded hover:bg-neutral-100 font-bold transition-all'>Cancel</button>
+                   <button onClick={handleAddReview} className='px-5 py-2 bg-primary-200 text-white rounded hover:bg-primary-200/90 font-bold shadow-lg transition-all'>Add Review</button>
+                </div>
+             </div>
+          </div>
+       )}
+
+       {viewImageURL && <ViewImage url={viewImageURL} close={() => setViewImageURL('')} />}
+    </section>
   );
 };
 
-export default EditProductAdmin;
+export default EditProductAdmin;

@@ -9,9 +9,14 @@ import '../assets/css/dashboard.css';
 
 const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   const closeMobileMenu = () => {
@@ -21,7 +26,7 @@ const Dashboard = () => {
   };
 
   return (
-    <section className="dashboard-layout">
+    <section className={`dashboard-layout ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Mobile Overlay */}
       <div 
         className={`dash-modal-overlay ${mobileMenuOpen ? 'open' : ''}`} 
@@ -30,22 +35,28 @@ const Dashboard = () => {
       />
 
       {/* Sidebar */}
-      <aside className={`dashboard-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`dashboard-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
         <Link to="/">
-        <div className="sidebar-logo">
-           <img src={logo} alt="Anbu Logo" className="logo-img" />
-           <span className="logo-text">Anbu</span>
-        </div>
+          <div className="sidebar-logo">
+             {isCollapsed ? (
+               <img src={logo} alt="Anbu Logo" className="logo-img mx-auto" />
+             ) : (
+               <>
+                 <img src={logo} alt="Anbu Logo" className="logo-img" />
+                 <span className="logo-text">Anbu</span>
+               </>
+             )}
+          </div>
         </Link>
         <div className="sidebar-content">
-          <UserMenu close={closeMobileMenu} isSidebar={true} />
+          <UserMenu close={closeMobileMenu} isSidebar={true} isCollapsed={isCollapsed} />
         </div>
       </aside>
 
       {/* Main Container */}
       <div className="dashboard-main-container">
         {/* Dashboard Top Header */}
-        <DashboardHeader onMenuClick={toggleMobileMenu} />
+        <DashboardHeader onMenuClick={toggleMobileMenu} onSidebarToggle={toggleSidebar} isCollapsed={isCollapsed} />
 
         {/* Main Content Area */}
         <main className="dashboard-main">
