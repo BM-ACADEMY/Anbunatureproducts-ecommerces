@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import Axios from '../utils/Axios';
 import Loading from '../components/Loading';
 import ProductCardAdmin from '../components/ProductCardAdmin';
-import { IoSearchOutline } from "react-icons/io5";
+import { IoAdd } from "react-icons/io5";
+import UploadProductModel from '../components/UploadProductModel';
 
 const ProductAdmin = () => {
   const [productData, setProductData] = useState([]);
   const [page, setPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || "";
   const [loading, setLoading] = useState(false);
   const [totalPageCount, setTotalPageCount] = useState(0);
+  const [openUploadProductModel, setOpenUploadProductModel] = useState(false);
   const itemsPerPage = 12; // Adjusted for 6-column grid
 
   const fetchProductData = async () => {
@@ -43,38 +47,28 @@ const ProductAdmin = () => {
 
   useEffect(() => {
     fetchProductData();
-  }, [page]);
+  }, [page, searchQuery]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
 
   const handlePageChange = (value) => {
     setPage(value);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSearch = () => {
-    setPage(1);
-    fetchProductData();
   };
 
   return (
     <section className=''>
       {/* Header */}
       <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded flex-wrap'>
-          <h2 className='font-semibold text-lg sm:text-xl'>Product Management</h2>
-          <div className='flex items-center bg-blue-50 focus-within:bg-white border focus-within:border-primary-200 px-3 py-1.5 rounded w-full max-w-sm transition-all'>
-             <IoSearchOutline size={20} className='text-neutral-500' />
-             <input 
-                type='text' 
-                placeholder='Search product...'
-                className='bg-transparent outline-none px-2 w-full text-sm sm:text-base'
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-             />
-             <button onClick={handleSearch} className='text-primary-200 hover:text-primary-300 font-medium text-sm'>
-               Search
+          <div className='flex items-center gap-4'>
+             <h2 className='font-semibold text-lg sm:text-xl'>Products</h2>
+             <button 
+                onClick={() => setOpenUploadProductModel(true)}
+                className='bg-primary-200 hover:bg-primary-300 text-white px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all font-bold text-sm'
+             >
+                <IoAdd size={22} />
+                <span>Add Product</span>
              </button>
           </div>
       </div>
@@ -122,6 +116,14 @@ const ProductAdmin = () => {
                 Next
              </button>
         </div>
+      )}
+
+      {/* Modals */}
+      {openUploadProductModel && (
+        <UploadProductModel 
+          close={() => setOpenUploadProductModel(false)} 
+          fetchData={fetchProductData} 
+        />
       )}
     </section>
   );

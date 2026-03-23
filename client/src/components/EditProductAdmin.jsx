@@ -11,6 +11,7 @@ import AxiosToastError from '../utils/AxiosToastError';
 import successAlert from '../utils/SuccessAlert';
 import { toast } from 'sonner';
 
+
 const predefinedAttributeNames = ['Size', 'Weight', 'Material', 'Memory', 'Storage', 'Processor', 'Color', 'Capacity'];
 
 const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
@@ -35,8 +36,8 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   const [viewImageURL, setViewImageURL] = useState('');
   const allCategory = useSelector((state) => state.product.allCategory || []);
   const allSubCategory = useSelector((state) => state.product.allSubCategory || []);
-  const [selectCategory, setSelectCategory] = useState('');
-  const [selectSubCategory, setSelectSubCategory] = useState('');
+  const [openCategorySelect, setOpenCategorySelect] = useState(false);
+  const [openSubCategorySelect, setOpenSubCategorySelect] = useState(false);
 
   const [openAddField, setOpenAddField] = useState(false);
   const [fieldName, setFieldName] = useState('');
@@ -366,41 +367,47 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
             {/* Image Upload */}
             <div className='grid gap-1'>
-               <label className='font-medium'>Images (Max 2MB each)</label>
-               <label htmlFor='editProductImages' className='bg-blue-50 h-24 border border-dashed border-primary-200 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition-all'>
-                  {imageLoading ? <Loading /> : (
-                    <>
-                      <IoCloudUploadOutline size={30} className='text-primary-200' />
-                      <p className='text-sm mt-1 text-neutral-600'>Upload More Images</p>
-                    </>
-                  )}
-                  <input 
-                    type='file'
-                    id='editProductImages'
-                    className='hidden'
-                    accept='image/*'
-                    multiple
-                    onChange={handleUploadImages}
-                  />
-               </label>
-               <div className='flex flex-wrap gap-3 mt-2'>
+               <label className='font-medium text-gray-800'>Product Images</label>
+               <div className='flex flex-wrap items-center gap-3 mt-2'>
+                  {/* Selected Images */}
                   {data.image.map((img, index) => (
-                    <div key={img + index} className='relative w-24 h-24 bg-blue-50 rounded border p-1 group'>
+                    <div key={img + index} className='relative w-24 h-32 bg-blue-50 rounded border p-1 group'>
                        <img 
                          src={img} 
                          alt='product' 
-                         className='w-full h-full object-scale-down cursor-pointer'
+                         className='w-full h-full object-cover cursor-pointer rounded'
                          onClick={() => setViewImageURL(img)}
                        />
                        <button 
                          type='button'
                          onClick={() => handleDeleteImage(index)}
-                         className='absolute bottom-0 right-0 bg-red-500 text-white p-1 rounded-tl-md opacity-0 group-hover:opacity-100 transition-all'
+                         className='absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all z-10'
                        >
-                         <IoTrashOutline size={16} />
+                         <IoClose size={14} />
                        </button>
                     </div>
                   ))}
+
+                  {/* Add Image Slot */}
+                  {data.image.length < 10 && (
+                    <label htmlFor='editProductImages' className='cursor-pointer'>
+                       <input 
+                         type='file'
+                         id='editProductImages'
+                         className='hidden'
+                         accept='image/*'
+                         multiple
+                         onChange={handleUploadImages}
+                         disabled={imageLoading}
+                       />
+                       <img 
+                         className='max-w-24 w-24 h-32 object-cover rounded border border-gray-200' 
+                         src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png" 
+                         alt="uploadArea" 
+                       />
+                    </label>
+                  )}
+                  {imageLoading && <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />}
                </div>
             </div>
 

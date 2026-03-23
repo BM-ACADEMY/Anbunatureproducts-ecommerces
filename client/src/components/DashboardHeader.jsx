@@ -2,18 +2,49 @@ import React, { useState } from 'react';
 import { FiMenu, FiHome, FiLogOut, FiHelpCircle, FiBell } from 'react-icons/fi';
 import { BsLayoutSidebarInset, BsReverseLayoutSidebarInsetReverse } from "react-icons/bs";
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import { logout } from '../store/userSlice';
 import { toast } from 'sonner';
+import { IoSearchOutline, IoCloseCircle } from "react-icons/io5";
 
 const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const userInitial = user?.name?.charAt(0) || user?.mobile?.charAt(0) || "U";
   const [openUserMenu, setOpenUserMenu] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || "");
+
+  const isProductPage = location.pathname === "/dashboard/product";
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    updateSearchParams(value);
+  };
+
+  const updateSearchParams = (value) => {
+    if (value.trim()) {
+      setSearchParams({ search: value.trim() });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    setSearchParams({});
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
 
   const handleLogout = async () => {
     try {
@@ -30,7 +61,7 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
 
   return (
     <header className="dashboard-top-header">
-      <div className="header-left">
+      <div className={`header-left transition-all duration-300 ${isSearchFocused ? 'opacity-0 -translate-x-full pointer-events-none' : 'opacity-100'}`}>
         <button className="menu-toggle-btn" onClick={onMenuClick}>
           <FiMenu size={24} />
         </button>
@@ -39,11 +70,35 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
         </button>
       </div>
 
-      <div className="header-right">
+      {isProductPage && (
+        <div className={`flex-1 transition-all duration-500 ease-in-out ${isSearchFocused ? 'max-w-4xl mx-0' : 'max-w-xl mx-4 sm:mx-8'}`}>
+          <div className="relative w-full group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <IoSearchOutline size={19} className={`transition-colors ${isSearchFocused ? 'text-indigo-600' : 'text-slate-400 opacity-60'}`} />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              className={`block w-full pl-11 pr-10 py-2.5 rounded-2xl text-[14px] text-slate-700 placeholder:text-slate-400 transition-all outline-none shadow-sm ${isSearchFocused ? 'bg-white ring-4 ring-indigo-500/10 border-indigo-500/50' : 'bg-slate-100/80 border-transparent hover:bg-slate-200/50'}`}
+              value={searchInput}
+              onChange={handleSearchChange}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+            />
+            {searchInput && (
+              <button 
+                onClick={clearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-300 hover:text-rose-400 transition-colors"
+              >
+                <IoCloseCircle size={20} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={`header-right transition-all duration-300 ${isSearchFocused ? 'opacity-0 translate-x-full pointer-events-none' : 'opacity-100'}`}>
         <div className="header-actions">
-          <button className="header-action-btn" title="Help">
-            <FiHelpCircle size={20} />
-          </button>
           <button className="header-action-btn" title="Notifications">
             <div className="custom-badge-container">
               <FiBell size={20} />

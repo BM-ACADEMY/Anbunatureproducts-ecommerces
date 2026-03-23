@@ -73,7 +73,6 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
     { text: "Dashboard", icon: <FiGrid size={20} />, path: "/dashboard" },
     { text: "Category", icon: <FiLayers size={20} />, path: "/dashboard/category" },
     { text: "Sub Category", icon: <FiLayers size={20} />, path: "/dashboard/subcategory" },
-    { text: "Upload Product", icon: <FiUpload size={20} />, path: "/dashboard/upload-product" },
     { text: "Product", icon: <FiPackage size={20} />, path: "/dashboard/product" },
     { text: "All Orders", icon: <FiList size={20} />, path: "/dashboard/allorders" },
     { text: "Banners", icon: <FiLayers size={21} />, path: "/dashboard/banner" },

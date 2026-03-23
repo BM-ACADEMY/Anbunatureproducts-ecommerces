@@ -153,42 +153,48 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {/* Labeled Upload Section */}
           <div className="space-y-3">
-            <label className="block text-[15px] font-bold text-gray-900">Banner Image</label>
+            <label className="block text-base font-medium text-gray-800">Banner Image</label>
             <div className="flex flex-wrap gap-4">
               {/* Desktop Upload Box */}
-              <div className="space-y-1">
-                <label className={`w-24 h-24 border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${data.desktopImage ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-blue-400 bg-gray-50'}`}>
-                  {uploadingDesktop ? (
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  ) : data.desktopImage ? (
-                    <img src={data.desktopImage} alt="desktop" className="w-full h-full object-cover rounded-sm" />
-                  ) : (
-                    <>
-                      <FiUploadCloud className="text-gray-400" size={24} />
-                      <span className="text-[10px] text-gray-400 font-bold uppercase">Upload</span>
-                    </>
-                  )}
-                  <input hidden accept="image/*" type="file" onChange={(e) => handleUploadImage(e, 'desktop')} />
+              <div className="flex flex-col items-center gap-1">
+                <label htmlFor="uploadDesktop" className="cursor-pointer">
+                  <input 
+                    hidden 
+                    id="uploadDesktop"
+                    accept="image/*" 
+                    type="file" 
+                    onChange={(e) => handleUploadImage(e, 'desktop')} 
+                    disabled={uploadingDesktop}
+                  />
+                  <img 
+                    className="w-24 h-24 object-cover rounded border border-gray-200" 
+                    src={data.desktopImage || "https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"} 
+                    alt="desktop" 
+                  />
                 </label>
                 <p className="text-[10px] text-center font-bold text-gray-400 uppercase">Desktop</p>
+                {uploadingDesktop && <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />}
               </div>
 
               {/* Mobile Upload Box */}
-              <div className="space-y-1">
-                <label className={`w-24 h-24 border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${data.mobileImage ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-blue-400 bg-gray-50'}`}>
-                  {uploadingMobile ? (
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  ) : data.mobileImage ? (
-                    <img src={data.mobileImage} alt="mobile" className="w-full h-full object-cover rounded-sm" />
-                  ) : (
-                    <>
-                      <FiUploadCloud className="text-gray-400" size={24} />
-                      <span className="text-[10px] text-gray-400 font-bold uppercase">Upload</span>
-                    </>
-                  )}
-                  <input hidden accept="image/*" type="file" onChange={(e) => handleUploadImage(e, 'mobile')} />
+              <div className="flex flex-col items-center gap-1">
+                <label htmlFor="uploadMobile" className="cursor-pointer">
+                  <input 
+                    hidden 
+                    id="uploadMobile"
+                    accept="image/*" 
+                    type="file" 
+                    onChange={(e) => handleUploadImage(e, 'mobile')} 
+                    disabled={uploadingMobile}
+                  />
+                  <img 
+                    className="w-24 h-24 object-cover rounded border border-gray-200" 
+                    src={data.mobileImage || "https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"} 
+                    alt="mobile" 
+                  />
                 </label>
                 <p className="text-[10px] text-center font-bold text-gray-400 uppercase">Mobile</p>
+                {uploadingMobile && <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />}
               </div>
             </div>
           </div>
