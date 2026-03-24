@@ -11,24 +11,18 @@ import DisplayCartItem from "./DisplayCartItem";
 import { SlHandbag } from "react-icons/sl";
 import isAdmin from "../utils/isAdmin";
 import Search from "./Search";
-import { valideURLConvert } from "../utils/valideURLConvert";
 
 const Header = () => {
     const [isMobile] = useMobile();
     const location = useLocation();
     const navigate = useNavigate();
-
     const user = useSelector((state) => state?.user);
-    const allCategory = useSelector((state) => state.product.allCategory || []);
-    
+
     const [openUserMenu, setOpenUserMenu] = useState(false);
-    const [openProductMenu, setOpenProductMenu] = useState(false);
     const [closeTimeout, setCloseTimeout] = useState(null);
-    const [productCloseTimeout, setProductCloseTimeout] = useState(null);
     
     const userMenuRef = useRef(null);
     const mobileUserMenuRef = useRef(null);
-    const productMenuRef = useRef(null);
     
     const cartItem = useSelector((state) => state.cartItem.cart);
     const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
@@ -49,11 +43,9 @@ const Header = () => {
         const handleClickOutside = (event) => {
             if (
                 userMenuRef.current && !userMenuRef.current.contains(event.target) &&
-                mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(event.target) &&
-                productMenuRef.current && !productMenuRef.current.contains(event.target)
+                mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(event.target)
             ) {
                 setOpenUserMenu(false);
-                setOpenProductMenu(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -77,28 +69,13 @@ const Header = () => {
         setCloseTimeout(timeout);
     };
 
-    const handleProductMouseEnter = () => {
-        if (productCloseTimeout) {
-            clearTimeout(productCloseTimeout);
-            setProductCloseTimeout(null);
-        }
-        setOpenProductMenu(true);
-    };
-
-    const handleProductMouseLeave = () => {
-        const timeout = setTimeout(() => {
-            setOpenProductMenu(false);
-        }, 300);
-        setProductCloseTimeout(timeout);
-    };
-
     const toggleMobileMenu = () => {
         setShowMobileMenu((prev) => !prev);
     };
 
     const navLinks = [
         { label: "Home", path: "/" },
-        { label: "Product", path: "/all-products", hasDropdown: true },
+        { label: "Product", path: "/all-products" },
         { label: "About", path: "/about" },
         { label: "Contact", path: "/contact" },
     ];
@@ -135,9 +112,6 @@ const Header = () => {
                             <div 
                                 key={link.label}
                                 className="relative flex items-center h-20"
-                                onMouseEnter={link.hasDropdown ? handleProductMouseEnter : undefined}
-                                onMouseLeave={link.hasDropdown ? handleProductMouseLeave : undefined}
-                                ref={link.hasDropdown ? productMenuRef : undefined}
                             >
                                 <Link 
                                     to={link.path}
@@ -147,32 +121,6 @@ const Header = () => {
                                 >
                                     {link.label}
                                 </Link>
-
-                                 {link.hasDropdown && openProductMenu && (
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-[850px] bg-white shadow-2xl rounded-2xl border border-gray-100 p-8 animate-in fade-in slide-in-from-top-4 duration-300 z-50">
-                                        <div className="grid grid-cols-3 gap-x-6 gap-y-3">
-                                            {allCategory.map((category) => (
-                                                <Link
-                                                    key={category._id}
-                                                    to={`/${valideURLConvert(category.name)}-${category._id}`}
-                                                    onClick={() => setOpenProductMenu(false)}
-                                                    className="group flex items-center space-x-4 p-3 rounded hover:bg-gray-50 transition-all border border-transparent"
-                                                >
-                                                    <div className="w-16 h-16 flex-shrink-0 overflow-hidden transition-all flex items-center justify-center p-2">
-                                                        <img 
-                                                            src={category.image} 
-                                                            alt={category.name} 
-                                                            className="w-full h-full object-scale-down transition-transform"
-                                                        />
-                                                    </div>
-                                                    <span className="text-[14px] font-semibold text-gray-700 transition-colors">
-                                                        {category.name}
-                                                    </span>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         ))}
                     </nav>
