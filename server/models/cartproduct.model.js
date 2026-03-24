@@ -32,6 +32,14 @@ const cartProductSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
+        originalPrice: {
+          type: Number,
+          default: 0
+        },
+        offerPrice: {
+          type: Number,
+          default: 0
+        },
         stock: {
           type: Number,
           default: null,

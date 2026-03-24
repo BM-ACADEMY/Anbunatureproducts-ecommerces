@@ -110,6 +110,18 @@ const SummaryApi = {
     url: '/api/product/get-combo-offers',
     method: 'POST'
   },
+  getMegaComboProducts: {
+    url: '/api/product/get-mega-combo-products',
+    method: 'POST'
+  },
+  getTrendingProducts: {
+    url: '/api/product/get-trending-products',
+    method: 'POST'
+  },
+  getRecentProducts: {
+    url: '/api/product/get-recent-products',
+    method: 'POST'
+  },
   getProductByCategory: {
     url: "/api/product/get-product-by-category",
     method: "post",

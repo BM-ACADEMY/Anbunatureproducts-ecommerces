@@ -49,21 +49,38 @@ export const AddCategoryController = async(request,response)=>{
 
 export const getCategoryController = async (request, response) => {
     try {
-      const data = await CategoryModel.find(); // Removed sort({ createdAt: -1 })
-  
-      return response.json({
-        data: data,
-        error: false,
-        success: true,
-      });
+        const data = await CategoryModel.aggregate([
+            {
+                $lookup: {
+                    from: "products", // Ensure this matches the Product model's collection name
+                    localField: "_id",
+                    foreignField: "category",
+                    as: "products"
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    image: 1,
+                    altText: 1,
+                    productCount: { $size: "$products" }
+                }
+            }
+        ]);
+
+        return response.json({
+            data: data,
+            error: false,
+            success: true,
+        });
     } catch (error) {
-      return response.status(500).json({
-        message: error.message || error,
-        error: true,
-        success: false,
-      });
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false,
+        });
     }
-  };
+};
 
 export const updateCategoryController = async(request,response)=>{
     try {

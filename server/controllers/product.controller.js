@@ -22,11 +22,17 @@ const validateAttributes = (attributes) => {
       return `Attribute group '${attrGroup.name}' must have at least one option.`;
     }
     for (const option of attrGroup.options) {
-      if (typeof option !== 'object' || option === null || !option.name || typeof option.price !== 'number' || isNaN(option.price) || option.price < 0) {
-        return `Option in '${attrGroup.name}' must have a 'name' and a valid 'price'.`;
+      if (typeof option !== 'object' || option === null || !option.name || 
+          typeof option.originalPrice !== 'number' || isNaN(option.originalPrice) || option.originalPrice < 0 ||
+          typeof option.offerPrice !== 'number' || isNaN(option.offerPrice) || option.offerPrice < 0) {
+        return `Option in '${attrGroup.name}' must have a 'name', 'originalPrice' and 'offerPrice'.`;
       }
-      if (option.stock !== undefined && (typeof option.stock !== 'number' || isNaN(option.stock) || option.stock < 0)) {
-        return `Stock in option '${option.name}' for '${attrGroup.name}' must be a valid number or null/undefined.`;
+      // Sync price with offerPrice for backward compatibility if price is not provided
+      if (option.price === undefined) {
+        option.price = option.offerPrice;
+      }
+      if (option.stock !== undefined && option.stock !== null && (typeof option.stock !== 'number' || isNaN(option.stock) || option.stock < 0)) {
+        return `Stock in option '${option.name}' for '${attrGroup.name}' must be a valid number or null.`;
       }
     }
   }
@@ -67,7 +73,11 @@ export const createProductController = async (request, response) => {
       attributes,
       reviews,
       comboOffer,
-      altText
+      megaCombo,
+      trending,
+      altText,
+      storage_instructions,
+      storage_image
     } = request.body;
 
     console.log("Received create product data:", { name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer });
@@ -92,14 +102,14 @@ export const createProductController = async (request, response) => {
     if (attributes && attributes.length > 0) {
       let hasPriceInAttributes = false;
       for (const attrGroup of attributes) {
-        if (attrGroup.options && attrGroup.options.some(option => typeof option.price === 'number' && !isNaN(option.price))) {
+        if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice))) {
           hasPriceInAttributes = true;
           break;
         }
       }
       if (!hasPriceInAttributes) {
         return response.status(400).json({
-          message: "If attributes are provided, at least one attribute option must have a valid price.",
+          message: "If attributes are provided, at least one attribute option must have a valid offer price.",
           error: true,
           success: false
         });
@@ -128,7 +138,11 @@ export const createProductController = async (request, response) => {
       attributes: attributes || [],
       reviews: reviews || [],
       comboOffer: comboOffer || false,
-      altText: altText || ""
+      megaCombo: megaCombo || false,
+      trending: trending || false,
+      altText: altText || "",
+      storage_instructions: storage_instructions || "",
+      storage_image: storage_image || ""
     });
 
     const saveProduct = await product.save();
@@ -221,7 +235,7 @@ export const addReviewToProduct = async (request, response) => {
  */
 export const updateProductDetails = async (request, response) => {
   try {
-    const { _id, name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer, altText } = request.body;
+    const { _id, name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer, megaCombo, trending, altText, storage_instructions, storage_image } = request.body;
 
     console.log("Received update product data:", { _id, name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer });
 
@@ -254,14 +268,14 @@ export const updateProductDetails = async (request, response) => {
       if (attributes && attributes.length > 0) {
         let hasPriceInAttributes = false;
         for (const attrGroup of attributes) {
-          if (attrGroup.options && attrGroup.options.some(option => typeof option.price === 'number' && !isNaN(option.price))) {
+          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice))) {
             hasPriceInAttributes = true;
             break;
           }
         }
         if (!hasPriceInAttributes) {
           return response.status(400).json({
-            message: "If attributes are updated and provided, at least one attribute option must have a valid price.",
+            message: "If attributes are updated and provided, at least one attribute option must have a valid offer price.",
             error: true,
             success: false
           });
@@ -291,7 +305,11 @@ export const updateProductDetails = async (request, response) => {
       attributes,
       reviews,
       comboOffer,
-      altText
+      megaCombo,
+      trending,
+      altText,
+      storage_instructions,
+      storage_image
     };
 
     Object.keys(updatedProductData).forEach(key => {
@@ -309,6 +327,9 @@ export const updateProductDetails = async (request, response) => {
         for (const imgUrl of imagesToDelete) {
           await deleteImageLocal(imgUrl);
         }
+      }
+      if (storage_image && existingProduct.storage_image && existingProduct.storage_image !== storage_image) {
+        await deleteImageLocal(existingProduct.storage_image);
       }
     }
 
@@ -380,6 +401,87 @@ export const getComboOfferProducts = async (request, response) => {
   }
 };
 
+export const getMegaComboProducts = async (request, response) => {
+  try {
+    let page = request.body.page || 1;
+    let limit = request.body.limit || 12;
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
+
+    const query = { megaCombo: true, publish: true };
+    const skip = (page - 1) * limit;
+
+    const [data, totalCount] = await Promise.all([
+      ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+      ProductModel.countDocuments(query)
+    ]);
+
+    return response.json({
+      message: "Mega combo products fetched successfully",
+      data: data,
+      totalCount: totalCount,
+      success: true,
+      error: false
+    });
+  } catch (error) {
+    return response.status(500).json({ message: error.message, error: true, success: false });
+  }
+};
+
+export const getTrendingProducts = async (request, response) => {
+  try {
+    let page = request.body.page || 1;
+    let limit = request.body.limit || 12;
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
+
+    const query = { trending: true, publish: true };
+    const skip = (page - 1) * limit;
+
+    const [data, totalCount] = await Promise.all([
+      ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
+      ProductModel.countDocuments(query)
+    ]);
+
+    return response.json({
+      message: "Trending products fetched successfully",
+      data: data,
+      totalCount: totalCount,
+      success: true,
+      error: false
+    });
+  } catch (error) {
+    return response.status(500).json({ message: error.message, error: true, success: false });
+  }
+};
+
+export const getRecentProducts = async (request, response) => {
+  try {
+    let limit = request.body.limit || 12;
+    limit = parseInt(limit, 10);
+
+    const query = { 
+        publish: true,
+        comboOffer: false,
+        megaCombo: false
+    };
+
+    const data = await ProductModel.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('category subCategory');
+
+    return response.json({
+      message: "Recent products fetched successfully",
+      data: data,
+      success: true,
+      error: false
+    });
+  } catch (error) {
+    return response.status(500).json({ message: error.message, error: true, success: false });
+  }
+};
+
 
 
 export const getProductByCategory = async (request, response) => {
@@ -399,7 +501,7 @@ export const getProductByCategory = async (request, response) => {
 
     const query = { 
       category: { $in: [categoryId] },
-      comboOffer: false // Exclude combo offer products
+      publish: true
     };
 
     const skip = (page - 1) * limit;
@@ -443,12 +545,16 @@ export const getProductController = async (request, response) => {
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
 
-    const query = search ? {
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } }
-      ]
-    } : {};
+    const query = {
+        publish: true
+    };
+
+    if (search) {
+        query.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } }
+        ];
+    }
 
     const skip = (page - 1) * limit;
 
@@ -496,7 +602,7 @@ export const getProductByCategoryAndSubCategory = async (request, response) => {
     const query = {
       category: { $in: [categoryId] },
       subCategory: { $in: [subCategoryId] },
-      comboOffer: false // Exclude combo offer products
+      publish: true
     };
 
     const skip = (page - 1) * limit;
@@ -597,9 +703,14 @@ export const deleteProductDetails = async (request, response) => {
     }
 
     const existingProduct = await ProductModel.findById(_id);
-    if (existingProduct && existingProduct.image && Array.isArray(existingProduct.image)) {
-      for (const imgUrl of existingProduct.image) {
-        await deleteImageLocal(imgUrl);
+    if (existingProduct) {
+      if (existingProduct.image && Array.isArray(existingProduct.image)) {
+        for (const imgUrl of existingProduct.image) {
+          await deleteImageLocal(imgUrl);
+        }
+      }
+      if (existingProduct.storage_image) {
+        await deleteImageLocal(existingProduct.storage_image);
       }
     }
 

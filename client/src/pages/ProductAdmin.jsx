@@ -61,16 +61,14 @@ const ProductAdmin = () => {
     <section className=''>
       {/* Header */}
       <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded flex-wrap'>
-          <div className='flex items-center gap-4'>
-             <h2 className='font-semibold text-lg sm:text-xl'>Products</h2>
-             <button 
-                onClick={() => setOpenUploadProductModel(true)}
-                className='bg-primary-200 hover:bg-primary-300 text-white px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all font-bold text-sm'
-             >
-                <IoAdd size={22} />
-                <span>Add Product</span>
-             </button>
-          </div>
+          <h2 className='font-semibold text-lg sm:text-xl'>Products</h2>
+          <button 
+             onClick={() => setOpenUploadProductModel(true)}
+            className='bg-[#279d68] hover:bg-[#279d68]/90  text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
+          >
+             <IoAdd size={22} />
+             <span>Add Product</span>
+          </button>
       </div>
 
       {loading && <Loading />}
@@ -81,7 +79,7 @@ const ProductAdmin = () => {
                <p className='text-neutral-500 text-lg'>No products found.</p>
             </div>
           ) : (
-            <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'>
+            <div className='grid grid-cols-2 sm:grid-cols-3  md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'>
                {productData.map((product, index) => (
                   <ProductCardAdmin key={product._id || index} data={product} fetchProductData={fetchProductData} />
                ))}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
-import { IoClose, IoAdd, IoTrashOutline, IoStar, IoStarOutline } from "react-icons/io5";
+import { IoClose, IoAdd, IoTrashOutline, IoStar, IoStarOutline, IoCloudUploadOutline } from "react-icons/io5";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
 import Axios from '../utils/Axios';
@@ -8,6 +9,8 @@ import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import successAlert from '../utils/SuccessAlert';
 import { toast } from 'sonner';
+
+import CategoryDropdown from './CategoryDropdown';
 
 const UploadProductModel = ({ close, fetchData }) => {
   const [data, setData] = useState({
@@ -20,7 +23,11 @@ const UploadProductModel = ({ close, fetchData }) => {
     attributes: [],
     reviews: [],
     comboOffer: false,
-    altText: ''
+    megaCombo: false,
+    trending: false,
+    altText: '',
+    storage_instructions: '',
+    storage_image: ''
   });
 
   const [imageFileMap, setImageFileMap] = useState({}); // Maps previewUrl to File object
@@ -39,9 +46,9 @@ const UploadProductModel = ({ close, fetchData }) => {
 
   const [selectedAttributeTypeForOption, setSelectedAttributeTypeForOption] = useState('');
   const [newOptionValue, setNewOptionValue] = useState('');
-  const [newOptionPrice, setNewOptionPrice] = useState('');
+  const [newOptionOriginalPrice, setNewOptionOriginalPrice] = useState('');
+  const [newOptionOfferPrice, setNewOptionOfferPrice] = useState('');
   const [newOptionStock, setNewOptionStock] = useState(null);
-  const [newOptionUnit, setNewOptionUnit] = useState('');
 
   const [openAddReview, setOpenAddReview] = useState(false);
   const [reviewName, setReviewName] = useState('');
@@ -53,8 +60,17 @@ const UploadProductModel = ({ close, fetchData }) => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleComboOfferToggle = (e) => {
-    setData((prev) => ({ ...prev, comboOffer: e.target.checked }));
+  const handleMegaComboToggle = (e) => {
+    const isChecked = e.target.checked;
+    setData((prev) => ({ 
+      ...prev, 
+      comboOffer: isChecked,
+      megaCombo: isChecked 
+    }));
+  };
+
+  const handleTrendingToggle = (e) => {
+    setData((prev) => ({ ...prev, trending: e.target.checked }));
   };
 
   const handleUploadImages = async (e) => {
@@ -130,8 +146,11 @@ const UploadProductModel = ({ close, fetchData }) => {
   const handleAddAttributeOption = () => {
     if (!selectedAttributeTypeForOption) { toast.error('Please select an attribute type.'); return; }
     if (!newOptionValue.trim()) { toast.error('Attribute option value cannot be empty.'); return; }
-    if (newOptionPrice === '' || isNaN(Number(newOptionPrice)) || Number(newOptionPrice) < 0) {
-      toast.error('Please enter a valid price.'); return;
+    if (newOptionOriginalPrice === '' || isNaN(Number(newOptionOriginalPrice)) || Number(newOptionOriginalPrice) < 0) {
+      toast.error('Please enter a valid original price.'); return;
+    }
+    if (newOptionOfferPrice === '' || isNaN(Number(newOptionOfferPrice)) || Number(newOptionOfferPrice) < 0) {
+      toast.error('Please enter a valid offer price.'); return;
     }
 
     setData((prev) => {
@@ -144,9 +163,11 @@ const UploadProductModel = ({ close, fetchData }) => {
             ...attrGroup,
             options: [...attrGroup.options, {
               name: newOptionValue.trim(),
-              price: Number(newOptionPrice),
+              originalPrice: Number(newOptionOriginalPrice),
+              offerPrice: Number(newOptionOfferPrice),
+              price: Number(newOptionOfferPrice), // Sync for compatibility
               stock: newOptionStock !== null ? Number(newOptionStock) : null,
-              unit: newOptionUnit.trim(),
+              unit: "", // Removed unit
             }]
           };
         }
@@ -155,7 +176,31 @@ const UploadProductModel = ({ close, fetchData }) => {
       return { ...prev, attributes: updatedAttributes };
     });
 
-    setNewOptionValue(''); setNewOptionPrice(''); setNewOptionStock(null); setNewOptionUnit(''); setSelectedAttributeTypeForOption('');
+    setNewOptionValue(''); setNewOptionOriginalPrice(''); setNewOptionOfferPrice(''); setNewOptionStock(null); setSelectedAttributeTypeForOption('');
+  };
+ 
+  const handleUploadStorageImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      toast.error('Storage image exceeds the 5MB limit.');
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setImageFileMap(prev => ({ ...prev, [previewUrl]: file }));
+    setData(prev => ({ ...prev, storage_image: previewUrl }));
+  };
+
+  const handleDeleteStorageImage = () => {
+    if (imageFileMap[data.storage_image]) {
+      const { [data.storage_image]: removed, ...remainingMap } = imageFileMap;
+      setImageFileMap(remainingMap);
+      URL.revokeObjectURL(data.storage_image);
+    }
+    setData(prev => ({ ...prev, storage_image: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -176,9 +221,21 @@ const UploadProductModel = ({ close, fetchData }) => {
         })
       );
 
+      let storageImageUrl = data.storage_image;
+      if (data.storage_image && imageFileMap[data.storage_image]) {
+        const uploadResponse = await uploadImage(imageFileMap[data.storage_image], 'product');
+        storageImageUrl = uploadResponse.data.data.url;
+      }
+
       const response = await Axios({
         ...SummaryApi.createProduct,
-        data: { ...data, image: imageUrls, category: data.category.map(c => c._id), subCategory: data.subCategory.map(s => s._id) },
+        data: { 
+          ...data, 
+          image: imageUrls, 
+          storage_image: storageImageUrl,
+          category: data.category.map(c => c._id), 
+          subCategory: data.subCategory.map(s => s._id) 
+        },
       });
 
       if (response.data.success) {
@@ -233,12 +290,22 @@ const UploadProductModel = ({ close, fetchData }) => {
               />
             </div>
 
-            <div className='flex items-center gap-2.5 bg-white p-3 rounded-xl border border-gray-100 shadow-sm w-fit'>
-              <input
-                type='checkbox' id='comboOffer' checked={data.comboOffer} onChange={handleComboOfferToggle}
-                className='w-5 h-5 cursor-pointer accent-indigo-600'
-              />
-              <label htmlFor='comboOffer' className='text-[15px] font-bold text-gray-700 cursor-pointer'>Enable Combo Offer</label>
+            <div className='flex flex-wrap items-center gap-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm'>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='checkbox' id='megaCombo' checked={data.megaCombo} onChange={handleMegaComboToggle}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='megaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo Offer</label>
+                </div>
+
+                <div className='flex items-center gap-2 ml-auto'>
+                  <input
+                    type='checkbox' id='trending' checked={data.trending} onChange={handleTrendingToggle}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='trending' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Trending</label>
+                </div>
             </div>
 
             {/* Images */}
@@ -271,57 +338,47 @@ const UploadProductModel = ({ close, fetchData }) => {
 
             {/* Categories */}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
-              <div className='space-y-1.5'>
-                <label className='text-[15px] font-bold text-gray-700'>Main Category</label>
-                <select
-                  className='w-full bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium cursor-pointer'
-                  value={selectCategory}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const cat = allCategory.find(el => el._id === val);
-                    if (cat && !data.category.some(c => c._id === cat._id)) {
-                      setData(prev => ({ ...prev, category: [...prev.category, cat] }));
-                      setSelectCategory("");
-                    }
-                  }}
-                >
-                  <option value="">Select Categories</option>
-                  {allCategory.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                </select>
-                <div className='flex flex-wrap gap-2 pt-1'>
-                  {data.category.map((c, i) => (
-                    <span key={c._id + i} className='bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 border border-indigo-100'>
-                       {c.name} <IoClose className='cursor-pointer' onClick={() => handleRemoveCategory(i)} />
-                    </span>
-                  ))}
-                </div>
-              </div>
+               <div className='space-y-2'>
+                 <CategoryDropdown
+                   label="Main Category"
+                   placeholder="Select Categories"
+                   options={allCategory}
+                   selectedOptions={data.category}
+                   onSelect={(cat) => {
+                     if (!data.category.some(c => c._id === cat._id)) {
+                       setData(prev => ({ ...prev, category: [...prev.category, cat] }));
+                     }
+                   }}
+                 />
+                 <div className='flex flex-wrap gap-2'>
+                    {data.category.map((c, i) => (
+                      <span key={c._id + i} className='bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 border border-indigo-100'>
+                         {c.name} <IoClose className='cursor-pointer hover:text-red-500' onClick={() => handleRemoveCategory(i)} />
+                      </span>
+                    ))}
+                 </div>
+               </div>
 
-              <div className='space-y-1.5'>
-                <label className='text-[15px] font-bold text-gray-700'>Sub Category</label>
-                <select
-                  className='w-full bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium cursor-pointer'
-                  value={selectSubCategory}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const sub = allSubCategory.find(el => el._id === val);
-                    if (sub && !data.subCategory.some(s => s._id === sub._id)) {
-                      setData(prev => ({ ...prev, subCategory: [...prev.subCategory, sub] }));
-                      setSelectSubCategory("");
-                    }
-                  }}
-                >
-                  <option value="">Select Subcategories</option>
-                  {allSubCategory.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                </select>
-                <div className='flex flex-wrap gap-2 pt-1'>
-                  {data.subCategory.map((s, i) => (
-                    <span key={s._id + i} className='bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 border border-emerald-100'>
-                       {s.name} <IoClose className='cursor-pointer' onClick={() => handleRemoveSubCategory(i)} />
-                    </span>
-                  ))}
-                </div>
-              </div>
+               <div className='space-y-2'>
+                 <CategoryDropdown
+                   label="Sub Category"
+                   placeholder="Select Subcategories"
+                   options={allSubCategory}
+                   selectedOptions={data.subCategory}
+                   onSelect={(sub) => {
+                     if (!data.subCategory.some(s => s._id === sub._id)) {
+                       setData(prev => ({ ...prev, subCategory: [...prev.subCategory, sub] }));
+                     }
+                   }}
+                 />
+                 <div className='flex flex-wrap gap-2'>
+                    {data.subCategory.map((s, i) => (
+                      <span key={s._id + i} className='bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 border border-emerald-100'>
+                         {s.name} <IoClose className='cursor-pointer hover:text-red-500' onClick={() => handleRemoveSubCategory(i)} />
+                      </span>
+                    ))}
+                 </div>
+               </div>
             </div>
 
             <hr className='border-gray-200' />
@@ -361,6 +418,45 @@ const UploadProductModel = ({ close, fetchData }) => {
 
             <hr className='border-gray-200' />
 
+            {/* Storage Instructions */}
+            <div className='space-y-4'>
+               <h4 className='text-[15px] font-bold text-gray-800'>Storage & Usage Instructions</h4>
+               <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+                  <div className='flex flex-col gap-1.5'>
+                    <label className='text-[13px] font-bold text-gray-500' htmlFor='storage_instructions'>Instructions</label>
+                    <textarea
+                      id='storage_instructions' name='storage_instructions' value={data.storage_instructions} onChange={handleChange} rows={4}
+                      placeholder='Enter storage or usage instructions...'
+                      className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all text-sm font-medium resize-none'
+                    />
+                  </div>
+                  <div className='flex flex-col gap-1.5'>
+                    <label className='text-[13px] font-bold text-gray-500'>Instruction Image (Max 5MB)</label>
+                    {data.storage_image ? (
+                       <div className='relative w-full h-32 bg-white rounded-xl border border-gray-200 p-1 group shadow-sm'>
+                          <img src={data.storage_image} alt='storage' className='w-full h-full object-contain rounded-lg' />
+                          <button
+                             type='button' onClick={handleDeleteStorageImage}
+                             className='absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10'
+                          >
+                            <IoClose size={14} />
+                          </button>
+                       </div>
+                    ) : (
+                       <label htmlFor='storageImage' className='cursor-pointer group'>
+                          <input type='file' id='storageImage' className='hidden' accept='image/*' onChange={handleUploadStorageImage} />
+                          <div className='w-full h-32 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 group-hover:border-indigo-400 transition-all bg-white font-bold text-gray-400'>
+                             <IoCloudUploadOutline size={24} className='group-hover:text-indigo-500' />
+                             <span className='text-[11px] uppercase tracking-widest group-hover:text-indigo-500'>Upload Image</span>
+                          </div>
+                       </label>
+                    )}
+                  </div>
+               </div>
+            </div>
+
+            <hr className='border-gray-200' />
+
             {/* Sizes/Options */}
             <div className='space-y-4'>
                <div className='flex items-center justify-between'>
@@ -383,7 +479,7 @@ const UploadProductModel = ({ close, fetchData }) => {
                         <div className='flex flex-wrap gap-2'>
                            {attr.options.map((opt, ix) => (
                              <span key={ix} className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2'>
-                                {opt.name} · ₹{opt.price} {opt.unit && `· ${opt.unit}`}
+                                {opt.name} · ₹{opt.offerPrice} <span className='line-through text-slate-400 font-medium'>₹{opt.originalPrice}</span>
                                 <IoClose className='cursor-pointer hover:text-rose-500' onClick={() => setData(prev => ({ ...prev, attributes: prev.attributes.map(a => a.name === attr.name ? { ...a, options: a.options.filter((_, idx) => idx !== ix) } : a) }))} />
                              </span>
                            ))}
@@ -395,17 +491,17 @@ const UploadProductModel = ({ close, fetchData }) => {
                                 <input type='text' placeholder='e.g. 1kg' value={newOptionValue} onChange={e => setNewOptionValue(e.target.value)} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
                               </div>
                               <div className='space-y-1.5'>
-                                <label className='text-[11px] font-bold text-slate-400 tracking-wider uppercase'>Price</label>
-                                <input type='number' placeholder='0' value={newOptionPrice} onChange={e => setNewOptionPrice(e.target.value)} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
-                              </div>
-                              <div className='space-y-1.5'>
-                                <label className='text-[11px] font-bold text-slate-400 tracking-wider uppercase'>Stock</label>
-                                <input type='number' placeholder='∞' value={newOptionStock || ""} onChange={e => setNewOptionStock(e.target.value === "" ? null : Number(e.target.value))} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
-                              </div>
-                              <div className='space-y-1.5'>
-                                <label className='text-[11px] font-bold text-slate-400 tracking-wider uppercase'>Unit</label>
-                                <input type='text' placeholder='e.g. g' value={newOptionUnit} onChange={e => setNewOptionUnit(e.target.value)} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
-                              </div>
+                                 <label className='text-[11px] font-bold text-slate-400 tracking-wider uppercase'>Original Price</label>
+                                 <input type='number' placeholder='0' value={newOptionOriginalPrice} onChange={e => setNewOptionOriginalPrice(e.target.value)} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
+                               </div>
+                               <div className='space-y-1.5'>
+                                 <label className='text-[11px] font-bold text-slate-400 tracking-wider uppercase'>Offer Price</label>
+                                 <input type='number' placeholder='0' value={newOptionOfferPrice} onChange={e => setNewOptionOfferPrice(e.target.value)} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
+                               </div>
+                               <div className='space-y-1.5'>
+                                 <label className='text-[11px] font-bold text-slate-400 tracking-wider uppercase'>Stock</label>
+                                 <input type='number' placeholder='∞' value={newOptionStock || ""} onChange={e => setNewOptionStock(e.target.value === "" ? null : Number(e.target.value))} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
+                               </div>
                               <div className='col-span-2 md:col-span-4 flex justify-end gap-2 pt-2'>
                                  <button type='button' onClick={() => setSelectedAttributeTypeForOption("")} className='px-4 py-2 text-xs font-bold text-slate-500'>Cancel</button>
                                  <button type='button' onClick={handleAddAttributeOption} className='px-6 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all'>Add Option</button>
@@ -431,7 +527,7 @@ const UploadProductModel = ({ close, fetchData }) => {
           </button>
           <button
             type='submit' form="uploadProductForm" disabled={submitLoading}
-            className='px-10 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center gap-2'
+            className='px-10 py-2.5 bg-[#279d68] text-white text-sm font-bold rounded-xl shadow-lg shadow-green-100 hover:bg-[#279d68]/90 transition-all disabled:opacity-50 flex items-center gap-2'
           >
             {submitLoading ? <><div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin' /> <span>Uploading...</span></> : "Create Product"}
           </button>

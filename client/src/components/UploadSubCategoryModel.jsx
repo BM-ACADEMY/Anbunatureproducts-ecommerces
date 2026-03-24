@@ -8,6 +8,7 @@ import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from './Loading';
+import CategoryDropdown from './CategoryDropdown';
 
 const UploadSubCategoryModel = ({ close, fetchData }) => {
   const [subCategoryData, setSubCategoryData] = useState({
@@ -165,28 +166,20 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
 
           {/* Category Select */}
           <div className='flex flex-col gap-1'>
-            <label className='text-base font-medium'>Select Main Categories</label>
-            <select
-              className='outline-none py-2 px-3 rounded border border-gray-500/40 focus:border-indigo-500 transition-colors bg-white'
-              onChange={(e) => {
-                const value = e.target.value;
-                const categoryDetails = allCategory.find((el) => el._id === value);
-                if (categoryDetails && !subCategoryData.category.some((cat) => cat._id === value)) {
+            <CategoryDropdown
+              label="Select Main Categories"
+              placeholder="Choose Category..."
+              options={allCategory}
+              selectedOptions={subCategoryData.category}
+              onSelect={(categoryDetails) => {
+                if (!subCategoryData.category.some((cat) => cat._id === categoryDetails._id)) {
                   setSubCategoryData((prev) => ({
                     ...prev,
                     category: [...prev.category, categoryDetails],
                   }));
                 }
               }}
-              value=""
-            >
-              <option value="" disabled>Choose Category...</option>
-              {allCategory.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            />
             
             <div className='flex flex-wrap gap-2 mt-2'>
               {subCategoryData.category.map((cat) => (

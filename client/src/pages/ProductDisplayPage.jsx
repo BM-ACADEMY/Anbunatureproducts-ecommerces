@@ -313,6 +313,7 @@ const ProductDisplayPage = () => {
   const [isFading, setIsFading] = useState(false);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [currentCalculatedPrice, setCurrentCalculatedPrice] = useState(0);
+  const [currentCalculatedOriginalPrice, setCurrentCalculatedOriginalPrice] = useState(0);
   const [currentCalculatedStock, setCurrentCalculatedStock] = useState(null);
   const [currentCalculatedUnit, setCurrentCalculatedUnit] = useState("");
   const [priceError, setPriceError] = useState(null);
@@ -460,6 +461,7 @@ const ProductDisplayPage = () => {
 
   useEffect(() => {
     let totalCalculatedPrice = 0;
+    let totalCalculatedOriginalPrice = 0;
     let combinedStock = null;
     let mainUnit = "";
     let firstOptionWithStockFound = false;
@@ -470,8 +472,12 @@ const ProductDisplayPage = () => {
       data.attributes.forEach((attrGroup) => {
         const selectedOption = selectedAttributes[attrGroup.name];
         if (selectedOption) {
-          if (typeof selectedOption.price === "number" && !isNaN(selectedOption.price)) {
-            totalCalculatedPrice += selectedOption.price;
+          const offerPrice = typeof selectedOption.offerPrice === "number" ? selectedOption.offerPrice : (selectedOption.price || 0);
+          const originalPrice = typeof selectedOption.originalPrice === "number" ? selectedOption.originalPrice : 0;
+          
+          if (offerPrice !== undefined) {
+            totalCalculatedPrice += offerPrice;
+            totalCalculatedOriginalPrice += originalPrice;
             hasPrice = true;
           }
           if (
@@ -504,6 +510,7 @@ const ProductDisplayPage = () => {
     }
 
     setCurrentCalculatedPrice(totalCalculatedPrice);
+    setCurrentCalculatedOriginalPrice(totalCalculatedOriginalPrice);
     setCurrentCalculatedStock(combinedStock);
     setCurrentCalculatedUnit(mainUnit);
   }, [data.attributes, selectedAttributes]);
@@ -700,10 +707,20 @@ const ProductDisplayPage = () => {
               {priceError ? (
                 <p className="text-red-500">{priceError}</p>
               ) : currentCalculatedPrice > 0 ? (
-                <div className="py-2 rounded w-fit">
-                  <p className="font-medium font-outfit text-lg lg:text-xl">
+                <div className="py-2 rounded w-fit flex items-center gap-3">
+                  <p className="font-bold font-outfit text-2xl lg:text-3xl text-green-700">
                     {DisplayPriceInRupees(currentCalculatedPrice)}
                   </p>
+                  {currentCalculatedOriginalPrice > currentCalculatedPrice && (
+                    <div className="flex items-center gap-2">
+                        <p className="font-medium font-outfit text-lg lg:text-xl text-slate-400 line-through">
+                            {DisplayPriceInRupees(currentCalculatedOriginalPrice)}
+                        </p>
+                        <span className="bg-green-100 text-green-700 text-xs lg:text-sm font-bold px-2 py-1 rounded-md">
+                            {Math.round(((currentCalculatedOriginalPrice - currentCalculatedPrice) / currentCalculatedOriginalPrice) * 100)}% OFF
+                        </span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-red-500 font-outfit">

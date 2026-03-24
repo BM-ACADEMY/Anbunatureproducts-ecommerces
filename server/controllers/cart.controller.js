@@ -56,7 +56,9 @@ export const addToCartItemController = async (request, response) => {
       validatedAttributes.push({
         attributeName,
         optionName,
-        price: option.price || 0,
+        price: option.offerPrice || option.price || 0,
+        originalPrice: option.originalPrice || 0,
+        offerPrice: option.offerPrice || 0,
         stock: option.stock,
         unit: option.unit || "",
       });

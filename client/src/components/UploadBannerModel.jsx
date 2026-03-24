@@ -172,7 +172,7 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
                     alt="desktop" 
                   />
                 </label>
-                <p className="text-[10px] text-center font-bold text-gray-400 uppercase">Desktop</p>
+                <p className="text-[10px] text-center font-bold text-gray-400 uppercase whitespace-nowrap">Desktop (1920x600)</p>
                 {uploadingDesktop && <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />}
               </div>
 
@@ -193,7 +193,7 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
                     alt="mobile" 
                   />
                 </label>
-                <p className="text-[10px] text-center font-bold text-gray-400 uppercase">Mobile</p>
+                <p className="text-[10px] text-center font-bold text-gray-400 uppercase whitespace-nowrap">Mobile (600x300)</p>
                 {uploadingMobile && <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />}
               </div>
             </div>

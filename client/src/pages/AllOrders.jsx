@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX } from "react-icons/fi";
+import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText } from "react-icons/fi";
+import { LayoutList, ArrowUpDown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
@@ -19,6 +20,11 @@ const AllOrders = () => {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [inputName, setInputName] = useState("");
+  const [activeTab, setActiveTab] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("Newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(10);
   const dropdownRef = useRef(null);
 
   const fetchAllOrders = async () => {
@@ -106,148 +112,363 @@ const AllOrders = () => {
   const getStatusClasses = (status) => {
     switch (status) {
       case "Delivered":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "bg-emerald-50 text-emerald-600 border-emerald-100";
       case "Pending":
-        return "bg-amber-100 text-amber-700 border-amber-200";
+        return "bg-amber-50 text-amber-600 border-amber-100";
       case "Processing":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-blue-50 text-blue-600 border-blue-100";
       case "Shipped":
-        return "bg-purple-100 text-purple-700 border-purple-200";
+        return "bg-violet-50 text-violet-600 border-violet-100";
       case "Cancelled":
-        return "bg-red-100 text-red-700 border-red-200";
+        return "bg-rose-50 text-rose-600 border-rose-100";
       default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+        return "bg-slate-50 text-slate-600 border-slate-100";
     }
   };
 
+  const statusCounts = {
+    All: orders?.length || 0,
+    Processing: orders?.filter(o => o.tracking_status === "Processing")?.length || 0,
+    Shipped: orders?.filter(o => o.tracking_status === "Shipped")?.length || 0,
+    Cancelled: orders?.filter(o => o.isCancelled || o.tracking_status === "Cancelled")?.length || 0,
+  };
+
+  const filteredOrders = orders
+    ?.filter((order) => {
+      // Tab filter
+      if (activeTab === "Processing") return order.tracking_status === "Processing";
+      if (activeTab === "Shipped") return order.tracking_status === "Shipped";
+      if (activeTab === "Cancelled") return order.isCancelled || order.tracking_status === "Cancelled";
+      return true;
+    })
+    ?.filter((order) => {
+      // Search filter
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        order.userId?.name?.toLowerCase().includes(searchLower) ||
+        order.orderId?.toLowerCase().includes(searchLower) ||
+        order.product_details?.name?.toLowerCase().includes(searchLower)
+      );
+    })
+    ?.sort((a, b) => {
+      if (sortBy === "Newest") return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === "Oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === "Price: High to Low") return b.totalAmt - a.totalAmt;
+      if (sortBy === "Price: Low to High") return a.totalAmt - b.totalAmt;
+      return 0;
+    });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
+
+  // Pagination Logic
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = (filteredOrders || []).slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil((filteredOrders?.length || 0) / ordersPerPage);
+
+  const exportToExcel = () => {
+    if (!filteredOrders?.length) {
+      toast.error("No orders to export");
+      return;
+    }
+
+    // CSV Headers
+    const headers = [
+      "Order ID",
+      "Customer Name",
+      "Product Name",
+      "Quantity",
+      "Total Amount",
+      "Payment Status",
+      "Tracking Status",
+      "Order Date"
+    ];
+
+    // CSV Data rows
+    const csvData = filteredOrders.map(order => [
+      order.orderId,
+      order.userId?.name || "N/A",
+      `"${order.product_details?.name?.replace(/"/g, '""')}"` || "N/A", // Quote product name to handle commas
+      order.quantity,
+      order.totalAmt,
+      order.payment_status,
+      order.tracking_status,
+      new Date(order.createdAt).toLocaleDateString('en-GB')
+    ]);
+
+    // Construct CSV content
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map(row => row.join(","))
+    ].join("\n");
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Anbu_Orders_Export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Order list exported successfully");
+  };
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="min-h-screen bg-[#F8F9FC] p-4 sm:p-5 lg:p-6 space-y-6">
+      {/* Header section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">All Orders</h1>
-          <p className="text-gray-500 text-sm mt-1 font-medium">Manage and track all customer orders</p>
+          <h1 className="text-2xl font-extrabold text-[#1A1C21] tracking-tight">All Order</h1>
+          <p className="text-[#64748B] text-sm mt-1 font-medium">
+            Check all orders at single place. It's easy to manage.
+          </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-          <span className="font-bold text-gray-900">{orders?.length || 0}</span>
-          <span>Orders Found</span>
+        <button 
+          onClick={exportToExcel}
+          className="flex items-center gap-2 bg-[#1D9963] hover:bg-[#168050] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 group"
+        >
+          <FiDownload className="size-4" />
+          Export Order List
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex flex-wrap items-center gap-1 border-b border-gray-200">
+        {[
+          { id: "All", label: "All order", count: statusCounts.All },
+          { id: "Processing", label: "Processing", count: statusCounts.Processing },
+          { id: "Shipped", label: "Shipped", count: statusCounts.Shipped },
+          { id: "Cancelled", label: "Canceled", count: statusCounts.Cancelled },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all relative ${
+              activeTab === tab.id
+                ? "text-[#1D9963]"
+                : "text-[#64748B] hover:text-[#0F172A]"
+            }`}
+          >
+            {tab.id === "All" && <LayoutList size={16} />}
+            {tab.id === "Processing" && <FiClock size={16} />}
+            {tab.id === "Shipped" && <FiTruck size={16} />}
+            {tab.id === "Cancelled" && <FiX size={16} />}
+            {tab.label} ({tab.count})
+            {activeTab === tab.id && (
+              <div className="absolute bottom-[-1px] left-0 right-0 h-[2.5px] bg-[#1D9963]" />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Search and Sort bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative group flex-1 max-w-md">
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
+          <input
+            type="text"
+            placeholder="Search by ID, name, status"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-50 transition-all text-sm font-medium placeholder:text-gray-400 shadow-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative group">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-50 transition-all text-sm font-bold text-[#1A1C21] shadow-sm cursor-pointer min-w-[120px]"
+            >
+              <option>Newest</option>
+              <option>Oldest</option>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 flex items-center gap-1">
+                <span className="text-[10px] opacity-40">|</span>
+                <ArrowUpDown size={14} />
+            </div>
+          </div>
         </div>
       </div>
 
-      {!orders?.length ? (
-        <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-100">
-          <NoData />
+      {/* Order List / Table */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Table Header */}
+        <div className="grid grid-cols-11 gap-4 px-8 py-5 bg-[#F8FAFC] border-b border-gray-100 text-[11px] font-black text-[#64748B] uppercase tracking-wider">
+          <div className="col-span-5 px-2">PRODUCT</div>
+          <div className="col-span-1 text-center">PRICE</div>
+          <div className="col-span-2 text-center">PAYMENT</div>
+          <div className="col-span-2 text-center">STATUS</div>
+          <div className="col-span-1 text-right pr-6 uppercase">ACTION</div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {orders.map((order, index) => (
-            <div
-              key={order._id + index + "order"}
-              className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 p-5 relative group"
-            >
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                {/* Product Image */}
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
-                  <img
-                    src={order.product_details.image[0]}
-                    alt={order.product_details.name}
-                    className="w-full h-full object-cover rounded-xl border border-gray-100 shadow-sm"
-                  />
-                  {order.isCancelled && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
-                      <span className="bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg shadow-lg">Cancelled</span>
-                    </div>
-                  )}
-                </div>
 
-                {/* Details */}
-                <div className="flex-1 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <h2 className={`text-lg font-bold text-gray-900 ${order.isCancelled ? "line-through opacity-50" : ""}`}>
-                      {order.product_details.name}
-                    </h2>
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full border ${getStatusClasses(order.tracking_status)}`}>
-                      {order.tracking_status}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                    <div className="space-y-1">
-                      <p className="text-gray-400 font-medium flex items-center gap-2">
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        Customer
-                      </p>
-                      <p className="text-gray-900 font-bold">{order?.userId?.name}</p>
+        {!filteredOrders?.length ? (
+          <div className="p-20 flex flex-col items-center justify-center text-center">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <LayoutList size={40} className="text-gray-300" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">No orders found</h3>
+            <p className="text-gray-500 mt-1">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {currentOrders.map((order, index) => (
+              <div key={order._id + index} className="group hover:bg-slate-50/10 transition-colors">
+                {/* Metadata Header Bar */}
+                <div className="px-8 py-3.5 bg-[#F8FAFC] flex items-center justify-between border-y border-gray-50">
+                  <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-2">
+                       <span className="text-[12px] font-medium text-gray-500">Customer:</span>
+                       <span className="text-[12px] font-bold text-[#1A1C21]">{order?.userId?.name}</span>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-gray-400 font-medium flex items-center gap-2">
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        Order Details
-                      </p>
-                      <p className="text-gray-900 font-bold">₹{order.totalAmt} • Qty: {order.quantity}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-gray-400 font-medium flex items-center gap-2">
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        Payment
-                      </p>
-                      <p className="text-gray-900 font-bold uppercase">{order.payment_status}</p>
+                    <div className="flex items-center gap-3 border-l border-gray-200 pl-8">
+                       <span className="text-[12px] font-medium text-gray-500">Date of Order:</span>
+                       <span className="text-[12px] font-bold text-[#1A1C21]">
+                          {new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                       </span>
                     </div>
                   </div>
-
-                  {order.isCancelled && (
-                    <div className="bg-red-50 p-3 rounded-xl border border-red-100">
-                      <p className="text-xs text-red-700 font-medium">
-                        <span className="font-bold">Reason:</span> {order.cancellationReason}
-                      </p>
-                      <p className="text-[10px] text-red-500 mt-0.5">
-                        Cancelled on {new Date(order.cancellationDate).toLocaleDateString()}
-                      </p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[12px] font-medium text-gray-500">Order ID:</span>
+                        <span className="text-[12px] font-bold text-[#1A1C21]">{order.orderId}</span>
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* Actions Button */}
-                <div className="absolute top-5 right-5" ref={menuOrderId === order._id ? dropdownRef : null}>
-                  <button
-                    onClick={() => handleMenuToggle(order._id)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-900"
-                  >
-                    <FiMoreVertical size={20} />
-                  </button>
+                {/* Dotted Line Separator */}
+                <div className="mx-8 border-t border-dashed border-gray-200 opacity-60" />
 
-                  {/* Dropdown Menu */}
-                  {menuOrderId === order._id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-zoom-in">
+                {/* Main Content Grid (No Spacer) */}
+                <div className="grid grid-cols-11 gap-4 px-8 py-6 items-center">
+                  
+                    {/* Product Info */}
+                    <div className="col-span-5 flex items-center gap-5">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 shadow-sm bg-white">
+                        <img
+                          src={order.product_details.image[0]}
+                          alt={order.product_details.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-[#0F172A] text-[14px] leading-tight transition-colors line-clamp-2">
+                          {order.product_details.name}
+                        </h4>
+                        <div className="flex items-center gap-2 text-[12px] font-medium text-gray-500">
+                          <span>Quantity: <span className="text-gray-900 font-bold">{order.quantity}</span></span>
+                          {order.product_details.price && <span>Price: <span className="text-gray-900 font-bold">₹{order.product_details.price}</span></span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price */}
+                    <div className="col-span-1 text-center font-bold text-[#0F172A] text-lg">
+                      ₹{order.totalAmt.toLocaleString()}
+                    </div>
+
+                    {/* Payment Status */}
+                    <div className="col-span-2 text-center text-[14px] font-bold text-[#64748B] capitalize">
+                      {order.payment_status}
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="col-span-2 flex flex-col items-center gap-1.5">
+                      <span className={`px-4 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg border-b-2 ${getStatusClasses(order.tracking_status)}`}>
+                        {order.tracking_status}
+                      </span>
+                      <p className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
+                        {order.tracking_status === "Pending" && "Please process before..."}
+                        {order.tracking_status === "Processing" && "Preparing for dispatch..."}
+                        {order.tracking_status === "Shipped" && "Estimated delivery by next week"}
+                        {order.tracking_status === "Delivered" && "Successfully received"}
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="col-span-1 flex flex-col gap-2 scale-95 origin-right">
                       <button
                         onClick={() => handleOpenInvoice(order)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#1D9963] text-white rounded-lg text-[12px] font-bold hover:bg-[#168050] transition-all shadow-sm active:scale-95"
                       >
-                        <FiEye className="text-blue-500" />
-                        View Invoice
+                        <FiFileText className="size-3.5" />
+                        Invoice
                       </button>
                       <button
                         onClick={() => handleOpenTracking(order)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-[#0F172A] rounded-lg text-[12px] font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
                       >
-                        <FiActivity className="text-purple-500" />
-                        Update Tracking
+                        <FiActivity className="size-3.5" />
+                        Track
                       </button>
-                      <div className="my-1 border-t border-gray-50"></div>
-                      <button
-                        onClick={() => handleDeleteOrder(order)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors"
-                      >
-                        <FiTrash2 />
-                        Delete Order
-                      </button>
+                      {!order.isCancelled && order.tracking_status !== "Delivered" && (
+                        <button
+                          onClick={() => handleDeleteOrder(order)}
+                          className="text-[11px] text-rose-500 font-bold hover:text-rose-600 mt-1 transition-colors text-center w-full"
+                        >
+                          Delete Order
+                        </button>
+                      )}
                     </div>
-                  )}
                 </div>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="px-8 py-5 bg-[#F8FAFC] border-t border-gray-100 flex items-center justify-between">
+            <div className="text-[13px] font-medium text-gray-500">
+              Showing <span className="text-gray-900 font-bold">{indexOfFirstOrder + 1}</span> to <span className="text-gray-900 font-bold">{Math.min(indexOfLastOrder, filteredOrders.length)}</span> of <span className="text-gray-900 font-bold">{filteredOrders.length}</span> orders
             </div>
-          ))}
-        </div>
-      )}
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => {
+                  setCurrentPage(prev => prev - 1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-4 py-2 text-[13px] font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => {
+                      setCurrentPage(i + 1);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`size-9 flex items-center justify-center text-[13px] font-bold rounded-lg transition-all ${
+                      currentPage === i + 1
+                        ? "bg-[#1D9963] text-white shadow-md shadow-green-100"
+                        : "bg-white text-gray-700 border border-gray-100 hover:border-green-200 hover:text-[#1D9963]"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => {
+                  setCurrentPage(prev => prev + 1);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-4 py-2 text-[13px] font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Deletion Confirmation Modal */}
       {openConfirm && (
@@ -311,4 +532,4 @@ const AllOrders = () => {
   );
 };
 
-export default AllOrders;
+export default AllOrders;

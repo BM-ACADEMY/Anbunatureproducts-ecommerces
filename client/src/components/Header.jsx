@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import logo from "../assets/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LuUserRound, LuSearch, LuTruck } from "react-icons/lu";
+import { LuUserRound, LuSearch, LuTruck, LuChevronRight } from "react-icons/lu";
 import useMobile from "../hooks/useMobile";
 import { useSelector } from "react-redux";
 import { AiOutlineMenu } from "react-icons/ai";
@@ -11,6 +11,7 @@ import DisplayCartItem from "./DisplayCartItem";
 import { SlHandbag } from "react-icons/sl";
 import isAdmin from "../utils/isAdmin";
 import Search from "./Search";
+import { valideURLConvert } from "../utils/valideURLConvert";
 
 const Header = () => {
     const [isMobile] = useMobile();
@@ -18,9 +19,16 @@ const Header = () => {
     const navigate = useNavigate();
 
     const user = useSelector((state) => state?.user);
+    const allCategory = useSelector((state) => state.product.allCategory || []);
+    
     const [openUserMenu, setOpenUserMenu] = useState(false);
+    const [openProductMenu, setOpenProductMenu] = useState(false);
     const [closeTimeout, setCloseTimeout] = useState(null);
+    const [productCloseTimeout, setProductCloseTimeout] = useState(null);
+    
     const userMenuRef = useRef(null);
+    const mobileUserMenuRef = useRef(null);
+    const productMenuRef = useRef(null);
     
     const cartItem = useSelector((state) => state.cartItem.cart);
     const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
@@ -35,6 +43,24 @@ const Header = () => {
             setOpenUserMenu(false);
         }
     }, [user?._id]);
+
+    // Close menus when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                userMenuRef.current && !userMenuRef.current.contains(event.target) &&
+                mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(event.target) &&
+                productMenuRef.current && !productMenuRef.current.contains(event.target)
+            ) {
+                setOpenUserMenu(false);
+                setOpenProductMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const handleMouseEnter = () => {
         if (closeTimeout) {
@@ -51,12 +77,28 @@ const Header = () => {
         setCloseTimeout(timeout);
     };
 
+    const handleProductMouseEnter = () => {
+        if (productCloseTimeout) {
+            clearTimeout(productCloseTimeout);
+            setProductCloseTimeout(null);
+        }
+        setOpenProductMenu(true);
+    };
+
+    const handleProductMouseLeave = () => {
+        const timeout = setTimeout(() => {
+            setOpenProductMenu(false);
+        }, 300);
+        setProductCloseTimeout(timeout);
+    };
+
     const toggleMobileMenu = () => {
         setShowMobileMenu((prev) => !prev);
     };
 
     const navLinks = [
         { label: "Home", path: "/" },
+        { label: "Product", path: "/all-products", hasDropdown: true },
         { label: "About", path: "/about" },
         { label: "Contact", path: "/contact" },
     ];
@@ -90,15 +132,48 @@ const Header = () => {
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center space-x-8">
                         {navLinks.map((link) => (
-                            <Link 
+                            <div 
                                 key={link.label}
-                                to={link.path}
-                                className={`text-gray-700 hover:text-green-700 font-medium transition-colors ${
-                                    location.pathname === link.path ? 'text-green-700' : ''
-                                }`}
+                                className="relative flex items-center h-20"
+                                onMouseEnter={link.hasDropdown ? handleProductMouseEnter : undefined}
+                                onMouseLeave={link.hasDropdown ? handleProductMouseLeave : undefined}
+                                ref={link.hasDropdown ? productMenuRef : undefined}
                             >
-                                {link.label}
-                            </Link>
+                                <Link 
+                                    to={link.path}
+                                    className={`text-gray-700 hover:text-green-700 font-medium transition-colors ${
+                                        location.pathname === link.path ? 'text-green-700' : ''
+                                    }`}
+                                >
+                                    {link.label}
+                                </Link>
+
+                                 {link.hasDropdown && openProductMenu && (
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-[850px] bg-white shadow-2xl rounded-2xl border border-gray-100 p-8 animate-in fade-in slide-in-from-top-4 duration-300 z-50">
+                                        <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+                                            {allCategory.map((category) => (
+                                                <Link
+                                                    key={category._id}
+                                                    to={`/${valideURLConvert(category.name)}-${category._id}`}
+                                                    onClick={() => setOpenProductMenu(false)}
+                                                    className="group flex items-center space-x-4 p-3 rounded hover:bg-gray-50 transition-all border border-transparent"
+                                                >
+                                                    <div className="w-16 h-16 flex-shrink-0 overflow-hidden transition-all flex items-center justify-center p-2">
+                                                        <img 
+                                                            src={category.image} 
+                                                            alt={category.name} 
+                                                            className="w-full h-full object-scale-down transition-transform"
+                                                        />
+                                                    </div>
+                                                    <span className="text-[14px] font-semibold text-gray-700 transition-colors">
+                                                        {category.name}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </nav>
 
@@ -169,9 +244,41 @@ const Header = () => {
                             <LuSearch size={22} />
                         </button>
                         
-                        <Link to="/user" className="text-gray-700">
-                            <LuUserRound size={22} />
-                        </Link>
+                        <div 
+                            className="relative"
+                            ref={mobileUserMenuRef}
+                        >
+                            <button 
+                                className="transition-colors flex items-center"
+                                onClick={() => {
+                                    if (!user?._id) {
+                                        navigate('/login');
+                                    } else {
+                                        setOpenUserMenu(!openUserMenu);
+                                    }
+                                }}
+                            >
+                                {user?._id ? (
+                                    user?.avatar ? (
+                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-green-500 shadow-sm">
+                                            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs shadow-sm border border-green-500">
+                                            {user?.name?.charAt(0)?.toUpperCase() || user?.mobile?.charAt(0) || "U"}
+                                        </div>
+                                    )
+                                ) : (
+                                    <LuUserRound size={22} className="text-gray-700" />
+                                )}
+                            </button>
+                            
+                            {user?._id && openUserMenu && (
+                                <div className="absolute right-[-80px] top-full pt-2 w-72 animate-in fade-in slide-in-from-top-2 duration-200 z-[1001]">
+                                    <UserMenu close={() => setOpenUserMenu(false)} isHome={true} />
+                                </div>
+                            )}
+                        </div>
 
                         <button 
                             onClick={() => setOpenCartSection(true)}
@@ -207,7 +314,7 @@ const Header = () => {
                         }`}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="p-6 flex flex-col h-full">
+                        <div className="p-6 flex flex-col h-full overflow-y-auto">
                             <div className="flex items-center justify-between mb-8">
                                 <button onClick={toggleMobileMenu} className="text-gray-500">
                                     <IoCloseOutline size={30} />
@@ -218,18 +325,19 @@ const Header = () => {
 
                             <nav className="flex flex-col space-y-2">
                                 {navLinks.map((link) => (
-                                    <Link
-                                        key={link.label}
-                                        to={link.path}
-                                        onClick={toggleMobileMenu}
-                                        className={`px-4 py-3 rounded-xl text-lg font-medium transition-all ${
-                                            location.pathname === link.path && link.path === "/"
-                                                ? 'bg-[#70a139] text-white shadow-md' 
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        {link.label}
-                                    </Link>
+                                    <div key={link.label}>
+                                        <Link
+                                            to={link.path}
+                                            onClick={toggleMobileMenu}
+                                            className={`block px-4 py-3 rounded-xl text-lg font-medium transition-all ${
+                                                location.pathname === link.path
+                                                    ? 'bg-[#70a139] text-white shadow-md' 
+                                                    : 'text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    </div>
                                 ))}
                             </nav>
 

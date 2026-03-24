@@ -29,6 +29,7 @@ import Contact from "../pages/Contact";
 import Processing from "../pages/Processing";
 import DashboardOverview from "../pages/DashboardOverview";
 import BannerAdmin from "../pages/BannerAdmin";
+import AllProducts from "../pages/AllProducts";
 // import Overview from "../pages/Overview";
 
 const router = createBrowserRouter([
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
       {
         path: "search",
         element: <SearchPage />,
+      },
+      {
+        path: "all-products",
+        element: <AllProducts />,
       },
       {
         path: "login",

@@ -47,8 +47,8 @@ const BannerSlider = () => {
 
   if (loading) {
     return (
-      <div className="w-full h-96 md:h-[500px] bg-slate-100 animate-pulse flex items-center justify-center">
-        <span className="text-slate-400">Loading Banners...</span>
+      <div className="w-full aspect-[2/1] md:aspect-[16/5] bg-slate-100 animate-pulse flex items-center justify-center">
+        <span className="text-slate-400 font-medium">Loading Banners...</span>
       </div>
     );
   }
@@ -66,7 +66,7 @@ const BannerSlider = () => {
         {banners.map((banner, index) => (
           <div
             key={banner._id}
-            className="min-w-full relative h-[300px] md:h-[500px]"
+            className="min-w-full relative aspect-[2/1] md:aspect-[16/5]"
           >
             {banner.link ? (
               <a href={banner.link} target="_blank" rel="noopener noreferrer">

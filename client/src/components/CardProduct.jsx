@@ -11,6 +11,7 @@ const CardProduct = ({ data }) => {
   const { comboOffer, reviews } = data;
 
   let displayPrice = 0;
+  let displayOriginalPrice = 0;
   let displayUnit = "";
   let displayStock = 0;
 
@@ -30,7 +31,9 @@ const CardProduct = ({ data }) => {
   if (data.attributes?.length > 0) {
     const firstOption = data.attributes[0]?.options?.[0];
     displayPrice =
-      typeof firstOption?.price === "number" ? firstOption.price : 0;
+      typeof firstOption?.offerPrice === "number" ? firstOption.offerPrice : (firstOption?.price || 0);
+    displayOriginalPrice =
+      typeof firstOption?.originalPrice === "number" ? firstOption.originalPrice : 0;
     displayUnit = firstOption?.unit || "";
     displayStock =
       typeof firstOption?.stock === "number" ? firstOption.stock : null;
@@ -60,11 +63,18 @@ const CardProduct = ({ data }) => {
           aria-label={`View ${data.name} product`}
         >
           <div className="relative w-full h-48 md:h-64 overflow-hidden">
-            {comboOffer && (
-              <div className="absolute top-0 left-0 bg-[#ea242b] text-white text-xs font-semibold px-2 py-1 rounded-br-lg z-10">
-                Combo offer
-              </div>
-            )}
+            <div className="absolute top-0 left-0 flex flex-col z-10">
+              {comboOffer && (
+                <div className="bg-[#ea242b] text-white text-[10px] md:text-xs font-semibold px-2 py-1 rounded-br-lg w-fit">
+                  Combo offer
+                </div>
+              )}
+              {displayOriginalPrice > displayPrice && (
+                <div className="bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-lg w-fit shadow-sm">
+                  {Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)}% OFF
+                </div>
+              )}
+            </div>
             <img
               src={data.image[0]}
               alt={data.name}
@@ -74,9 +84,16 @@ const CardProduct = ({ data }) => {
           </div>
 
           <div className="p-4 font-outfit flex flex-col flex-grow text-sm min-h-[150px]">
-            <p className="text-slate-600">
-              {DisplayPriceInRupees(displayPrice)}
-            </p>
+            <div className='flex items-center gap-2'>
+              <p className="text-green-700 font-bold text-lg">
+                {DisplayPriceInRupees(displayPrice)}
+              </p>
+              {displayOriginalPrice > displayPrice && (
+                <p className="text-slate-400 line-through text-sm">
+                  {DisplayPriceInRupees(displayOriginalPrice)}
+                </p>
+              )}
+            </div>
             <h3 className="text-slate-800 text-base font-medium my-1.5 line-clamp-2 leading-snug">
               {data.name}
             </h3>

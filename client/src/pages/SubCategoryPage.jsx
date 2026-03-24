@@ -75,7 +75,7 @@ const SubCategoryPage = () => {
           <h2 className='font-semibold text-lg sm:text-xl'>Sub Category</h2>
           <button 
             onClick={() => setOpenAddSubCategory(true)}
-            className='bg-primary-200 hover:bg-primary-300 text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
+            className='bg-[#279d68] hover:bg-[#279d68]/90  text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
           >
             <IoAdd size={24} />
             <span>Add Sub Category</span>
@@ -85,7 +85,7 @@ const SubCategoryPage = () => {
       {/* Grid */}
       <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 py-6'>
         {currentItems.map((item) => (
-          <div key={item._id} className='bg-white group rounded shadow hover:shadow-md transition-all flex flex-col'>
+          <div key={item._id} className='bg-white group rounded border border-gray-200 shadow hover:shadow-md transition-all flex flex-col'>
             <div 
               className='aspect-square w-full p-4 flex items-center justify-center overflow-hidden cursor-pointer'
               onClick={() => setImageURL(item.image)}
@@ -93,7 +93,7 @@ const SubCategoryPage = () => {
               <img
                 src={item.image}
                 alt={item.altText || item.name}
-                className='h-full w-full object-scale-down transition-transform group-hover:scale-105'
+                className='h-full w-full object-scale-down transition-transform'
               />
             </div>
             <div className='px-4 py-2 border-t flex-grow'>

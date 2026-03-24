@@ -38,13 +38,32 @@ const ProductCardAdmin = ({ data, fetchProductData }) => {
     }
   }
   return (
-    <div className='bg-white group rounded shadow hover:shadow-md transition-all flex flex-col h-full'>
-        <div className='aspect-square w-full p-4 flex items-center justify-center overflow-hidden'>
+    <div className='bg-white group border border-gray-200 rounded shadow hover:shadow-md transition-all flex flex-col h-full'>
+        <div className='aspect-square w-full p-4 flex items-center justify-center overflow-hidden relative'>
             <img
                src={data?.image[0]}  
                alt={data?.altText || data?.name}
-               className='h-full w-full object-scale-down transition-transform group-hover:scale-105'
+               className='h-full w-full object-scale-down transition-transform'
             />
+            
+            {/* Tags/Badges */}
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              {data?.megaCombo && (
+                <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  Mega Combo
+                </span>
+              )}
+              {data?.trending && (
+                <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  Trending
+                </span>
+              )}
+              {data?.comboOffer && (
+                <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  Combo
+                </span>
+              )}
+            </div>
         </div>
         <div className='px-4 py-2 border-t flex-grow flex flex-col'>
             <p className='text-center font-medium line-clamp-2 min-h-[3rem]' title={data?.name}>{data?.name}</p>

@@ -33,6 +33,14 @@ const attributeOptionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  originalPrice: {
+    type: Number,
+    default: 0
+  },
+  offerPrice: {
+    type: Number,
+    default: 0
+  },
   stock: {
     type: Number,
     default: null
@@ -94,6 +102,22 @@ const productSchema = new mongoose.Schema({
   comboOffer: {
     type: Boolean,
     default: false
+  },
+  megaCombo: {
+    type: Boolean,
+    default: false
+  },
+  trending: {
+    type: Boolean,
+    default: false
+  },
+  storage_instructions: {
+    type: String,
+    default: ""
+  },
+  storage_image: {
+    type: String,
+    default: ""
   },
 }, { timestamps: true });
 

@@ -594,7 +594,7 @@ export async function getOrderStatsController(request, response) {
                 $match: {
                     isDeleted: false,
                     isCancelled: false,
-                    payment_status: { $in: ["Online Payment", "paid", "COD", "Cash On Delivery"] } // Adjust based on your payment status values
+                    payment_status: { $in: ["Online Payment", "paid", "COD", "Cash On Delivery"] }
                 }
             },
             {
@@ -609,6 +609,96 @@ export async function getOrderStatsController(request, response) {
         const totalProducts = await ProductModel.countDocuments({ publish: true });
         const totalCategories = await CategoryModel.countDocuments();
         const totalSubCategories = await SubCategoryModel.countDocuments();
+
+        // Time periods for trending products
+        const now = new Date();
+        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+        const startOfWeek = new Date(now.setDate(now.getDate() - 7));
+        const startOfMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
+        const startOfYear = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+
+        const getTrendingProducts = async (startDate) => {
+            return await OrderModel.aggregate([
+                {
+                    $match: {
+                        isDeleted: false,
+                        isCancelled: false,
+                        createdAt: { $gte: startDate }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$productId",
+                        totalQuantity: { $sum: "$quantity" },
+                        totalSales: { $sum: "$totalAmt" }
+                    }
+                },
+                { $sort: { totalQuantity: -1 } },
+                { $limit: 10 },
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "productDetails"
+                    }
+                },
+                { $unwind: "$productDetails" },
+                {
+                    $project: {
+                        _id: 1,
+                        totalQuantity: 1,
+                        totalSales: 1,
+                        name: "$productDetails.name",
+                        image: "$productDetails.image"
+                    }
+                }
+            ]);
+        };
+
+        const [trendingDay, trendingWeek, trendingMonth, trendingYear] = await Promise.all([
+            getTrendingProducts(startOfDay),
+            getTrendingProducts(startOfWeek),
+            getTrendingProducts(startOfMonth),
+            getTrendingProducts(startOfYear)
+        ]);
+
+        // Unsold Products
+        const soldProductIds = await OrderModel.distinct("productId", { isDeleted: false, isCancelled: false });
+        const unsoldProducts = await ProductModel.find({
+            _id: { $nin: soldProductIds },
+            publish: true
+        }).select("name image").limit(20);
+
+        // Cancellation stats for the last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const cancellationStats = await OrderModel.aggregate([
+            {
+                $match: {
+                    isDeleted: false,
+                    isCancelled: true,
+                    cancellationDate: { $gte: thirtyDaysAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        day: { $dayOfMonth: "$cancellationDate" },
+                        month: { $month: "$cancellationDate" },
+                        year: { $year: "$cancellationDate" }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+        ]);
+
+        const formattedCancellationStats = cancellationStats.map(item => ({
+            label: `${item._id.day}/${item._id.month}`,
+            y: item.count
+        }));
 
         // Monthly sales data for the last 6 months
         const sixMonthsAgo = new Date();
@@ -635,12 +725,12 @@ export async function getOrderStatsController(request, response) {
             { $sort: { "_id.year": 1, "_id.month": 1 } }
         ]);
 
-        // Format monthly data for frontend
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const formattedMonthlyStats = monthlySales.map(item => ({
             name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
             revenue: item.revenue,
-            orders: item.orders
+            orders: item.orders,
+            y: item.revenue // For CanvasJS
         }));
 
         return response.json({
@@ -655,7 +745,13 @@ export async function getOrderStatsController(request, response) {
                 totalProducts,
                 totalCategories,
                 totalSubCategories,
-                monthlyStats: formattedMonthlyStats
+                monthlyStats: formattedMonthlyStats,
+                cancellationStats: formattedCancellationStats,
+                trendingDay,
+                trendingWeek,
+                trendingMonth,
+                trendingYear,
+                unsoldProducts
             },
             error: false,
             success: true,
@@ -667,4 +763,4 @@ export async function getOrderStatsController(request, response) {
             success: false,
         });
     }
-}
+}
