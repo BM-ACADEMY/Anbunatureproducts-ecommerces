@@ -99,7 +99,7 @@ const Header = () => {
             </div>
 
             <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-                <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+                <div className="container mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
                     
                     {/* Logo - Increased Size */}
                     <Link to="/" className="flex-shrink-0 transition-transform">

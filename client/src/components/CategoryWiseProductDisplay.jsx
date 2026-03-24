@@ -76,13 +76,14 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
         <Swiper
           modules={[Navigation, Pagination]}
           spaceBetween={16}
-          slidesPerView={1}
+          slidesPerView={1.2}
           breakpoints={{
-            640: { slidesPerView: 2 },
+            480: { slidesPerView: 1.5 },
+            640: { slidesPerView: 2.2 },
             768: { slidesPerView: 3 },
-            1024: { slidesPerView: 4 },
-            1280: { slidesPerView: 5 },
-            1440: { slidesPerView: 6 },
+            1024: { slidesPerView: 3.5 },
+            1280: { slidesPerView: 4 },
+            1536: { slidesPerView: 5 },
           }}
           navigation={{
             nextEl: `.${nextButtonClass}`,

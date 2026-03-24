@@ -18,14 +18,27 @@ const AllProducts = () => {
     const [totalCount, setTotalCount] = useState(0);
     const [selectedCategory, setSelectedCategory] = useState("");
     
+    // Filter states
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [minRating, setMinRating] = useState(0);
+    
     const allCategory = useSelector((state) => state.product.allCategory || []);
 
     const fetchProducts = async () => {
         try {
             setLoading(true);
+            const filterData = { 
+                page, 
+                limit,
+                minPrice: minPrice ? Number(minPrice) : undefined,
+                maxPrice: maxPrice ? Number(maxPrice) : undefined,
+                minRating: minRating > 0 ? minRating : undefined
+            };
+
             const apiCall = selectedCategory 
-                ? { ...SummaryApi.getProductByCategory, data: { categoryId: selectedCategory, page, limit } }
-                : { ...SummaryApi.getProduct, data: { page, limit } };
+                ? { ...SummaryApi.getProductByCategory, data: { ...filterData, categoryId: selectedCategory } }
+                : { ...SummaryApi.getProduct, data: filterData };
 
             const response = await Axios(apiCall);
             const { data: responseData } = response;
@@ -44,7 +57,7 @@ const AllProducts = () => {
 
     useEffect(() => {
         fetchProducts();
-    }, [page, selectedCategory]);
+    }, [page, selectedCategory, minPrice, maxPrice, minRating]);
 
     const handleCategoryChange = (e) => {
         setSelectedCategory(e.target.value);
@@ -59,100 +72,224 @@ const AllProducts = () => {
         if (page < totalPages) setPage(p => p + 1);
     };
 
+    const clearFilters = () => {
+        setMinPrice("");
+        setMaxPrice("");
+        setMinRating(0);
+        setSelectedCategory("");
+        setPage(1);
+    };
+
     return (
         <div className="min-h-screen bg-[#f9f9f9]">
-            <div className="container mx-auto px-4 py-6">
+            <div className="container mx-auto px-4 py-8">
                 <Breadcrumbs />
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between mt-4 mb-8 gap-4">
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        {selectedCategory 
-                            ? allCategory.find(c => c._id === selectedCategory)?.name 
-                            : "All Products"
-                        }
-                        <span className="ml-2 text-sm font-normal text-gray-500">
-                            ({totalCount} products)
-                        </span>
-                    </h1>
+                <div className="flex flex-col md:flex-row md:items-center justify-between mt-6 mb-10 gap-6">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                            {selectedCategory 
+                                ? allCategory.find(c => c._id === selectedCategory)?.name 
+                                : "Premium Products"
+                            }
+                            <span className="ml-3 text-sm font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                                {totalCount} items
+                            </span>
+                        </h1>
+                        <p className="text-gray-500 mt-1">Discover our authentic and natural product range.</p>
+                    </div>
 
-                    <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-green-500 focus-within:border-transparent">
-                        <FiFilter className="text-gray-400" size={18} />
-                        <select 
-                            value={selectedCategory} 
-                            onChange={handleCategoryChange}
-                            className="bg-transparent border-none outline-none text-sm text-gray-700 font-medium cursor-pointer pr-4"
-                        >
-                            <option value="">All Categories</option>
-                            {allCategory.map(category => (
-                                <option key={category._id} value={category._id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </select>
+                    <div className="flex items-center space-x-3">
+                        {/* Mobile category select - keeping for mobile users */}
+                        <div className="flex lg:hidden items-center space-x-2 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-green-500">
+                            <FiFilter className="text-gray-400" size={18} />
+                            <select 
+                                value={selectedCategory} 
+                                onChange={handleCategoryChange}
+                                className="bg-transparent border-none outline-none text-sm text-gray-700 font-semibold cursor-pointer pr-4"
+                            >
+                                <option value="">All Categories</option>
+                                {allCategory.map(category => (
+                                    <option key={category._id} value={category._id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                {loading ? (
-                    <div className="flex items-center justify-center p-20">
-                        <Loading />
-                    </div>
-                ) : data.length > 0 ? (
-                    <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {data.map((product) => (
-                                <CardProduct key={product._id} data={product} />
-                            ))}
-                        </div>
-
-                        {/* Pagination Buttons */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-center space-x-4 mt-12 pb-10">
-                                <button
-                                    onClick={handlePrevPage}
-                                    disabled={page === 1}
-                                    className={`flex items-center space-x-2 px-6 py-2.5 rounded-full font-semibold transition-all shadow-md ${
-                                        page === 1 
-                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                                        : 'bg-[#98c17b] text-white hover:bg-[#86ad6a]'
-                                    }`}
+                <div className="flex flex-col lg:flex-row gap-10">
+                    {/* Filter Sidebar - Large screens only */}
+                    <aside className="hidden lg:block w-72 flex-shrink-0">
+                        <div className="sticky top-24 bg-white rounded-3xl p-7 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+                                <h3 className="text-lg font-bold text-gray-800">Filters</h3>
+                                <button 
+                                    onClick={clearFilters}
+                                    className="text-xs font-bold text-[#EA580C] hover:underline"
                                 >
-                                    <LuChevronLeft size={20} />
-                                    <span>Previous</span>
+                                    Reset All
                                 </button>
-                                
-                                <div className="flex items-center space-x-1">
-                                    <span className="text-sm font-medium text-gray-500">Page</span>
-                                    <span className="font-bold text-gray-800">{page}</span>
-                                    <span className="text-sm font-medium text-gray-500">of</span>
-                                    <span className="font-bold text-gray-800">{totalPages}</span>
+                            </div>
+
+                            {/* Category Filter */}
+                            <div className="mb-10">
+                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Category</h4>
+                                <div className="space-y-3">
+                                    <button 
+                                        onClick={() => { setSelectedCategory(""); setPage(1); }}
+                                        className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${selectedCategory === "" ? 'bg-[#98c17b] text-white shadow-md shadow-green-100' : 'text-gray-600 hover:bg-gray-50'}`}
+                                    >
+                                        All Products
+                                    </button>
+                                    {allCategory.map(category => (
+                                        <button
+                                            key={category._id}
+                                            onClick={() => { setSelectedCategory(category._id); setPage(1); }}
+                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${selectedCategory === category._id ? 'bg-[#98c17b] text-white shadow-md shadow-green-100' : 'text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            {category.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Price Range */}
+                            <div className="mb-10">
+                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Price Range</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block ml-1">Min Price</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                                            <input 
+                                                type="number"
+                                                value={minPrice}
+                                                onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
+                                                placeholder="0"
+                                                className="w-full pl-7 pr-3 py-2.5 bg-gray-50 border-none rounded-xl text-sm font-semibold focus:ring-2 focus:ring-green-500/20"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block ml-1">Max Price</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                                            <input 
+                                                type="number"
+                                                value={maxPrice}
+                                                onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
+                                                placeholder="Any"
+                                                className="w-full pl-7 pr-3 py-2.5 bg-gray-50 border-none rounded-xl text-sm font-semibold focus:ring-2 focus:ring-green-500/20"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Rating Filter */}
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Minimum Rating</h4>
+                                <div className="space-y-2">
+                                    {[5, 4, 3, 2, 1].map((rating) => (
+                                        <button
+                                            key={rating}
+                                            onClick={() => { setMinRating(rating); setPage(1); }}
+                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all ${minRating === rating ? 'bg-orange-50 text-orange-700' : 'hover:bg-gray-50 text-gray-600'}`}
+                                        >
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="flex text-orange-400">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <svg 
+                                                            key={i} 
+                                                            className={`w-4 h-4 ${i < rating ? 'fill-current' : 'fill-gray-200'}`} 
+                                                            viewBox="0 0 20 20"
+                                                        >
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                    ))}
+                                                </div>
+                                                <span className="text-xs font-bold">& Up</span>
+                                            </div>
+                                            {minRating === rating && <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center p-20 min-h-[400px]">
+                                <Loading />
+                                <p className="text-gray-400 mt-4 font-medium animate-pulse">Refining your selections...</p>
+                            </div>
+                        ) : data.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                                    {data.map((product) => (
+                                        <CardProduct key={product._id} data={product} />
+                                    ))}
                                 </div>
 
-                                <button
-                                    onClick={handleNextPage}
-                                    disabled={page === totalPages}
-                                    className={`flex items-center space-x-2 px-6 py-2.5 rounded-full font-semibold transition-all shadow-md ${
-                                        page === totalPages 
-                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed mx-4' 
-                                        : 'bg-[#70a139] text-white hover:bg-[#5e8730]'
-                                    }`}
+                                {/* Pagination Buttons */}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-center space-x-4 mt-16 pb-12">
+                                        <button
+                                            onClick={handlePrevPage}
+                                            disabled={page === 1}
+                                            className={`flex items-center space-x-2 px-8 py-3 rounded-2xl font-bold transition-all shadow-lg ${
+                                                page === 1 
+                                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none' 
+                                                : 'bg-white text-gray-700 hover:bg-[#98c17b] hover:text-white border border-gray-100'
+                                            }`}
+                                        >
+                                            <LuChevronLeft size={22} />
+                                            <span>Prev</span>
+                                        </button>
+                                        
+                                        <div className="flex items-center bg-gray-50 px-6 py-3 rounded-2xl border border-gray-100">
+                                            <span className="text-xs font-bold text-gray-400 mr-3 uppercase tracking-widest">Page</span>
+                                            <span className="font-extrabold text-[#98c17b] bg-white w-8 h-8 flex items-center justify-center rounded-lg shadow-sm border border-gray-100 mr-2">{page}</span>
+                                            <span className="text-xs font-bold text-gray-300 mx-2">OF</span>
+                                            <span className="font-extrabold text-gray-800">{totalPages}</span>
+                                        </div>
+
+                                        <button
+                                            onClick={handleNextPage}
+                                            disabled={page === totalPages}
+                                            className={`flex items-center space-x-2 px-8 py-3 rounded-2xl font-bold transition-all shadow-lg ${
+                                                page === totalPages 
+                                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none' 
+                                                : 'bg-[#70a139] text-white hover:bg-[#5e8730] shadow-green-100'
+                                            }`}
+                                        >
+                                            <span>Next</span>
+                                            <LuChevronRight size={22} />
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-gray-50 px-10 text-center">
+                                <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-8">
+                                    <FiFilter className="text-gray-200" size={40} />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-800 mb-3">No products matched</h3>
+                                <p className="text-gray-400 max-w-sm mb-8 leading-relaxed">We couldn't find any products matching your current filters. Try adjusting your price range or rating selection.</p>
+                                <button 
+                                    onClick={clearFilters}
+                                    className="bg-[#98c17b] text-white px-10 py-4 rounded-2xl font-bold hover:bg-[#86ad6a] transition-all shadow-xl shadow-green-100"
                                 >
-                                    <span>Next</span>
-                                    <LuChevronRight size={20} />
+                                    Clear All Filters
                                 </button>
                             </div>
                         )}
-                    </>
-                ) : (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <p className="text-gray-500 text-lg mb-4">No products found in this category.</p>
-                        <button 
-                            onClick={() => setSelectedCategory("")}
-                            className="text-green-600 font-semibold hover:underline"
-                        >
-                            View All Products
-                        </button>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

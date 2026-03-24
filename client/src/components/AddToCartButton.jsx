@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from './Loading';
 import { useSelector } from 'react-redux';
-import { FaMinus, FaPlus } from 'react-icons/fa6';
+import { FaMinus, FaPlus, FaCartPlus } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 
 const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d', textColor = 'white', fullWidth = false }) => {
@@ -179,7 +179,12 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
           onMouseLeave={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = buttonColor)}
           disabled={isDisabled}
         >
-          {loading ? <Loading className="w-5 h-5" /> : "Add to Cart"}
+          {loading ? <Loading className="w-5 h-5" /> : (
+            <>
+              <FaCartPlus size={18} />
+              <span>Add to Cart</span>
+            </>
+          )}
         </button>
       )}
     </div>

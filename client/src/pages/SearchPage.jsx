@@ -78,7 +78,7 @@ const SearchPage = () => {
               hasMore={true}
               next={handleFetchMore}
         >
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 py-4 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 py-4 gap-6'>
               {
                 data.map((p,index)=>{
                   return(

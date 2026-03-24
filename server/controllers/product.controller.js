@@ -486,7 +486,7 @@ export const getRecentProducts = async (request, response) => {
 
 export const getProductByCategory = async (request, response) => {
   try {
-    let { page = 1, limit = 10, categoryId } = request.body;
+    let { page = 1, limit = 10, categoryId, minPrice, maxPrice, minRating } = request.body;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
@@ -499,21 +499,68 @@ export const getProductByCategory = async (request, response) => {
       });
     }
 
-    const query = { 
-      category: { $in: [categoryId] },
+    const matchQuery = { 
+      category: { $in: [new mongoose.Types.ObjectId(categoryId)] },
       publish: true
     };
 
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      matchQuery["attributes.options.offerPrice"] = {};
+      if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
+      if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
+    }
+
     const skip = (page - 1) * limit;
 
-    const [data, totalCount] = await Promise.all([
-      ProductModel.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('category subCategory'),
-      ProductModel.countDocuments(query)
+    const pipeline = [
+      { $match: matchQuery },
+      {
+        $addFields: {
+          averageRating: {
+            $cond: {
+              if: { $gt: [{ $size: "$reviews" }, 0] },
+              then: { $avg: "$reviews.stars" },
+              else: 0
+            }
+          }
+        }
+      }
+    ];
+
+    if (minRating) {
+      pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
+    }
+
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      {
+        $lookup: {
+          from: 'subcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory'
+        }
+      }
+    );
+
+    const [data, countResult] = await Promise.all([
+      ProductModel.aggregate(pipeline),
+      ProductModel.aggregate(countPipeline)
     ]);
+
+    const totalCount = countResult.length > 0 ? countResult[0].total : 0;
 
     return response.json({
       message: "Products fetched successfully",
@@ -540,28 +587,78 @@ export const getProductByCategory = async (request, response) => {
  */
 export const getProductController = async (request, response) => {
   try {
-    let { page = 1, limit = 10, search } = request.body;
+    let { page = 1, limit = 10, search, minPrice, maxPrice, minRating } = request.body;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
 
-    const query = {
-        publish: true
-    };
+    const matchQuery = { publish: true };
 
     if (search) {
-        query.$or = [
-            { name: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } }
-        ];
+      matchQuery.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      matchQuery["attributes.options.offerPrice"] = {};
+      if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
+      if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
     }
 
     const skip = (page - 1) * limit;
 
-    const [data, totalCount] = await Promise.all([
-      ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
-      ProductModel.countDocuments(query)
+    const pipeline = [
+      { $match: matchQuery },
+      {
+        $addFields: {
+          averageRating: {
+            $cond: {
+              if: { $gt: [{ $size: "$reviews" }, 0] },
+              then: { $avg: "$reviews.stars" },
+              else: 0
+            }
+          }
+        }
+      }
+    ];
+
+    if (minRating) {
+      pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
+    }
+
+    // Clone pipeline for count
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      {
+        $lookup: {
+          from: 'subcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory'
+        }
+      }
+    );
+
+    const [data, countResult] = await Promise.all([
+      ProductModel.aggregate(pipeline),
+      ProductModel.aggregate(countPipeline)
     ]);
+
+    const totalCount = countResult.length > 0 ? countResult[0].total : 0;
 
     return response.json({
       message: "Product data fetched successfully",
