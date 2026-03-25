@@ -68,7 +68,7 @@ const DisplayCartItem = ({ close }) => {
           <>
             <div className="flex-grow overflow-y-auto p-4 space-y-4 pt-6">
               {cartItem.map((item) => (
-                <CartItem key={item._id} item={item} />
+                <CartItem key={item._id} item={item} closeCart={close} />
               ))}
 
               {/* Bill Summary Redesign */}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useGlobalContext } from "../provider/GlobalProvider";
 import { DisplayPriceInRupees } from "../utils/DisplayPriceInRupees";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
@@ -16,6 +16,21 @@ const Processing = () => {
   const cartItemsList = useSelector((state) => state.cartItem.cart);
   const addressList = useSelector((state) => state.addresses.addressList);
   const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Single item override from Buy Now
+  const singleItem = location.state?.singleItem;
+  
+  const displayCartItems = singleItem ? [singleItem] : cartItemsList;
+  
+  const displayTotalQty = singleItem 
+    ? singleItem.quantity 
+    : totalQty;
+    
+  const displayTotalPrice = singleItem 
+    ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.price || 0), 0) * singleItem.quantity
+    : totalPrice;
 
   const [step, setStep] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(0);
@@ -23,7 +38,6 @@ const Processing = () => {
   const [imageFile, setImageFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false); // New state for copy icon
-  const navigate = useNavigate();
 
   const upiId = "lallip9188-3@oksbi"; // Define UPI ID here
 
@@ -79,7 +93,7 @@ const Processing = () => {
       }
 
       const payload = {
-        list_items: cartItemsList,
+        list_items: displayCartItems,
         addressId: addressList[selectedAddress]?._id,
       };
 
@@ -95,7 +109,9 @@ const Processing = () => {
       const { data: responseData } = response;
       if (responseData.success) {
         toast.success(responseData.message);
-        fetchCartItem?.();
+        if (!singleItem) {
+            fetchCartItem?.();
+        }
         fetchOrder?.();
         setStep(4);
       } else {
@@ -151,20 +167,24 @@ const Processing = () => {
               <div className="mt-6">
                 <p className="text-lg text-gray-700">Total Amount to Pay:</p>
                 <p className="text-3xl font-extrabold text-blue-600">
-                  {DisplayPriceInRupees(totalPrice)}
+                  {DisplayPriceInRupees(displayTotalPrice)}
                 </p>
               </div>
             </div>
 
             {/* Order Summary Section */}
             <h3 className="text-xl font-bold text-gray-800 mb-5">
-              Order Summary ({totalQty} {totalQty > 1 ? "items" : "item"})
+              Order Summary ({displayTotalQty} {displayTotalQty > 1 ? "items" : "item"})
             </h3>
             <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-              {cartItemsList.map((item, index) => {
-                const itemPrice = item.selectedAttributes.reduce(
-                  (sum, attr) => sum + (attr.price || 0),
+              {displayCartItems.map((item, index) => {
+                const itemOfferPrice = item.selectedAttributes.reduce(
+                  (sum, attr) => sum + (attr.offerPrice || attr.price || 0),
                   0
+                );
+                const itemOriginalPrice = item.selectedAttributes.reduce(
+                    (sum, attr) => sum + (attr.originalPrice || attr.price || 0),
+                    0
                 );
                 const selectedAttributesDisplay = item.selectedAttributes
                   .map((attr) => `${attr.attributeName}: ${attr.optionName}`)
@@ -184,13 +204,21 @@ const Processing = () => {
                       <p className="font-semibold text-lg text-gray-900 truncate">
                         {item.productId?.name}
                       </p>
-                      <p className="text-sm text-gray-500 line-clamp-2">
+                      <p className="text-sm text-gray-500 line-clamp-2 italic">
                         {selectedAttributesDisplay || "No attributes selected"}
                       </p>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="text-blue-700 font-semibold">
-                          Price: {DisplayPriceInRupees(itemPrice)}
-                        </p>
+                      <div className="flex justify-between items-end mt-1">
+                        <div className="flex flex-col">
+                            {itemOriginalPrice > itemOfferPrice && (
+                                <span className="text-xs text-gray-400 line-through">
+                                    {DisplayPriceInRupees(itemOriginalPrice)}
+                                </span>
+                            )}
+                            <p className="text-green-700 font-bold text-lg">
+                                {DisplayPriceInRupees(itemOfferPrice)}
+                            </p>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-600 mb-1">Qty: {item.quantity}</span>
                       </div>
                     </div>
                   </div>
@@ -281,11 +309,11 @@ const Processing = () => {
               <h3 className="font-semibold text-lg mb-2">Order Summary</h3>
               <p className="flex justify-between">
                 <span>Total Quantity:</span>
-                <span>{totalQty} items</span>
+                <span>{displayTotalQty} items</span>
               </p>
               <p className="flex justify-between font-semibold text-xl mt-2">
                 <span>Grand Total:</span>
-                <span>{DisplayPriceInRupees(totalPrice)}</span>
+                <span>{DisplayPriceInRupees(displayTotalPrice)}</span>
               </p>
             </div>
             {uploadedImage && (

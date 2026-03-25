@@ -25,7 +25,7 @@ const CartPage = () => {
     const totalSavings = notDiscountTotalPrice - totalPrice;
 
     return (
-        <section className="bg-gray-50 min-h-screen py-8 lg:py-12">
+        <section className="bg-[#fcf8ed] min-h-screen py-8 lg:py-12">
             <div className="container mx-auto px-4 max-w-7xl">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Left Column: Cart Items */}

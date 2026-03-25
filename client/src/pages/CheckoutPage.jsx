@@ -7,7 +7,7 @@ import AxiosToastError from "../utils/AxiosToastError";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 
 const CheckoutPage = () => {
@@ -16,16 +16,26 @@ const CheckoutPage = () => {
 
   const [openAddress, setOpenAddress] = useState(false);
   const addressList = useSelector((state) => state.addresses.addressList);
-  // Initialize with 0 for the first address, assuming addressList might be loaded
-  // or a default selection is desired. Adjust if your initial state logic differs.
   const [selectAddress, setSelectAddress] = useState(0);
   const cartItemsList = useSelector((state) => state.cartItem.cart);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Single item override from Buy Now
+  const singleItem = location.state?.singleItem;
+  
+  const displayCartItems = singleItem ? [singleItem] : cartItemsList;
+  
+  const displayTotalQty = singleItem 
+    ? singleItem.quantity 
+    : totalQty;
+    
+  const displayTotalPrice = singleItem 
+    ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.price || 0), 0) * singleItem.quantity
+    : totalPrice;
 
   // Helper function to check if an address is currently selected
   const isAddressSelected = () => {
-    // Ensure addressList exists, has elements, and the selected index is valid and active.
-    // Assuming 'status' means the address is active/usable.
     return addressList && addressList.length > 0 && addressList[selectAddress] && addressList[selectAddress].status;
   };
 
@@ -39,7 +49,7 @@ const CheckoutPage = () => {
       const response = await Axios({
         ...SummaryApi.CashOnDeliveryOrder,
         data: {
-          list_items: cartItemsList,
+          list_items: displayCartItems,
           addressId: addressList[selectAddress]?._id,
         },
       });
@@ -47,7 +57,9 @@ const CheckoutPage = () => {
       const { data: responseData } = response;
       if (responseData.success) {
         toast.success(responseData.message);
-        fetchCartItem?.();
+        if (!singleItem) {
+            fetchCartItem?.();
+        }
         fetchOrder?.();
         navigate("/success", {
           state: { text: "Order" },
@@ -74,7 +86,7 @@ const CheckoutPage = () => {
       const response = await Axios({
         ...SummaryApi.payment_url,
         data: {
-          list_items: cartItemsList,
+          list_items: displayCartItems,
           addressId: addressList[selectAddress]?._id,
         },
       });
@@ -82,11 +94,9 @@ const CheckoutPage = () => {
       const { data: responseData } = response;
       stripePromise.redirectToCheckout({ sessionId: responseData.id });
 
-      // Note: fetchCartItem and fetchOrder are typically called after a successful
-      // payment confirmation from the payment gateway (e.g., in a Stripe webhook handler
-      // or on your success page after verification). Calling them here might be premature
-      // if the user doesn't complete the payment on Stripe's side.
-      fetchCartItem?.();
+      if (!singleItem) {
+          fetchCartItem?.();
+      }
       fetchOrder?.();
     } catch (error) {
       AxiosToastError(error);
@@ -94,17 +104,14 @@ const CheckoutPage = () => {
   };
 
   // This function is triggered by the "Online Payment" button on this page.
-  // It checks for address selection and then navigates to the /processing route.
+  // It checks for address selection and then navigates to the /processing page.
   const handleProceedToPayment = () => {
     if (!isAddressSelected()) {
       toast.error("Please select a delivery address first.");
-      // Optional: If you want to automatically open the AddAddress modal when no address is selected
-      // setOpenAddress(true);
       return;
     }
     // If an address is selected, navigate to the processing page.
-    // The actual payment initiation will likely happen on the /processing page.
-    navigate("/processing");
+    navigate("/processing", { state: { singleItem } });
   };
 
   return (
@@ -159,30 +166,76 @@ const CheckoutPage = () => {
 
         {/* Order Summary Section */}
         <div className="w-full max-w-md">
-          <div className="bg-white shadow-lg rounded-xl p-6 sticky top-20">
+          <div className="bg-white shadow-lg rounded-xl p-6 sticky top-20 flex flex-col max-h-[calc(100vh-100px)]">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Order Summary</h2>
 
-            <div className="space-y-4 text-sm text-gray-700">
+            {/* Product List */}
+            <div className="flex-grow overflow-y-auto mb-6 pr-2 custom-scrollbar">
+              <div className="space-y-4">
+                {displayCartItems.map((item, index) => {
+                  const itemOfferPrice = item.selectedAttributes.reduce(
+                    (sum, attr) => sum + (attr.offerPrice || attr.price || 0),
+                    0
+                  );
+                  const itemOriginalPrice = item.selectedAttributes.reduce(
+                    (sum, attr) => sum + (attr.originalPrice || attr.price || 0),
+                    0
+                  );
+                  return (
+                    <div key={index} className="flex gap-3 items-start p-2 rounded-lg bg-gray-50 border border-gray-100">
+                      <div className="w-16 h-16 rounded-md overflow-hidden bg-white border border-gray-200 flex-shrink-0">
+                        <img
+                          src={item.productId?.image[0]}
+                          alt={item.productId?.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <h4 className="font-bold text-gray-800 text-sm line-clamp-1">
+                          {item.productId?.name}
+                        </h4>
+                        <p className="text-[10px] text-gray-500 italic mb-1">
+                          {item.selectedAttributes.map(a => `${a.attributeName}: ${a.optionName}`).join(", ")}
+                        </p>
+                        <div className="flex justify-between items-end">
+                          <span className="text-xs font-semibold text-gray-600">Qty: {item.quantity}</span>
+                          <div className="flex flex-col items-end">
+                            {itemOriginalPrice > itemOfferPrice && (
+                              <span className="text-[10px] text-gray-400 line-through">
+                                {DisplayPriceInRupees(itemOriginalPrice)}
+                              </span>
+                            )}
+                            <span className="text-sm font-bold text-green-700">
+                              {DisplayPriceInRupees(itemOfferPrice)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm text-gray-700 mt-auto pt-4 border-t border-gray-100">
               <div className="flex justify-between">
                 <span>Items Total</span>
-                <span>
-                  <span className="font-semibold text-gray-900">
-                    {DisplayPriceInRupees(totalPrice)}
-                  </span>
+                <span className="font-semibold text-gray-900">
+                  {DisplayPriceInRupees(displayTotalPrice)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Quantity</span>
-                <span>{totalQty} items</span>
+                <span>Total Quantity</span>
+                <span>{displayTotalQty} items</span>
               </div>
-              <div className="flex justify-between">
-                <span>Delivery</span>
-                <span className="text-green-600 font-medium">Free</span>
+              <div className="flex justify-between border-b pb-2">
+                <span>Shipping</span>
+                <span className="text-green-600 font-medium tracking-wide">FREE</span>
               </div>
 
-              <div className="border-t pt-4 flex justify-between text-base font-semibold text-gray-900">
+              <div className="pt-2 flex justify-between text-lg font-extrabold text-blue-700">
                 <span>Grand Total</span>
-                <span>{DisplayPriceInRupees(totalPrice)}</span>
+                <span>{DisplayPriceInRupees(displayTotalPrice)}</span>
               </div>
             </div>
 
