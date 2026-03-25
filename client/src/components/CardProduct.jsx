@@ -3,8 +3,23 @@ import { DisplayPriceInRupees } from "../utils/DisplayPriceInRupees";
 import { Link } from "react-router-dom";
 import { valideURLConvert } from "../utils/valideURLConvert";
 import AddToCartButton from "./AddToCartButton";
-import { Rating, Typography, Box } from "@mui/material";
 import { formatReviewCount } from "../utils/formatReviewCount";
+const StarRating = ({ rating }) => {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[...Array(5)].map((_, index) => (
+        <span
+          key={index}
+          className={`text-lg ${
+            index < Math.round(rating) ? "text-amber-400" : "text-gray-300"
+          }`}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+};
 
 const CardProduct = ({ data }) => {
   const url = `/product/${valideURLConvert(data.name)}-${data._id}`;
@@ -22,7 +37,7 @@ const CardProduct = ({ data }) => {
           name: attrGroup.options[0].name,
           price: attrGroup.options[0].price || 0,
           stock: attrGroup.options[0].stock,
-          unit: attrGroup.options[0].unit || "",
+          unit: attrGroup.options[0].unit || attrGroup.options[0].name || "",
         };
       }
       return acc;
@@ -34,7 +49,7 @@ const CardProduct = ({ data }) => {
       typeof firstOption?.offerPrice === "number" ? firstOption.offerPrice : (firstOption?.price || 0);
     displayOriginalPrice =
       typeof firstOption?.originalPrice === "number" ? firstOption.originalPrice : 0;
-    displayUnit = firstOption?.unit || "";
+    displayUnit = firstOption?.unit || firstOption?.name || "";
     displayStock =
       typeof firstOption?.stock === "number" ? firstOption.stock : null;
   }
@@ -54,7 +69,7 @@ const CardProduct = ({ data }) => {
   const formattedReviewCount = formatReviewCount(reviewCount);
 
   return (
-    <div className="flex flex-col bg-white shadow-md w-full max-w-[360px] h-[500px] mx-auto rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300 my-4">
+    <div className="flex flex-col bg-white shadow-md w-full max-w-[450px] h-[520px] mx-auto rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300 my-4 group/card">
       <Link
         to={url}
         className="flex flex-col flex-grow h-full"
@@ -76,52 +91,52 @@ const CardProduct = ({ data }) => {
           <img
             src={data.image[0]}
             alt={data.name}
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover transition-opacity duration-700 ${data.image.length > 1 ? 'group-hover/card:opacity-0' : ''}`}
             loading="lazy"
           />
+          {data.image.length > 1 && (
+            <img
+              src={data.image[1]}
+              alt={`${data.name} hover view`}
+              className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover/card:opacity-100 transition-opacity duration-700"
+              loading="lazy"
+            />
+          )}
         </div>
 
         <div className="p-4 font-outfit flex flex-col flex-grow">
-          {/* Price aligned to image style */}
-          <div className='flex items-end gap-2 mb-1.5'>
-            <p className="text-[#419864] font-bold text-xl leading-none">
-              {DisplayPriceInRupees(displayPrice)}
+          <div className="flex items-center mb-1.5">
+            <StarRating rating={averageRating} />
+            <p className="ml-1.5 text-[0.85rem] text-gray-500">
+              {reviewCount > 0 ? `(${formattedReviewCount} reviews)` : "(No reviews)"}
             </p>
-            {displayOriginalPrice > displayPrice && (
-              <p className="text-slate-400 line-through text-sm font-medium mb-[1px]">
-                {DisplayPriceInRupees(displayOriginalPrice)}
-              </p>
-            )}
           </div>
 
-          {/* Title */}
-          <h3 className="text-slate-900 text-[16px] font-bold line-clamp-2 leading-snug">
+          <h3 className="text-slate-900 text-[16px] font-bold line-clamp-2 leading-snug mb-1.5">
             {data.name}
           </h3>
 
-          {/* Description removed as requested */}
-
-          {/* Ratings pushed to the bottom of this container if title is short */}
-          <Box sx={{ display: "flex", alignItems: "center", mt: "auto", pt: 1.5 }}>
-            <Rating
-              value={averageRating}
-              precision={0.1}
-              readOnly
-              size="small"
-              sx={{ color: "#f59e0b" }}
-            />
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ ml: 0.5, fontSize: "0.85rem" }}
-            >
-              {reviewCount > 0 ? `(${formattedReviewCount} reviews)` : "(No reviews)"}
-            </Typography>
-          </Box>
+          <div className="mt-auto pt-2 flex flex-col gap-1">
+            {displayUnit && (
+              <p className="text-[0.85rem] font-bold text-[#419864]/80 uppercase tracking-wider">
+                {displayUnit}
+              </p>
+            )}
+            <div className='flex items-baseline gap-2'>
+              <p className="text-[#16a34a] font-bold text-xl leading-none">
+                {DisplayPriceInRupees(displayPrice)}
+              </p>
+              {displayOriginalPrice > displayPrice && (
+                <p className="text-slate-400 line-through text-xs font-medium">
+                  {DisplayPriceInRupees(displayOriginalPrice)}
+                </p>
+              )}
+              
+            </div>
+          </div>
         </div>
       </Link>
 
-      {/* Action Button */}
       <div className="px-4 pb-4 pt-1">
         {displayStock !== null && displayStock <= 0 ? (
           <div className="w-full py-2.5 text-center text-sm font-bold text-red-600 bg-red-50 rounded-lg">
@@ -131,7 +146,7 @@ const CardProduct = ({ data }) => {
           <div className="grid grid-cols-1 gap-2">
             <AddToCartButton
               data={{ ...data, selectedAttributes }}
-              buttonColor="#f97316" // Orange color from image
+              buttonColor="#f97316"
               hoverColor="#ea580c"
               textColor="#ffffff"
               fullWidth

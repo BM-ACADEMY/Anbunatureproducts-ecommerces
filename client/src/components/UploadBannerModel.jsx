@@ -172,7 +172,7 @@ const UploadBannerModel = ({ close, fetchData, bannerData = null }) => {
                     alt="desktop" 
                   />
                 </label>
-                <p className="text-[10px] text-center font-bold text-gray-400 uppercase whitespace-nowrap">Desktop (1920x600)</p>
+                <p className="text-[10px] text-center font-bold text-gray-400 uppercase whitespace-nowrap">Desktop (1920x480)</p>
                 {uploadingDesktop && <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />}
               </div>
 

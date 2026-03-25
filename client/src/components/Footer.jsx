@@ -60,7 +60,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white text-black font-outfit">
+    <footer className="bg-[#163722] text-white font-outfit">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
           {/* Column 1: Anbu Natural Contact Info */}
@@ -70,25 +70,25 @@ const Footer = () => {
               <h3 className="text-lg font-medium">Anbu Natural</h3>
             </div>
             <p className="mb-2 flex items-center">
-              <Mail className="w-4 h-4 mr-2 text-gray-600" />
+              <Mail className="w-4 h-4 mr-2 text-white" />
               <a
                 href="mailto:anbunaturalproducts@gmail.com"
-                className="text-gray-600 hover:text-green-600"
+                className="text-white hover:text-[#1d9a62]"
               >
                 anbunaturalproducts@gmail.com
               </a>
             </p>
             <p className="mb-2 flex items-center">
-              <Phone className="w-4 h-4 mr-2 text-gray-600" />
-              <span className="text-gray-600">7338886850, 9944736850</span>
+              <Phone className="w-4 h-4 mr-2 text-white" />
+              <span className="text-white">7338886850, 9944736850</span>
             </p>
             <p className="flex items-center">
-              <Instagram className="w-4 h-4 mr-2 text-gray-600" />
+              <Instagram className="w-4 h-4 mr-2 text-white" />
               <a
                 href="https://www.instagram.com/anbu_natural_products"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-green-600"
+                className="text-white hover:text-[#1d9a62]"
               >
                 @anbu_natural_products
               </a>
@@ -103,7 +103,7 @@ const Footer = () => {
                 <li key={cat._id}>
                   <button
                     onClick={() => handleRedirectProductListpage(cat._id, cat.name)}
-                    className="text-gray-600 hover:text-green-600 text-left"
+                    className="text-white hover:text-[#1d9a62] text-left"
                   >
                     {cat.name}
                   </button>
@@ -119,7 +119,7 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/"
-                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline')}
+                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline hover:text-[#1d9a62]')}
                 >
                   Home
                 </NavLink>
@@ -127,7 +127,7 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/about"
-                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline')}
+                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline hover:text-[#1d9a62]')}
                 >
                   About
                 </NavLink>
@@ -135,7 +135,7 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/contact"
-                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline')}
+                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline hover:text-[#1d9a62]')}
                 >
                   Contact
                 </NavLink>
@@ -148,10 +148,10 @@ const Footer = () => {
             <h3 className="text-lg font-medium mb-4">Our Services</h3>
             <ul className="space-y-4">
               <li className="flex items-center">
-                <span className="w-2 h-2 mr-2 rounded-full bg-gray-400"></span>
+                <span className="w-2 h-2 mr-2 rounded-full bg-white"></span>
                 <button
                   onClick={handleOpen}
-                  className="text-gray-600 hover:text-green-600 text-left"
+                  className="text-white hover:text-[#1d9a62] text-left"
                 >
                   Terms & Conditions
                 </button>
@@ -194,14 +194,14 @@ const Footer = () => {
       </Modal>
 
       {/* Bottom Footer */}
-      <div className="border-t bg-white py-4">
+      <div className="py-4">
         <div className="container mx-auto px-4 flex justify-center items-center text-sm text-center">
           &copy; {date}{" "}
           <a
             href="https://bmtechx.in"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-green-600 hover:underline mx-1"
+            className="text-white hover:text-[#1d9a62] font-medium mx-1"
           >
             BMTechx.in
           </a>

@@ -7,6 +7,7 @@ import CardProduct from '../components/CardProduct';
 import { useSelector } from 'react-redux';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import { FiFilter } from 'react-icons/fi';
+import { useLocation } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
 
 const AllProducts = () => {
@@ -17,6 +18,29 @@ const AllProducts = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [selectedCategory, setSelectedCategory] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const location = useLocation();
+    
+    // Read category or search from URL query param
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const categoryId = params.get('category');
+        const query = params.get('q');
+        
+        if (query) {
+            setSearchQuery(query);
+            setSelectedCategory(""); // Clear category when searching
+            setPage(1);
+        } else if (categoryId) {
+            setSelectedCategory(categoryId);
+            setSearchQuery(""); // Clear search when browsing category
+            setPage(1);
+        } else {
+            // If neither, clear both to show all products
+            setSearchQuery("");
+            setSelectedCategory("");
+        }
+    }, [location.search]);
     
     // Filter states
     const [minPrice, setMinPrice] = useState("");
@@ -36,9 +60,14 @@ const AllProducts = () => {
                 minRating: minRating > 0 ? minRating : undefined
             };
 
-            const apiCall = selectedCategory 
-                ? { ...SummaryApi.getProductByCategory, data: { ...filterData, categoryId: selectedCategory } }
-                : { ...SummaryApi.getProduct, data: filterData };
+            let apiCall;
+            if (searchQuery) {
+                apiCall = { ...SummaryApi.searchProduct, data: { ...filterData, search: searchQuery } };
+            } else if (selectedCategory) {
+                apiCall = { ...SummaryApi.getProductByCategory, data: { ...filterData, categoryId: selectedCategory } };
+            } else {
+                apiCall = { ...SummaryApi.getProduct, data: filterData };
+            }
 
             const response = await Axios(apiCall);
             const { data: responseData } = response;
@@ -57,7 +86,7 @@ const AllProducts = () => {
 
     useEffect(() => {
         fetchProducts();
-    }, [page, selectedCategory, minPrice, maxPrice, minRating]);
+    }, [page, selectedCategory, searchQuery, minPrice, maxPrice, minRating]);
 
     const handleCategoryChange = (e) => {
         setSelectedCategory(e.target.value);
@@ -77,6 +106,7 @@ const AllProducts = () => {
         setMaxPrice("");
         setMinRating(0);
         setSelectedCategory("");
+        setSearchQuery("");
         setPage(1);
     };
 
@@ -88,7 +118,9 @@ const AllProducts = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between mt-6 mb-10 gap-6">
                     <div>
                         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                            {selectedCategory 
+                            {searchQuery 
+                                ? `Results for "${searchQuery}"`
+                                : selectedCategory 
                                 ? allCategory.find(c => c._id === selectedCategory)?.name 
                                 : "Premium Products"
                             }

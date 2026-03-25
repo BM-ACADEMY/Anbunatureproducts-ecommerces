@@ -11,6 +11,7 @@ import DisplayCartItem from "./DisplayCartItem";
 import { SlHandbag } from "react-icons/sl";
 import isAdmin from "../utils/isAdmin";
 import Search from "./Search";
+import { useGlobalContext } from "../provider/GlobalProvider";
 
 const Header = () => {
     const [isMobile] = useMobile();
@@ -27,7 +28,7 @@ const Header = () => {
     const cartItem = useSelector((state) => state.cartItem.cart);
     const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
 
-    const [openCartSection, setOpenCartSection] = useState(false);
+    const { isCartOpen, setIsCartOpen } = useGlobalContext();
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
 
@@ -174,7 +175,7 @@ const Header = () => {
                         </div>
 
                         <button 
-                            onClick={() => setOpenCartSection(true)}
+                            onClick={() => setIsCartOpen(true)}
                             className="bg-[#1a1a1a] text-white flex items-center space-x-2 px-6 py-2.5 rounded-full hover:bg-black transition-all shadow-md group"
                         >
                             <SlHandbag size={20} className="group-hover:scale-110 transition-transform" />
@@ -229,7 +230,7 @@ const Header = () => {
                         </div>
 
                         <button 
-                            onClick={() => setOpenCartSection(true)}
+                            onClick={() => setIsCartOpen(true)}
                             className="relative text-gray-700"
                         >
                             <SlHandbag size={24} />
@@ -306,7 +307,7 @@ const Header = () => {
 
                 {/* Search Bar Overlay */}
                 {showSearch && (
-                    <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 py-4 px-4 shadow-md animate-fade-in z-40">
+                    <div className="absolute top-full left-0 w-full bg-transparent py-6 px-4  animate-in fade-in slide-in-from-top-4 duration-300 z-40">
                         <div className="container mx-auto max-w-3xl">
                             <Search isFullWidth={true} close={() => setShowSearch(false)} />
                         </div>
@@ -314,8 +315,8 @@ const Header = () => {
                 )}
 
                 {/* Cart Section Overlay */}
-                {openCartSection && (
-                    <DisplayCartItem close={() => setOpenCartSection(false)} />
+                {isCartOpen && (
+                    <DisplayCartItem close={() => setIsCartOpen(false)} />
                 )}
             </header>
         </>

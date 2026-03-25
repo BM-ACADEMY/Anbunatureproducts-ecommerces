@@ -1,8 +1,8 @@
 import React from "react";
-import { Box, Typography, Container, useTheme, useMediaQuery } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import { motion } from "framer-motion";
+import useMobile from "../hooks/useMobile";
 
 // Import Swiper styles
 import "swiper/css";
@@ -16,12 +16,12 @@ import truckImg from "../assets/whychoose/truck.png";
 
 const features = [
   {
-    icon: manImg,
-    title: "Direct from farmers",
-  },
-  {
     icon: leafImg,
     title: "100% organic",
+  },
+  {
+    icon: manImg,
+    title: "Direct from farmers",
   },
   {
     icon: chemicalImg,
@@ -34,158 +34,81 @@ const features = [
 ];
 
 const WhyChooseUs = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [isMobile] = useMobile(768); // Using the project's hook instead of MUI
 
   return (
-    <Box sx={{ py: { xs: 6, md: 10 }, backgroundColor: "white" }}>
-      <Container maxWidth="lg">
+    <div className="py-8 md:py-12">
+      <div className="container mx-auto px-4 lg:max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <Typography
-            variant="h4"
-            align="center"
-            sx={{
-              fontWeight: 500,
-              mb: { xs: 4, md: 8 },
-              fontFamily: "'Outfit', sans-serif",
-              color: "#1a1a1a",
-              fontSize: { xs: "1.5rem", md: "2.25rem" },
-            }}
-          >
+          <h2 className="text-[1.5rem] md:text-[2.25rem] font-medium text-center mb-1 md:mb-10 font-outfit text-[#1a1a1a] tracking-tight">
             Why buy with Anbu Nature Products?
-          </Typography>
+          </h2>
         </motion.div>
 
         {isMobile ? (
-          <Swiper
-            modules={[Autoplay, Pagination]}
-            spaceBetween={20}
-            slidesPerView={2}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            pagination={{ clickable: true }}
-            breakpoints={{
-              320: { slidesPerView: 2, spaceBetween: 15 },
-              480: { slidesPerView: 2, spaceBetween: 20 },
-              768: { slidesPerView: 3, spaceBetween: 20 },
-            }}
-            style={{ paddingBottom: "40px" }}
-          >
-            {features.map((feature, index) => (
-              <SwiperSlide key={index}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    p: 1,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: { xs: 80, md: 120 },
-                      height: { xs: 80, md: 120 },
-                      mb: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <img
-                      src={feature.icon}
-                      alt={feature.title}
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        objectFit: "contain",
-                      }}
-                    />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      fontFamily: "'Outfit', sans-serif",
-                      color: "#333",
-                      fontSize: "0.85rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {feature.title}
-                  </Typography>
-                </Box>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          <div className="pb-10">
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              spaceBetween={20}
+              slidesPerView={2}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              pagination={{ clickable: true }}
+              breakpoints={{
+                320: { slidesPerView: 2, spaceBetween: 15 },
+                480: { slidesPerView: 2, spaceBetween: 20 },
+                768: { slidesPerView: 3, spaceBetween: 20 },
+              }}
+            >
+              {features.map((feature, index) => (
+                <SwiperSlide key={index}>
+                  <div className="flex flex-col items-center text-center p-2">
+                    <div className="w-[80px] h-[80px] mb-3 flex items-center justify-center">
+                      <img
+                        src={feature.icon}
+                        alt={feature.title}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                    <p className="font-semibold font-outfit text-[#333] text-[0.85rem] leading-tight">
+                      {feature.title}
+                    </p>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
         ) : (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: 2,
-            }}
-          >
+          <div className="flex justify-between items-start gap-4">
             {features.map((feature, index) => (
-              <Box
+              <motion.div
                 key={index}
-                component={motion.div}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                sx={{
-                  flex: "1 1 20%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  textAlign: "center",
-                }}
+                className="flex-1 flex flex-col items-center text-center"
               >
-                <Box
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    mb: 3,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <div className="w-[120px] h-[120px] mb-5 flex items-center justify-center">
                   <img
                     src={feature.icon}
                     alt={feature.title}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                    }}
+                    className="max-w-full max-h-full object-contain"
                   />
-                </Box>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 600,
-                    fontFamily: "'Outfit', sans-serif",
-                    color: "#333",
-                    fontSize: "1.1rem",
-                    maxWidth: "150px",
-                    lineHeight: 1.3,
-                  }}
-                >
+                </div>
+                <p className="font-semibold font-outfit text-[#333] text-[1.1rem] max-w-[150px] leading-tight">
                   {feature.title}
-                </Typography>
-              </Box>
+                </p>
+              </motion.div>
             ))}
-          </Box>
+          </div>
         )}
-      </Container>
-    </Box>
+      </div>
+    </div>
   );
 };
 

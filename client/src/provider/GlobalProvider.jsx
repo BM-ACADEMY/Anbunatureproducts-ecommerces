@@ -173,6 +173,7 @@ const GlobalProvider = ({ children }) => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [notDiscountTotalPrice, setNotDiscountTotalPrice] = useState(0);
   const [totalQty, setTotalQty] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const cartItem = useSelector((state) => state.cartItem.cart);
   const user = useSelector((state) => state?.user);
 
@@ -303,7 +304,9 @@ const GlobalProvider = ({ children }) => {
         totalQty,
         notDiscountTotalPrice,
         fetchOrder,
-        handleLogoutOut, // Expose handleLogoutOut
+        handleLogoutOut,
+        isCartOpen,
+        setIsCartOpen,
       }}
     >
       {children}

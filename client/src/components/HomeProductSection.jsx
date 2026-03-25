@@ -48,39 +48,34 @@ const HomeProductSection = ({ title, apiEndpoint, barColor = "bg-[#196806]" }) =
 
   return (
     <div className="mb-12">
-      <div className="max-w-[1800px] mx-auto p-4 flex items-center justify-between gap-4">
-        <div className="flex items-center space-x-2">
-          <motion.span
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            viewport={{ once: true }}
-            className={`block w-1 h-6 md:h-8 ${barColor} rounded-lg`}
-          ></motion.span>
+    <div className="container mx-auto px-6 lg:px-10 py-4 flex gap-4">
+        <div className="flex flex-col items-center">
           <motion.h3
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
             viewport={{ once: true }}
-            className="font-sans text-xl sm:text-xl md:text-2xl lg:text-3xl font-medium tracking-normal text-gray-800"
+            className="text-center font-medium text-[#1a1a1a] font-outfit text-xl sm:text-2xl md:text-3xl tracking-tight leading-none"
           >
             {title}
           </motion.h3>
         </div>
       </div>
 
-      <div className="relative max-w-[1800px] mx-auto px-4 group">
+      <div className="relative container mx-auto px-6 lg:px-10 group/section">
         <Swiper
           modules={[Navigation, Pagination]}
           spaceBetween={16}
+          watchSlidesProgress={true}
+          grabCursor={true}
           slidesPerView={1.2}
           breakpoints={{
-            480: { slidesPerView: 1.5 },
-            640: { slidesPerView: 2.2 },
-            768: { slidesPerView: 3 },
-            1024: { slidesPerView: 3.5 },
-            1280: { slidesPerView: 4 },
-            1536: { slidesPerView: 5 },
+            480: { slidesPerView: 1.4 },
+            640: { slidesPerView: 2.1 },
+            768: { slidesPerView: 2.9 },
+            1024: { slidesPerView: 3.0 },
+            1280: { slidesPerView: 3.5 },
+            1536: { slidesPerView: 4.2 },
           }}
           navigation={{
             nextEl: `.${nextButtonClass}`,
@@ -113,13 +108,13 @@ const HomeProductSection = ({ title, apiEndpoint, barColor = "bg-[#196806]" }) =
         </Swiper>
 
         <button
-          className={`${prevButtonClass} absolute top-1/2 -left-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block`}
+          className={`${prevButtonClass} absolute top-1/2 -left-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300 hidden md:block`}
           aria-label={`Previous ${title}`}
         >
           <FaAngleLeft className="text-xl text-gray-700" />
         </button>
         <button
-          className={`${nextButtonClass} absolute top-1/2 -right-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block`}
+          className={`${nextButtonClass} absolute top-1/2 -right-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300 hidden md:block`}
           aria-label={`Next ${title}`}
         >
           <FaAngleRight className="text-xl text-gray-700" />

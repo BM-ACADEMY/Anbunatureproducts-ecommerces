@@ -6,11 +6,12 @@ import { toast } from 'sonner';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from './Loading';
 import { useSelector } from 'react-redux';
-import { FaMinus, FaPlus, FaCartPlus } from 'react-icons/fa6';
+import { FaMinus, FaPlus } from 'react-icons/fa6';
+import { BsCart4 } from "react-icons/bs";
 import { useNavigate } from 'react-router-dom';
 
 const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d', textColor = 'white', fullWidth = false }) => {
-  const { fetchCartItem, updateCartItem, deleteCartItem } = useGlobalContext();
+  const { fetchCartItem, updateCartItem, deleteCartItem, setIsCartOpen } = useGlobalContext();
   const [loading, setLoading] = useState(false);
   const cartItem = useSelector(state => state.cartItem.cart);
   const [isAvailableCart, setIsAvailableCart] = useState(false);
@@ -70,6 +71,7 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
         if (fetchCartItem) {
           fetchCartItem();
         }
+        setIsCartOpen(true);
       }
     } catch (error) {
       if (error.response?.status === 401) {
@@ -91,23 +93,29 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
       item =>
         item.productId &&
         item.productId._id === data._id &&
-        (targetAttributes.length === 0 || item.selectedAttributes?.every(attr =>
-          targetAttributes.some(
-            ([attrName, selAttr]) => attr.attributeName === attrName && attr.optionName === selAttr.name
-          )
-        ))
+        (targetAttributes.length === 0 || 
+          (item.selectedAttributes?.length === targetAttributes.length &&
+           item.selectedAttributes?.every(attr =>
+            targetAttributes.some(
+              ([attrName, selAttr]) => attr.attributeName === attrName && attr.optionName === selAttr.name
+            )
+          ))
+        )
     );
     setIsAvailableCart(checkingitem);
-
+  
     const product = cartItem.find(
       item =>
         item.productId &&
         item.productId._id === data._id &&
-        (targetAttributes.length === 0 || item.selectedAttributes?.every(attr =>
-          targetAttributes.some(
-            ([attrName, selAttr]) => attr.attributeName === attrName && attr.optionName === selAttr.name
-          )
-        ))
+        (targetAttributes.length === 0 || 
+          (item.selectedAttributes?.length === targetAttributes.length &&
+           item.selectedAttributes?.every(attr =>
+            targetAttributes.some(
+              ([attrName, selAttr]) => attr.attributeName === attrName && attr.optionName === selAttr.name
+            )
+          ))
+        )
     );
     setQty(product?.quantity || 0);
     setCartItemDetails(product);
@@ -120,6 +128,7 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
     if (response.success) {
       toast.success('Item added');
       setQty(qty + 1);
+      setIsCartOpen(true);
     }
   };
 
@@ -145,35 +154,35 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
   return (
     <div className={`w-full ${fullWidth ? 'max-w-full' : 'max-w-[150px]'}`}> 
       {isAvailableCart ? (
-        <div className="flex items-center w-full">
+        <div className="flex items-center w-full h-9 lg:h-10 rounded-lg overflow-hidden border border-gray-200 shadow-md">
           <button
             onClick={decreaseQty}
-            className="flex-1 flex items-center justify-center p-2 rounded-l-full h-8 lg:h-9 transition-colors text-white"
+            className="flex-1 h-full flex items-center justify-center transition-colors text-white"
             style={{ backgroundColor: buttonColor }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = buttonColor)}
           >
-            <FaMinus size={12} />
+            <FaMinus size={14} />
           </button>
           
-          <div className="flex-1 bg-gray-100 flex items-center justify-center h-8 lg:h-9 border-t border-b border-gray-300 font-medium text-sm px-2">
+          <div className="flex-1 h-full bg-slate-50 flex items-center justify-center border-x border-gray-200 font-bold text-sm lg:text-base text-slate-900">
             {qty}
           </div>
 
           <button
             onClick={increaseQty}
-            className="flex-1 flex items-center justify-center p-2 rounded-r-full h-8 lg:h-9 transition-colors text-white"
+            className="flex-1 h-full flex items-center justify-center transition-colors text-white"
             style={{ backgroundColor: buttonColor }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverColor)}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = buttonColor)}
           >
-            <FaPlus size={12} />
+            <FaPlus size={14} />
           </button>
         </div>
       ) : (
         <button
           onClick={handleADDTocart}
-          className="w-full px-4 py-2 rounded-md font-medium text-sm lg:text-base flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-9 lg:h-10 rounded-lg font-bold text-sm lg:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: buttonColor, color: textColor }}
           onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = hoverColor)}
           onMouseLeave={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = buttonColor)}
@@ -181,7 +190,7 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
         >
           {loading ? <Loading className="w-5 h-5" /> : (
             <>
-              <FaCartPlus size={18} />
+              <BsCart4 size={18} />
               <span>Add to Cart</span>
             </>
           )}

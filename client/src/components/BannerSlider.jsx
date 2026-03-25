@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import AxiosToastError from "../utils/AxiosToastError";
@@ -47,7 +46,7 @@ const BannerSlider = () => {
 
   if (loading) {
     return (
-      <div className="w-full aspect-[2/1] md:aspect-[16/5] bg-slate-100 animate-pulse flex items-center justify-center">
+      <div className="w-full aspect-[2/1] md:aspect-[16/4] bg-slate-100 animate-pulse flex items-center justify-center">
         <span className="text-slate-400 font-medium">Loading Banners...</span>
       </div>
     );
@@ -66,7 +65,7 @@ const BannerSlider = () => {
         {banners.map((banner, index) => (
           <div
             key={banner._id}
-            className="min-w-full relative aspect-[2/1] md:aspect-[16/5]"
+            className="min-w-full relative aspect-[2/1] md:aspect-[16/4]"
           >
             {banner.link ? (
               <a href={banner.link} target="_blank" rel="noopener noreferrer">
@@ -103,35 +102,19 @@ const BannerSlider = () => {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Indicators */}
       {banners.length > 1 && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 backdrop-blur-sm text-white hover:bg-black/50 transition-all z-10"
-          >
-            <FiChevronLeft size={24} />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 backdrop-blur-sm text-white hover:bg-black/50 transition-all z-10"
-          >
-            <FiChevronRight size={24} />
-          </button>
-
-          {/* Indicators */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  currentSlide === index ? "bg-white scale-125" : "bg-white/50"
-                }`}
-              />
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
+                currentSlide === index ? "bg-white scale-125" : "bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

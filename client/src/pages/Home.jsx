@@ -16,6 +16,7 @@ import "swiper/css/autoplay";
 
 import BannerSlider from "../components/BannerSlider";
 import WhyChooseUs from "../components/WhyChooseUs";
+import FounderSection from "../components/FounderSection";
 
 const Home = () => {
   const loadingCategory = useSelector((state) => state.product.loadingCategory);
@@ -53,18 +54,13 @@ const Home = () => {
   };
 
   return (
-    <section className="mb-48 bg-white">
+    <section className="bg-[#fcf8ed]">
       {/* Banner Section */}
       <BannerSlider />
 
       {/* Categories Section - Universal Slidable Carousel with Full Circle Hover */}
-      <div className="max-w-full sm:max-w-[800px] md:max-w-[1100px] lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 md:px-8 mt-4 sm:mt-6 md:mt-10 mb-2 relative overflow-hidden flex flex-col items-center">
-        <div className="relative mb-4 sm:mb-6 md:mb-8 flex flex-col items-center">
-          <h2 className="text-center font-bold text-[#1a1a1a] font-outfit text-xl sm:text-2xl md:text-3xl tracking-tight leading-none">
-            Shop by category
-          </h2>
-          <div className="w-12 sm:w-16 h-1 bg-[#1D9963] rounded-full mt-2 opacity-80" />
-        </div>
+      <div className="container mx-auto px-6 lg:px-10 mt-4 sm:mt-6 md:mt-10 mb-2 relative flex flex-col items-center">
+
 
         {loadingCategory ? (
           <div className="flex justify-center gap-4 overflow-hidden w-full">
@@ -101,7 +97,7 @@ const Home = () => {
                   1024: { slidesPerView: 7, spaceBetween: 30 },
                   1440: { slidesPerView: 8, spaceBetween: 40 },
                 }}
-                className="categorySwiper w-full px-2 sm:px-4"
+                className="categorySwiper w-full px-2 sm:px-4 pt-6"
               >
                 {categoryData.map((cat, index) => (
                   <SwiperSlide 
@@ -114,9 +110,9 @@ const Home = () => {
                       onClick={() =>
                         handleRedirectProductListpage(cat._id, cat.name)
                       }
-                      className="cursor-pointer flex flex-col items-center justify-center p-1 sm:p-2 min-w-[90px] xs:min-w-[110px] sm:min-w-[130px] md:min-w-[150px] group"
+                      className="cursor-pointer pt-4 flex flex-col items-center justify-center p-1 sm:p-2 min-w-[90px] xs:min-w-[110px] sm:min-w-[130px] md:min-w-[150px] group"
                     >
-                      <div className="w-[80px] xs:w-[90px] sm:w-[110px] lg:w-[130px] h-[80px] xs:h-[90px] sm:h-[110px] lg:h-[130px] mx-auto rounded-full overflow-hidden relative flex items-center justify-center shadow-lg border-2 border-transparent group-hover:shadow-2xl transition-all duration-500 bg-white">
+                      <div className="w-[80px] xs:w-[90px] sm:w-[110px] lg:w-[130px] h-[80px] xs:h-[90px] sm:h-[110px] lg:h-[130px] mx-auto rounded-full overflow-hidden relative flex items-center justify-center shadow-lg border-2 border-transparent transition-all duration-500 bg-white">
                         <img
                           src={cat.image}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -124,7 +120,7 @@ const Home = () => {
                           loading="lazy"
                         />
                         {/* Full Circle Dark Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-90 group-hover:scale-100">
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-0 group-hover:scale-100 rounded-full">
                            <span className="text-white font-bold text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] lg:text-[0.9rem] uppercase text-center leading-tight font-outfit tracking-wider drop-shadow-md">
                              {cat.name}
                            </span>
@@ -155,7 +151,7 @@ const Home = () => {
       />
 
       {/* Mega Combo Deals Overlay */}
-      <div className="bg-gray-50 py-8 md:py-12">
+      <div className="py-8 md:py-12">
         <HomeProductSection
           title="Mega Combo Deals"
           apiEndpoint={SummaryApi.getMegaComboProducts}
@@ -164,6 +160,7 @@ const Home = () => {
       </div>
 
       <WhyChooseUs />
+      <FounderSection />
     </section>
   );
 };
