@@ -10,10 +10,12 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import useMobile from "../hooks/useMobile";
 
-const HomeProductSection = ({ title, apiEndpoint, barColor = "bg-[#196806]" }) => {
+const HomeProductSection = ({ title, apiEndpoint, isSliderOnMobile = true, barColor = "bg-[#196806]" }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isMobile] = useMobile(1024); // Detected as mobile/tablet below 1024px
   const loadingCardNumber = new Array(6).fill(null);
 
   const fetchProducts = async () => {
@@ -63,62 +65,70 @@ const HomeProductSection = ({ title, apiEndpoint, barColor = "bg-[#196806]" }) =
       </div>
 
       <div className="relative container mx-auto px-6 lg:px-10 group/section">
-        <Swiper
-          modules={[Navigation, Pagination]}
-          spaceBetween={16}
-          watchSlidesProgress={true}
-          grabCursor={true}
-          slidesPerView={1.2}
-          breakpoints={{
-            480: { slidesPerView: 1.4 },
-            640: { slidesPerView: 2.1 },
-            768: { slidesPerView: 2.9 },
-            1024: { slidesPerView: 3.0 },
-            1280: { slidesPerView: 3.5 },
-            1536: { slidesPerView: 4.2 },
-          }}
-          navigation={{
-            nextEl: `.${nextButtonClass}`,
-            prevEl: `.${prevButtonClass}`,
-          }}
-          pagination={{
-            clickable: true,
-            dynamicBullets: true,
-          }}
-          style={{
-            "--swiper-pagination-color": "#16a34a",
-            "--swiper-pagination-bullet-inactive-color": "#d1d5db",
-            "--swiper-pagination-bullet-inactive-opacity": "0.5",
-            "--swiper-pagination-bullet-size": "8px",
-            "--swiper-pagination-bullet-horizontal-gap": "4px",
-          }}
-          className="mySwiper"
-        >
-          {loading
-            ? loadingCardNumber.map((_, index) => (
-                <SwiperSlide key={`loading-${sectionId}-${index}`}>
-                  <CardLoading />
-                </SwiperSlide>
-              ))
-            : data.map((p, index) => (
-                <SwiperSlide key={`${p._id}-slide-${index}`}>
-                  <CardProduct data={p} />
-                </SwiperSlide>
-              ))}
-        </Swiper>
+        {isSliderOnMobile && isMobile ? (
+          <>
+            <Swiper
+              modules={[Navigation, Pagination]}
+              spaceBetween={16}
+              watchSlidesProgress={true}
+              grabCursor={true}
+              slidesPerView={1.2}
+              breakpoints={{
+                480: { slidesPerView: 1.4 },
+                640: { slidesPerView: 2.1 },
+                768: { slidesPerView: 2.9 },
+                1024: { slidesPerView: 3.0 },
+              }}
+              navigation={{
+                nextEl: `.${nextButtonClass}`,
+                prevEl: `.${prevButtonClass}`,
+              }}
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+              }}
+              style={{
+                "--swiper-pagination-color": "#16a34a",
+                "--swiper-pagination-bullet-inactive-color": "#d1d5db",
+                "--swiper-pagination-bullet-inactive-opacity": "0.5",
+                "--swiper-pagination-bullet-size": "8px",
+                "--swiper-pagination-bullet-horizontal-gap": "4px",
+              }}
+              className="mySwiper"
+            >
+              {loading
+                ? loadingCardNumber.map((_, index) => (
+                    <SwiperSlide key={`loading-${sectionId}-${index}`}>
+                      <CardLoading />
+                    </SwiperSlide>
+                  ))
+                : data.slice(0, 12).map((p, index) => (
+                    <SwiperSlide key={`${p._id}-slide-${index}`}>
+                      <CardProduct data={p} />
+                    </SwiperSlide>
+                  ))}
+            </Swiper>
 
-        <button
-          className={`${prevButtonClass} absolute top-1/2 -left-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300 hidden md:block`}
-          aria-label={`Previous ${title}`}
-        >
-          <FaAngleLeft className="text-xl text-gray-700" />
-        </button>
-        <button
-          className={`${nextButtonClass} absolute top-1/2 -right-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300 hidden md:block`}
-          aria-label={`Next ${title}`}
-        >
-          <FaAngleRight className="text-xl text-gray-700" />
-        </button>
+            <button
+              className={`${prevButtonClass} absolute top-1/2 -left-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300 hidden md:block`}
+              aria-label={`Previous ${title}`}
+            >
+              <FaAngleLeft className="text-xl text-gray-700" />
+            </button>
+            <button
+              className={`${nextButtonClass} absolute top-1/2 -right-3 z-10 bg-white hover:bg-gray-100 shadow-lg p-3 rounded-full transform -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity duration-300 hidden md:block`}
+              aria-label={`Next ${title}`}
+            >
+              <FaAngleRight className="text-xl text-gray-700" />
+            </button>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {loading
+              ? loadingCardNumber.map((_, index) => <CardLoading key={`loading-grid-${index}`} />)
+              : data.slice(0, 12).map((p) => <CardProduct key={`${p._id}-grid`} data={p} />)}
+          </div>
+        )}
       </div>
     </div>
   );

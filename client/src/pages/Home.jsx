@@ -141,6 +141,7 @@ const Home = () => {
       <HomeProductSection
         title="New Arrivals"
         apiEndpoint={SummaryApi.getRecentProducts}
+        isSliderOnMobile={false}
         barColor="bg-blue-600"
       />
 

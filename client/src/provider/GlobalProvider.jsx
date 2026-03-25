@@ -244,8 +244,16 @@ const GlobalProvider = ({ children }) => {
       return prev + itemPrice * curr.quantity;
     }, 0);
 
+    const notDiscountTotal = cartItem.reduce((prev, curr) => {
+      let itemOriginalPrice = curr.selectedAttributes.reduce(
+        (sum, attr) => sum + (attr.originalPrice || attr.price || 0),
+        0
+      );
+      return prev + itemOriginalPrice * curr.quantity;
+    }, 0);
+
     setTotalPrice(total);
-    setNotDiscountTotalPrice(total);
+    setNotDiscountTotalPrice(notDiscountTotal);
   }, [cartItem]);
 
   const handleLogoutOut = () => {

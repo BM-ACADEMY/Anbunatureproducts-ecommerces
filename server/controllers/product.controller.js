@@ -499,16 +499,26 @@ export const getProductByCategory = async (request, response) => {
       });
     }
 
-    const matchQuery = { 
+    const baseMatchQuery = { 
       category: { $in: [new mongoose.Types.ObjectId(categoryId)] },
       publish: true
     };
+
+    const matchQuery = { ...baseMatchQuery };
 
     if (minPrice !== undefined || maxPrice !== undefined) {
       matchQuery["attributes.options.offerPrice"] = {};
       if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
       if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
     }
+
+    const maxPriceResult = await ProductModel.aggregate([
+      { $match: baseMatchQuery },
+      { $unwind: "$attributes" },
+      { $unwind: "$attributes.options" },
+      { $group: { _id: null, maxPrice: { $max: "$attributes.options.offerPrice" } } }
+    ]);
+    const maxPriceLimit = maxPriceResult.length > 0 ? maxPriceResult[0].maxPrice : 5000;
 
     const skip = (page - 1) * limit;
 
@@ -568,6 +578,7 @@ export const getProductByCategory = async (request, response) => {
       totalCount: totalCount,
       totalPages: Math.ceil(totalCount / limit),
       currentPage: page,
+      maxPriceLimit: maxPriceLimit,
       error: false,
       success: true,
     });
@@ -592,20 +603,29 @@ export const getProductController = async (request, response) => {
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
 
-    const matchQuery = { publish: true };
-
+    const baseMatchQuery = { publish: true };
     if (search) {
-      matchQuery.$or = [
+      baseMatchQuery.$or = [
         { name: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } }
       ];
     }
+
+    const matchQuery = { ...baseMatchQuery };
 
     if (minPrice !== undefined || maxPrice !== undefined) {
       matchQuery["attributes.options.offerPrice"] = {};
       if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
       if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
     }
+
+    const maxPriceResult = await ProductModel.aggregate([
+      { $match: baseMatchQuery },
+      { $unwind: "$attributes" },
+      { $unwind: "$attributes.options" },
+      { $group: { _id: null, maxPrice: { $max: "$attributes.options.offerPrice" } } }
+    ]);
+    const maxPriceLimit = maxPriceResult.length > 0 ? maxPriceResult[0].maxPrice : 5000;
 
     const skip = (page - 1) * limit;
 
@@ -666,6 +686,7 @@ export const getProductController = async (request, response) => {
       totalCount: totalCount,
       totalPages: Math.ceil(totalCount / limit),
       currentPage: page,
+      maxPriceLimit: maxPriceLimit,
       error: false,
       success: true,
     });
@@ -696,11 +717,32 @@ export const getProductByCategoryAndSubCategory = async (request, response) => {
       });
     }
 
-    const query = {
+    const baseQuery = {
       category: { $in: [categoryId] },
       subCategory: { $in: [subCategoryId] },
       publish: true
     };
+
+    const query = { ...baseQuery };
+
+    const { minPrice, maxPrice } = request.body;
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      query["attributes.options.offerPrice"] = {};
+      if (minPrice !== undefined) query["attributes.options.offerPrice"].$gte = Number(minPrice);
+      if (maxPrice !== undefined) query["attributes.options.offerPrice"].$lte = Number(maxPrice);
+    }
+
+    const maxPriceResult = await ProductModel.aggregate([
+      { $match: {
+          category: { $in: [new mongoose.Types.ObjectId(categoryId)] },
+          subCategory: { $in: [new mongoose.Types.ObjectId(subCategoryId)] },
+          publish: true
+      } },
+      { $unwind: "$attributes" },
+      { $unwind: "$attributes.options" },
+      { $group: { _id: null, maxPrice: { $max: "$attributes.options.offerPrice" } } }
+    ]);
+    const maxPriceLimit = maxPriceResult.length > 0 ? maxPriceResult[0].maxPrice : 5000;
 
     const skip = (page - 1) * limit;
 
@@ -719,6 +761,7 @@ export const getProductByCategoryAndSubCategory = async (request, response) => {
       totalCount: totalCount,
       totalPages: Math.ceil(totalCount / limit),
       currentPage: page,
+      maxPriceLimit: maxPriceLimit,
       error: false,
       success: true,
     });

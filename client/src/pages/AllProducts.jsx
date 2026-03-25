@@ -9,6 +9,7 @@ import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import { FiFilter } from 'react-icons/fi';
 import { useLocation } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { Slider, Box, Typography } from '@mui/material';
 
 const AllProducts = () => {
     const [data, setData] = useState([]);
@@ -45,6 +46,7 @@ const AllProducts = () => {
     // Filter states
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
+    const [maxPriceLimit, setMaxPriceLimit] = useState(5000);
     const [minRating, setMinRating] = useState(0);
     
     const allCategory = useSelector((state) => state.product.allCategory || []);
@@ -76,6 +78,14 @@ const AllProducts = () => {
                 setData(responseData.data);
                 setTotalPages(responseData.totalPages || 1);
                 setTotalCount(responseData.totalCount || 0);
+                if (responseData.maxPriceLimit !== undefined) {
+                    setMaxPriceLimit(responseData.maxPriceLimit);
+                    // If maxPrice is not set or higher than new limit, update it
+                    if (!maxPrice || Number(maxPrice) > responseData.maxPriceLimit) {
+                        // Avoid infinite loop if we are currently fetching based on maxPrice
+                        // But since we use debounced/effect based on these, it should be fine
+                    }
+                }
             }
         } catch (error) {
             AxiosToastError(error);
@@ -111,7 +121,7 @@ const AllProducts = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f9f9f9]">
+        <div className="min-h-screen bg-[#fcf8ed]">
             <div className="container mx-auto px-4 py-8">
                 <Breadcrumbs />
 
@@ -122,7 +132,7 @@ const AllProducts = () => {
                                 ? `Results for "${searchQuery}"`
                                 : selectedCategory 
                                 ? allCategory.find(c => c._id === selectedCategory)?.name 
-                                : "Premium Products"
+                                : "All Products"
                             }
                             <span className="ml-3 text-sm font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
                                 {totalCount} items
@@ -190,32 +200,30 @@ const AllProducts = () => {
                             {/* Price Range */}
                             <div className="mb-10">
                                 <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Price Range</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block ml-1">Min Price</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-                                            <input 
-                                                type="number"
-                                                value={minPrice}
-                                                onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
-                                                placeholder="0"
-                                                className="w-full pl-7 pr-3 py-2.5 bg-gray-50 border-none rounded-xl text-sm font-semibold focus:ring-2 focus:ring-green-500/20"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block ml-1">Max Price</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-                                            <input 
-                                                type="number"
-                                                value={maxPrice}
-                                                onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
-                                                placeholder="Any"
-                                                className="w-full pl-7 pr-3 py-2.5 bg-gray-50 border-none rounded-xl text-sm font-semibold focus:ring-2 focus:ring-green-500/20"
-                                            />
-                                        </div>
+                                <div className="px-2">
+                                    <Slider
+                                        value={[minPrice || 0, maxPrice || maxPriceLimit]}
+                                        onChange={(e, newValue) => {
+                                            setMinPrice(newValue[0]);
+                                            setMaxPrice(newValue[1]);
+                                            setPage(1);
+                                        }}
+                                        valueLabelDisplay="auto"
+                                        min={0}
+                                        max={maxPriceLimit}
+                                        sx={{
+                                            color: '#98c17b',
+                                            '& .MuiSlider-thumb': {
+                                                backgroundColor: '#98c17b',
+                                            },
+                                            '& .MuiSlider-track': {
+                                                backgroundColor: '#98c17b',
+                                            },
+                                        }}
+                                    />
+                                    <div className="flex justify-between mt-2">
+                                        <span className="text-xs font-bold text-gray-600 font-outfit">₹{minPrice || 0}</span>
+                                        <span className="text-xs font-bold text-gray-600 font-outfit">₹{maxPrice || maxPriceLimit}</span>
                                     </div>
                                 </div>
                             </div>
@@ -312,12 +320,7 @@ const AllProducts = () => {
                                 </div>
                                 <h3 className="text-2xl font-bold text-gray-800 mb-3">No products matched</h3>
                                 <p className="text-gray-400 max-w-sm mb-8 leading-relaxed">We couldn't find any products matching your current filters. Try adjusting your price range or rating selection.</p>
-                                <button 
-                                    onClick={clearFilters}
-                                    className="bg-[#98c17b] text-white px-10 py-4 rounded-2xl font-bold hover:bg-[#86ad6a] transition-all shadow-xl shadow-green-100"
-                                >
-                                    Clear All Filters
-                                </button>
+                               
                             </div>
                         )}
                     </div>

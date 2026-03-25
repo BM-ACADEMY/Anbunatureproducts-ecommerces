@@ -78,7 +78,7 @@ const CardProduct = ({ data }) => {
         <div className="relative w-full h-64 md:h-72 overflow-hidden bg-gray-50">
           <div className="absolute top-0 left-0 flex flex-col z-10">
             {comboOffer && (
-              <div className="bg-[#ea242b] text-white text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-br-lg w-fit">
+              <div className="bg-[#ea242b] mb-2 text-white text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-br-lg w-fit">
                 Combo offer
               </div>
             )}

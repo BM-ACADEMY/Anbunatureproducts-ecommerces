@@ -30,6 +30,7 @@ import Processing from "../pages/Processing";
 import DashboardOverview from "../pages/DashboardOverview";
 import BannerAdmin from "../pages/BannerAdmin";
 import AllProducts from "../pages/AllProducts";
+import CartPage from "../pages/CartPage";
 // import Overview from "../pages/Overview";
 
 const router = createBrowserRouter([
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <Home />,
+      },
+      {
+        path: "cart",
+        element: <CartPage />,
       },
       {
         path: "about",

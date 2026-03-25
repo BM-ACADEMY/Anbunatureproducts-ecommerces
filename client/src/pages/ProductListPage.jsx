@@ -7,6 +7,7 @@ import Loading from '../components/Loading';
 import CardProduct from '../components/CardProduct';
 import { useSelector } from 'react-redux';
 import { valideURLConvert } from '../utils/valideURLConvert';
+import { Slider, Box, Typography } from '@mui/material';
 
 const ProductListPage = () => {
   const [data, setData] = useState([]);
@@ -23,6 +24,10 @@ const ProductListPage = () => {
   const categoryId = params.category?.split('-').slice(-1)[0] || '';
   const subCategoryId = params.subCategory?.split('-').slice(-1)[0] || '';
 
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [debouncedPriceRange, setDebouncedPriceRange] = useState([0, 5000]);
+  const [maxPriceLimit, setMaxPriceLimit] = useState(5000);
+
   const fetchProductdata = async (reset = false) => {
     try {
       setLoading(true);
@@ -33,6 +38,8 @@ const ProductListPage = () => {
           subCategoryId,
           page,
           limit: 8,
+          minPrice: debouncedPriceRange[0],
+          maxPrice: debouncedPriceRange[1],
         },
       });
 
@@ -43,6 +50,13 @@ const ProductListPage = () => {
           setData(responseData.data);
         } else {
           setData((prev) => [...prev, ...responseData.data]);
+        }
+        if (responseData.maxPriceLimit !== undefined) {
+          setMaxPriceLimit(responseData.maxPriceLimit);
+          // If the current price range max is at the default or higher than the new limit, update it
+          if (priceRange[1] === 5000 || priceRange[1] > responseData.maxPriceLimit) {
+            setPriceRange(prev => [prev[0], responseData.maxPriceLimit]);
+          }
         }
         setTotalPages(responseData.totalPages);
       }
@@ -77,7 +91,7 @@ const ProductListPage = () => {
     setPage(1); // Reset page to 1
     fetchProductdata(true); // Fetch with reset
     fetchSubCategories();
-  }, [categoryId, subCategoryId]);
+  }, [categoryId, subCategoryId, debouncedPriceRange]);
 
   useEffect(() => {
     console.log('AllSubCategory:', AllSubCategory.map(s => ({ name: s.name, createdAt: s.createdAt })));
@@ -106,6 +120,20 @@ const ProductListPage = () => {
       fetchProductdata();
     }
   }, [page]);
+
+  const handlePriceChange = (event, newValue) => {
+    setPriceRange(newValue);
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedPriceRange(priceRange);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [priceRange]);
 
   return (
     <section className="bg-slate-50">
@@ -140,6 +168,34 @@ const ProductListPage = () => {
               })}
             </div>
           )}
+        </div>
+
+        {/* Price Filter */}
+        <div className="px-4 py-4 bg-white rounded-lg shadow-sm mb-4">
+          <Typography gutterBottom className="font-outfit font-medium text-gray-700">
+            Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
+          </Typography>
+          <Box className="px-2">
+            <Slider
+              value={priceRange}
+              onChange={handlePriceChange}
+              valueLabelDisplay="auto"
+              min={0}
+              max={maxPriceLimit}
+              sx={{
+                color: '#22c55e', // text-green-500
+                '& .MuiSlider-thumb': {
+                  backgroundColor: '#22c55e',
+                },
+                '& .MuiSlider-track': {
+                  backgroundColor: '#22c55e',
+                },
+                '& .MuiSlider-rail': {
+                  backgroundColor: '#d1d5db', // text-gray-300
+                },
+              }}
+            />
+          </Box>
         </div>
 
         {/* Product Grid */}
