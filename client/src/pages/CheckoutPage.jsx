@@ -9,35 +9,88 @@ import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
+import { FiEdit2, FiTrash2, FiPlus, FiTruck } from "react-icons/fi";
+import { MdPayment } from "react-icons/md";
+import EditAddressDetails from "../components/EditAddressDetails";
+import Breadcrumbs from "../components/Breadcrumbs";
+import DeleteConfirmation from "../components/DeleteConfirmation";
+
 
 const CheckoutPage = () => {
   const { notDiscountTotalPrice, totalPrice, totalQty, fetchCartItem, fetchOrder } =
     useGlobalContext();
 
   const [openAddress, setOpenAddress] = useState(false);
+  const [openEditAddress, setOpenEditAddress] = useState(false);
+  const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [editData, setEditData] = useState({});
+  const { fetchAddress } = useGlobalContext();
+
   const addressList = useSelector((state) => state.addresses.addressList);
-  const [selectAddress, setSelectAddress] = useState(0);
+  const [selectAddress, setSelectAddress] = useState("");
+
   const cartItemsList = useSelector((state) => state.cartItem.cart);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Auto-select first active address
+  React.useEffect(() => {
+    if (!selectAddress && addressList.length > 0) {
+      const firstActive = addressList.find(a => a.status);
+      if (firstActive) {
+        setSelectAddress(firstActive._id);
+      }
+    }
+  }, [addressList, selectAddress]);
+
   // Single item override from Buy Now
   const singleItem = location.state?.singleItem;
-  
+
   const displayCartItems = singleItem ? [singleItem] : cartItemsList;
-  
-  const displayTotalQty = singleItem 
-    ? singleItem.quantity 
+
+  const displayTotalQty = singleItem
+    ? singleItem.quantity
     : totalQty;
-    
-  const displayTotalPrice = singleItem 
+
+  const displayTotalPrice = singleItem
     ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.price || 0), 0) * singleItem.quantity
     : totalPrice;
 
   // Helper function to check if an address is currently selected
   const isAddressSelected = () => {
-    return addressList && addressList.length > 0 && addressList[selectAddress] && addressList[selectAddress].status;
+    return !!selectAddress && addressList.some(a => a._id === selectAddress && a.status);
   };
+
+  const handleDeleteAddress = (id) => {
+    setDeleteId(id);
+    setOpenDeleteConfirm(true);
+  };
+
+  const confirmDeleteAddress = async () => {
+    try {
+      const response = await Axios({
+        ...SummaryApi.disableAddress,
+        data: { _id: deleteId }
+      });
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setOpenDeleteConfirm(false);
+        if (selectAddress === deleteId) {
+            setSelectAddress("");
+        }
+        fetchAddress();
+      }
+    } catch (error) {
+      AxiosToastError(error);
+    }
+  };
+
+  const handleEditAddress = (address) => {
+    setEditData(address);
+    setOpenEditAddress(true);
+  };
+
 
   const handleCashOnDelivery = async () => {
     if (!isAddressSelected()) {
@@ -50,7 +103,7 @@ const CheckoutPage = () => {
         ...SummaryApi.CashOnDeliveryOrder,
         data: {
           list_items: displayCartItems,
-          addressId: addressList[selectAddress]?._id,
+          addressId: selectAddress,
         },
       });
 
@@ -87,7 +140,7 @@ const CheckoutPage = () => {
         ...SummaryApi.payment_url,
         data: {
           list_items: displayCartItems,
-          addressId: addressList[selectAddress]?._id,
+          addressId: selectAddress,
         },
       });
 
@@ -115,51 +168,103 @@ const CheckoutPage = () => {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-tr from-blue-50 to-white py-10">
-      <div className="container mx-auto px-4 lg:px-8 flex flex-col lg:flex-row gap-10">
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold text-gray-800 mb-5">Select Delivery Address</h2>
-          <div className="bg-white shadow rounded-xl p-6 space-y-4">
-            {/* Map through addressList to display available addresses */}
-            {addressList.map((address, index) => (
-              <label
-                key={index}
-                htmlFor={`address${index}`}
-                // Dynamically apply styling based on selection and address status
-                className={`border rounded-xl p-5 cursor-pointer block transition-all duration-200 hover:border-blue-400 ${
-                  selectAddress === index ? "border-blue-500 bg-blue-50" : "border-gray-200"
-                } ${!address.status ? "hidden" : ""}`} 
-              >
-                <div className="flex gap-4 items-start">
-                  <input
-                    id={`address${index}`}
-                    type="radio"
-                    value={index}
-                    checked={selectAddress === index}
-                    onChange={(e) => setSelectAddress(Number(e.target.value))} // Ensure value is a number
-                    name="address"
-                    className="accent-blue-600 mt-1"
-                  />
-                  <div className="text-sm text-gray-700 space-y-1">
-                    <p className="font-semibold">{address.address_line}</p>
-                    <p>
-                      {address.city}, {address.state}
-                    </p>
-                    <p>
-                      {address.country} - {address.pincode}
-                    </p>
-                    <p className="text-gray-500">Mobile: {address.mobile}</p>
+    <section className="min-h-screen bg-[#fcf8ed] py-8 lg:py-12">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="mb-6">
+            <Breadcrumbs />
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+
+        {/* Left Side: Address Section */}
+        <div className="w-full lg:w-[65%]">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Checkout</h2>
+          </div>
+
+          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-slate-700 uppercase text-xs tracking-widest">Select Shipping Address</h3>
+                {addressList.filter(a => a.status).length < 2 && (
+                    <button
+                        onClick={() => setOpenAddress(true)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full transition-all"
+                    >
+                        <FiPlus size={14} />
+                        <span>NEW ADDRESS</span>
+                    </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {addressList.filter(a => a.status).map((address, index) => (
+                <div
+                  key={address._id}
+                  className={`relative border-2 rounded-2xl p-4 transition-all duration-300 ${
+                    selectAddress === address._id
+                    ? "border-blue-300 bg-blue-50/30 shadow-md"
+                    : "border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                  }`}
+                >
+                  <label
+                    htmlFor={`address${address._id}`}
+                    className="flex gap-3 items-start cursor-pointer"
+                  >
+                    <input
+                      id={`address${address._id}`}
+                      type="radio"
+                      value={address._id}
+                      checked={selectAddress === address._id}
+                      onChange={(e) => setSelectAddress(e.target.value)}
+                      name="address"
+                      className="accent-blue-600 mt-1 h-4 w-4 flex-shrink-0"
+                    />
+                    <div className="flex-grow min-w-0 pr-2">
+                        <p className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-2">
+                            {address.address_line}{address.address_line_2 && `, ${address.address_line_2}`}
+                        </p>
+
+                      <div className="text-[11px] text-slate-500 mt-2 space-y-1">
+                        <p className="font-medium">{address.city}, {address.state}</p>
+                        <p className="font-bold text-slate-400">{address.pincode}</p>
+                        <p className="font-bold text-slate-700 pt-1 flex items-center gap-1">
+                            <span className="text-[9px] bg-blue-50 text-blue-500 px-1 rounded border border-blue-100 uppercase tracking-tighter font-black">PH</span>
+                            {address.mobile}
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Actions Bar */}
+                  <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-end gap-2">
+                      <button
+                          onClick={() => handleEditAddress(address)}
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          title="Edit Address"
+                      >
+                          <FiEdit2 size={13} />
+                      </button>
+                      <button
+                          onClick={() => handleDeleteAddress(address._id)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete Address"
+                      >
+                          <FiTrash2 size={13} />
+                      </button>
                   </div>
                 </div>
-              </label>
-            ))}
+              ))}
 
-            {/* Button to add a new address */}
-            <div
-              onClick={() => setOpenAddress(true)}
-              className="border-2 border-dashed border-blue-400 text-blue-600 rounded-xl flex items-center justify-center h-14 cursor-pointer hover:bg-blue-50 transition"
-            >
-              + Add New Address
+              {/* Add New Address Card Placeholder */}
+              {(addressList.filter(a => a.status).length === 0) && (
+                  <div
+                    onClick={() => setOpenAddress(true)}
+                    className="md:col-span-2 border-2 border-dashed border-slate-100 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-slate-600"
+                  >
+                      <FiPlus size={32} />
+                      <p className="text-sm font-bold">Add your first shipping address</p>
+                  </div>
+              )}
             </div>
           </div>
         </div>
@@ -243,26 +348,34 @@ const CheckoutPage = () => {
               {/* Online Payment Button - Triggers address check and navigation */}
               <button
                 onClick={handleProceedToPayment}
-                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition"
+                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition flex items-center justify-center gap-2"
               >
-                Online Payment
+                <MdPayment size={20} />
+                <span>Online Payment</span>
               </button>
 
-              {/* Cash on Delivery Button - Currently commented out in your original code,
-                  but logic for address check is included if uncommented. */}
-              {/* <button
-                onClick={handleCashOnDelivery}
-                className="w-full py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-semibold transition"
-              >
-                Cash on Delivery
-              </button> */}
+              <div className="flex items-center justify-center gap-2 mt-1 py-2 border-t border-slate-50">
+                  <FiTruck className="text-black" size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-black opacity-80">Deliver within 2 to 5 days all over India</span>
+              </div>
+
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      {/* AddAddress Modal/Component */}
+    {/* Modals */}
       {openAddress && <AddAddress close={() => setOpenAddress(false)} />}
+      {openEditAddress && <EditAddressDetails data={editData} close={() => setOpenEditAddress(false)} />}
+      <DeleteConfirmation
+        open={openDeleteConfirm}
+        close={() => setOpenDeleteConfirm(false)}
+        confirm={confirmDeleteAddress}
+        title="Delete Address"
+        message="Are you sure you want to remove this address? This action cannot be undone."
+      />
+
     </section>
   );
 };

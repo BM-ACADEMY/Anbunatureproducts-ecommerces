@@ -24,7 +24,7 @@ const StarRating = ({ rating }) => {
   );
 };
 
-const CartItem = ({ item, closeCart }) => {
+const CartItem = ({ item, closeCart, showBuyNow = false }) => {
   const { deleteCartItem } = useGlobalContext();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
@@ -68,105 +68,119 @@ const CartItem = ({ item, closeCart }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex items-center hover:shadow-md transition-shadow group relative">
-      {/* Product Image Link */}
-      <Link 
-        to={`/product/${item?.productId?.urlSlug || item?.productId?._id}`} 
-        className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0 mr-4"
-      >
-        <img
-          src={item?.productId?.image[0]}
-          alt={item?.productId?.name}
-          className="w-full h-full object-contain hover:scale-105 transition-transform"
-        />
-      </Link>
-
-      {/* Content */}
-      <div className="flex-grow min-w-0 pr-6 flex flex-col h-full">
-        <Link 
-          to={`/product/${item?.productId?.urlSlug || item?.productId?._id}`}
-          className="block hover:text-green-700 transition-colors"
-        >
-          <h3 className="font-bold text-gray-800 text-sm lg:text-base line-clamp-1 leading-tight mb-0.5">
-            {item?.productId?.name}
-          </h3>
-        </Link>
-        
-        {/* Rating Section */}
-        <div className="flex items-center gap-1.5 mb-1">
-          <StarRating rating={averageRating} />
-          <span className="text-[10px] text-gray-400">({reviewCount})</span>
+    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex flex-col gap-4 group relative">
+      <div className="flex gap-4">
+        {/* Left Column: Image and Qty Selector */}
+        <div className="flex flex-col items-center gap-3">
+          <Link 
+            to={`/product/${item?.productId?.urlSlug || item?.productId?._id}`} 
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0"
+          >
+            <img
+              src={item?.productId?.image[0]}
+              alt={item?.productId?.name}
+              className="w-full h-full object-cover hover:scale-105 transition-transform"
+            />
+          </Link>
         </div>
-        
-        {selectedAttributesDisplay && (
-          <p className="text-[10px] text-gray-500 truncate mb-2 italic">
-            {selectedAttributesDisplay}
-          </p>
-        )}
-        
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-auto gap-3">
-          <div className="flex flex-col">
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-green-700 text-base md:text-lg">
-                {DisplayPriceInRupees(totalOfferPrice)}
-              </span>
-              {totalOriginalPrice > totalOfferPrice && (
-                <span className="text-gray-400 line-through text-[11px] font-medium">
-                  {DisplayPriceInRupees(totalOriginalPrice)}
-                </span>
-              )}
-            </div>
-            {totalOriginalPrice > totalOfferPrice && (
-                <span className="text-[10px] text-red-500 font-bold">
-                    Save {DisplayPriceInRupees(totalOriginalPrice - totalOfferPrice)}
-                </span>
-            )}
+
+        {/* Right Column: Content */}
+        <div className="flex-grow min-w-0 flex flex-col">
+          <div className="flex justify-between items-start gap-2">
+            <Link 
+              to={`/product/${item?.productId?.urlSlug || item?.productId?._id}`}
+              className="block hover:text-green-700 transition-colors mb-1 flex-grow"
+            >
+              <h3 className="font-bold text-gray-800 text-sm sm:text-base lg:text-lg line-clamp-2 leading-tight">
+                {item?.productId?.name}
+              </h3>
+            </Link>
+          </div>
+
+
+          
+          {/* Rating Section */}
+          <div className="flex items-center gap-1.5 mb-2">
+            <StarRating rating={averageRating} />
+            <span className="text-xs text-gray-400">({reviewCount})</span>
           </div>
           
-          <div className="flex items-center gap-2">
-            <button 
-                onClick={handleBuyNow}
-                className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded-lg transition-all shadow-sm active:scale-95 flex-shrink-0"
-                title="Single Item Checkout"
-            >
-                <FiZap size={14} className="fill-current" />
-                BUY NOW
-            </button>
-            <div className="w-24">
-                <AddToCartButton
+          {selectedAttributesDisplay && (
+            <p className="text-[11px] text-gray-500 truncate mb-3 italic">
+              {selectedAttributesDisplay}
+            </p>
+          )}
+          
+          <div className="mt-auto flex justify-between items-end gap-2">
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold text-green-700 text-lg sm:text-xl">
+                  {DisplayPriceInRupees(totalOfferPrice)}
+                </span>
+                {totalOriginalPrice > totalOfferPrice && (
+                  <span className="text-gray-400 line-through text-xs font-medium">
+                    {DisplayPriceInRupees(totalOriginalPrice)}
+                  </span>
+                )}
+              </div>
+              {totalOriginalPrice > totalOfferPrice && (
+                  <span className="text-[11px] text-red-500 font-bold block mt-0.5">
+                      Save {DisplayPriceInRupees(totalOriginalPrice - totalOfferPrice)}
+                  </span>
+              )}
+            </div>
+            
+            <div className="w-24 sm:w-28 flex-shrink-0">
+              <AddToCartButton
                 data={{
-                    ...item?.productId,
-                    selectedAttributes: item?.selectedAttributes.reduce(
+                  ...item?.productId,
+                  selectedAttributes: item?.selectedAttributes.reduce(
                     (acc, attr) => ({
-                        ...acc,
-                        [attr.attributeName]: {
+                      ...acc,
+                      [attr.attributeName]: {
                         name: attr.optionName,
                         price: attr.price,
                         stock: attr.stock,
                         unit: attr.unit,
-                        },
+                      },
                     }),
                     {}
-                    ),
+                  ),
                 }}
                 buttonColor="#196806"
                 hoverColor="#104a02"
                 textColor="#ffffff"
-                fullWidth={false}
-                />
+                fullWidth={true}
+              />
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* Trash Removal Button */}
-      <button 
-        onClick={handleRemove}
-        className="absolute top-2 right-2 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all lg:opacity-0 lg:group-hover:opacity-100 opacity-100"
-        title="Remove from cart"
-      >
-        <FiTrash2 size={18} />
-      </button>
+      {/* Bottom Action Bar */}
+      <div className="flex border-t border-gray-100 pt-3 mt-1 gap-4">
+        <button 
+          onClick={handleRemove}
+          className="flex-1 flex items-center justify-center gap-2 text-gray-500 font-bold text-xs sm:text-sm hover:text-red-600 transition-all uppercase tracking-wide group/remove bg-gray-50 hover:bg-red-50 py-2 rounded-lg"
+          title="Remove from cart"
+        >
+          <FiTrash2 size={18} className="group-hover/remove:scale-110 transition-transform" />
+          <span>Remove</span>
+        </button>
+        
+        {showBuyNow && (
+          <button 
+            onClick={handleBuyNow}
+            className="flex-1 flex items-center justify-center gap-2 text-gray-500 font-bold text-xs sm:text-sm hover:text-amber-600 transition-all uppercase tracking-wide group/buy bg-gray-50 hover:bg-amber-50 py-2 rounded-lg"
+            title="Buy this now"
+          >
+            <FiZap size={18} className="group-hover/buy:scale-110 transition-transform" />
+            <span>Buy this now</span>
+          </button>
+        )}
+      </div>
+
     </div>
   );
 };

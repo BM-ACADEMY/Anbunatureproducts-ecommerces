@@ -5,6 +5,14 @@ const addressSchema = new mongoose.Schema({
         type : String,
         default : ""
     },
+    address_line_2 : {
+        type : String,
+        default : ""
+    },
+    landmark : {
+        type : String,
+        default : ""
+    },
     city : {
         type : String,
         default : ""
@@ -23,6 +31,11 @@ const addressSchema = new mongoose.Schema({
         type : Number,
         default : null
     },
+    alternative_mobile : {
+        type : Number,
+        default : null
+    },
+
     status : {
         type : Boolean,
         default : true

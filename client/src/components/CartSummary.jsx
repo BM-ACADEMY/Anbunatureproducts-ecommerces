@@ -31,9 +31,9 @@ const CartSummary = ({ notDiscountTotalPrice, totalPrice, totalSavings }) => {
         </div>
 
         {totalSavings > 0 && (
-          <div className="border border-dashed border-green-500 rounded-lg p-2.5 flex items-center justify-center gap-2 bg-white/40">
-            <FaCoins className="text-yellow-500 shadow-sm" size={16} />
-            <span className="text-green-700 text-sm font-semibold text-center">
+          <div className="border border-dashed border-green-500 rounded-lg p-2 flex items-center justify-center gap-2 bg-white/40 flex-nowrap overflow-hidden">
+            <FaCoins className="text-yellow-500 shadow-sm flex-shrink-0" size={14} />
+            <span className="text-green-700 text-[11px] sm:text-xs font-bold whitespace-nowrap">
               Total Savings of {DisplayPriceInRupees(totalSavings)} From this order
             </span>
           </div>

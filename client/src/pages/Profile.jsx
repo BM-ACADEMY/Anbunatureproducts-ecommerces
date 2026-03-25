@@ -85,93 +85,87 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-md">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Profile Settings</h1>
+    <div className="p-10 lg:p-12">
+      <div className="max-w-2xl">
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8">Account Settings</h1>
 
-        {/* Avatar Section */}
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="relative">
-            <div className="w-20 h-20 bg-gray-200 flex items-center justify-center rounded-full overflow-hidden border-2 border-white shadow-md">
-              {user.avatar ? (
-                <img alt={user.name} src={user.avatar} className="w-full h-full object-cover" />
-              ) : (
-                <FaRegUser size={48} className="text-gray-500" />
-              )}
+        <div className="flex flex-col sm:flex-row items-center gap-6 mb-12">
+            <div className="relative group">
+               <div className="w-24 h-24 bg-gray-100 rounded-full overflow-hidden border-2 border-white shadow-md ring-4 ring-gray-50 transition-transform hover:scale-105">
+                  {user.avatar ? (
+                    <img alt={user.name} src={user.avatar} className="w-full h-full object-cover" />
+                  ) : (
+                    <FaRegUser size={40} className="text-gray-300 mx-auto mt-6" />
+                  )}
+               </div>
+               <button
+                 onClick={() => setProfileAvatarEdit(true)}
+                 className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg border border-gray-100 text-blue-600 hover:bg-gray-50"
+               >
+                 <FaEdit size={14} />
+               </button>
             </div>
-            <button
-              onClick={() => setProfileAvatarEdit(true)}
-              className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-full shadow hover:bg-gray-100 transition"
-              aria-label="Edit profile picture"
-            >
-              <FaEdit className="text-blue-600 text-sm" />
-            </button>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">{user.name}</h2>
-            {/* <p className="text-gray-600 text-sm">{maskEmail(user.email)}</p> */}
-          </div>
+            <div className="text-center sm:text-left">
+               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
+               <p className="text-gray-500 text-sm font-medium">{user.role || "Customer"}</p>
+            </div>
         </div>
 
         {openProfileAvatarEdit && (
           <UserProfileAvatarEdit open={openProfileAvatarEdit} close={() => setProfileAvatarEdit(false)} />
         )}
 
-        {/* Profile Form */}
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-gray-700 ml-1">Full Name</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MdPerson className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                <MdPerson size={20} />
               </div>
               <input
                 type="text"
                 placeholder="Enter your name"
-                className="pl-10 w-full p-2 border border-gray-300 rounded-md"
+                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-gray-800"
                 value={userData.name}
                 name="name"
                 onChange={handleOnChange}
                 required
-                aria-label="Name"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-gray-700 ml-1">Email Address</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MdEmail className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                <MdEmail size={20} />
               </div>
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="pl-10 w-full p-2 border border-gray-300 rounded-md"
+                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-gray-800"
                 value={userData.email}
                 name="email"
                 onChange={handleOnChange}
                 required
-                aria-label="Email"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Mobile</label>
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-gray-700 ml-1">Mobile Number</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MdPhone className="text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                <MdPhone size={20} />
               </div>
               <input
                 type="text"
                 placeholder="Enter your mobile"
-                className="pl-10 w-full p-2 border border-gray-300 rounded-md"
-                value={userData.mobile}
+                className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-gray-800"
+                value={userData.mobile || ""}
                 name="mobile"
                 onChange={handleOnChange}
                 required
-                aria-label="Mobile"
               />
             </div>
           </div>
@@ -179,22 +173,18 @@ const Profile = () => {
           <button
             type="submit"
             disabled={!isModified || loading}
-            className="flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className={`w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl font-bold text-lg transition-all active:scale-[0.98] ${
+              !isModified || loading 
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+              : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100"
+            }`}
           >
             {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Saving...
-              </>
+                <div className="w-5 h-5 border-4 border-white/20 border-t-white rounded-full animate-spin" />
             ) : (
-              <>
-                <FaSave className="mr-2" />
-                Save Changes
-              </>
+                <FaSave size={18} />
             )}
+            {loading ? "Saving Changes..." : "Update Profile"}
           </button>
         </form>
       </div>

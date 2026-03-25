@@ -1,11 +1,15 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { HiShoppingBag } from "react-icons/hi2";
 import { useNavigate } from 'react-router-dom';
+
 import { useGlobalContext } from '../provider/GlobalProvider';
 import CartItem from '../components/CartItem';
 import CartSummary from '../components/CartSummary';
 import imageEmpty from '../assets/empty_cart.png';
 import { toast } from 'sonner';
+import Breadcrumbs from '../components/Breadcrumbs';
+
 
 const CartPage = () => {
     const { notDiscountTotalPrice, totalPrice, totalQty } = useGlobalContext();
@@ -27,14 +31,18 @@ const CartPage = () => {
     return (
         <section className="bg-[#fcf8ed] min-h-screen py-8 lg:py-12">
             <div className="container mx-auto px-4 max-w-7xl">
+                <div className="mb-6">
+                    <Breadcrumbs />
+                </div>
                 <div className="flex flex-col lg:flex-row gap-8">
+
                     {/* Left Column: Cart Items */}
                     <div className="flex-grow">
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                                 <h1 className="text-2xl font-bold text-gray-800">My Cart ({totalQty})</h1>
                                 {cartItem.length > 0 && (
-                                    <button 
+                                    <button
                                         onClick={() => navigate('/')}
                                         className="text-green-700 font-semibold hover:underline text-sm"
                                     >
@@ -46,7 +54,7 @@ const CartPage = () => {
                             {cartItem.length > 0 ? (
                                 <div className="p-6 space-y-6">
                                     {cartItem.map((item) => (
-                                        <CartItem key={item._id} item={item} />
+                                        <CartItem key={item._id} item={item} showBuyNow={true} />
                                     ))}
                                 </div>
                             ) : (
@@ -79,8 +87,8 @@ const CartPage = () => {
                             <div className="sticky top-24">
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                     <h2 className="text-xl font-bold text-gray-800 mb-6">Payment Details</h2>
-                                    
-                                    <CartSummary 
+
+                                    <CartSummary
                                         notDiscountTotalPrice={notDiscountTotalPrice}
                                         totalPrice={totalPrice}
                                         totalSavings={totalSavings}
@@ -88,10 +96,12 @@ const CartPage = () => {
 
                                     <button
                                         onClick={redirectToCheckoutPage}
-                                        className="w-full mt-6 bg-[#fbb034] hover:bg-[#f39c12] text-black font-bold text-lg py-4 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center"
+                                        className="w-full mt-6 bg-[#fbb034] hover:bg-[#f39c12] text-white font-medium text-lg py-4 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                     >
-                                        Proceed to Checkout
+                                        <HiShoppingBag size={24} />
+                                        <span>Proceed to Checkout</span>
                                     </button>
+
                                 </div>
                             </div>
                         </div>
