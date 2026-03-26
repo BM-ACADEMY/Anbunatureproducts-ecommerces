@@ -12,6 +12,10 @@ const orderSchema = new mongoose.Schema(
       required: [true, "Provide orderId"],
       unique: true,
     },
+    groupId: {
+      type: String,
+      default: "",
+    },
     productId: {
       type: mongoose.Schema.ObjectId,
       ref: "product",

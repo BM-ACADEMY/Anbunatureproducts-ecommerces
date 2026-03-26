@@ -32,6 +32,13 @@ const Header = () => {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
 
+    // Close menus when navigating
+    useEffect(() => {
+        setOpenUserMenu(false);
+        setShowSearch(false);
+        setShowMobileMenu(false);
+    }, [location.pathname]);
+
     // Close user menu when user logs out
     useEffect(() => {
         if (!user?._id) {
@@ -154,11 +161,11 @@ const Header = () => {
                             >
                                 {user?._id ? (
                                     user?.avatar ? (
-                                        <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-green-500 shadow-sm">
+                                        <div className="w-9 h-9 rounded-full overflow-hidden border-2 shadow-sm">
                                             <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
                                         </div>
                                     ) : (
-                                        <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 border-green-500">
+                                        <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 ">
                                             {user?.name?.charAt(0)?.toUpperCase() || user?.mobile?.charAt(0) || "U"}
                                         </div>
                                     )

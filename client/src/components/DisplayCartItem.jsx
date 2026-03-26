@@ -87,7 +87,7 @@ const DisplayCartItem = ({ close }) => {
             <div className="p-4 bg-white border-t border-gray-100">
               <button
                 onClick={redirectToCheckoutPage}
-                className="w-full bg-[#fbb034] hover:bg-[#f39c12] text-black font-bold text-lg py-4 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                className="w-full bg-[#fbb034] hover:bg-[#f39c12] text-wh font-bold text-lg py-4 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 <HiShoppingBag size={24} />
                 <span>Checkout</span>

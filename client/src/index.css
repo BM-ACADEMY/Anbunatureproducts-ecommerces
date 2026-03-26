@@ -144,3 +144,35 @@ html {
   opacity: 0;
 }
 
+/* react-phone-number-input premium styling */
+.PhoneInput {
+  --PhoneInput-color--focus: transparent;
+}
+
+.PhoneInputInput {
+  background: transparent;
+  border: none !important;
+  outline: none !important;
+  font-family: inherit;
+  font-weight: 700;
+  color: #334155; /* slate-700 */
+}
+
+.PhoneInputCountry {
+  margin-right: 0.5rem;
+}
+
+.PhoneInputCountrySelect {
+  cursor: pointer;
+}
+
+.PhoneInputCountryIcon--border {
+  background-color: transparent;
+  box-shadow: none !important;
+}
+
+.PhoneInputCountryIcon {
+  width: 1.5rem !important;
+  height: auto !important;
+}
+

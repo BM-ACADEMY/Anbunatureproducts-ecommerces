@@ -5,7 +5,7 @@ import AxiosToastError from '../utils/AxiosToastError';
 import Loading from '../components/Loading';
 import CardProduct from '../components/CardProduct';
 import { useSelector } from 'react-redux';
-import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
+import { LuChevronRight } from 'react-icons/lu';
 import { FiFilter } from 'react-icons/fi';
 import { useLocation } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -28,18 +28,19 @@ const AllProducts = () => {
         const categoryId = params.get('category');
         const query = params.get('q');
         
+        setData([]); // Clear data on URL change
         if (query) {
             setSearchQuery(query);
-            setSelectedCategory(""); // Clear category when searching
+            setSelectedCategory(""); 
             setPage(1);
         } else if (categoryId) {
             setSelectedCategory(categoryId);
-            setSearchQuery(""); // Clear search when browsing category
+            setSearchQuery(""); 
             setPage(1);
         } else {
-            // If neither, clear both to show all products
             setSearchQuery("");
             setSelectedCategory("");
+            setPage(1);
         }
     }, [location.search]);
     
@@ -75,16 +76,16 @@ const AllProducts = () => {
             const { data: responseData } = response;
 
             if (responseData.success) {
-                setData(responseData.data);
+                if (page === 1) {
+                    setData(responseData.data);
+                } else {
+                    setData(prev => [...prev, ...responseData.data]);
+                }
+                
                 setTotalPages(responseData.totalPages || 1);
                 setTotalCount(responseData.totalCount || 0);
                 if (responseData.maxPriceLimit !== undefined) {
                     setMaxPriceLimit(responseData.maxPriceLimit);
-                    // If maxPrice is not set or higher than new limit, update it
-                    if (!maxPrice || Number(maxPrice) > responseData.maxPriceLimit) {
-                        // Avoid infinite loop if we are currently fetching based on maxPrice
-                        // But since we use debounced/effect based on these, it should be fine
-                    }
                 }
             }
         } catch (error) {
@@ -100,15 +101,14 @@ const AllProducts = () => {
 
     const handleCategoryChange = (e) => {
         setSelectedCategory(e.target.value);
-        setPage(1); // Reset to first page on category change
+        setData([]); // Clear data for fresh start
+        setPage(1); 
     };
 
-    const handlePrevPage = () => {
-        if (page > 1) setPage(p => p - 1);
-    };
-
-    const handleNextPage = () => {
-        if (page < totalPages) setPage(p => p + 1);
+    const handleLoadMore = () => {
+        if (page < totalPages && !loading) {
+            setPage(prev => prev + 1);
+        }
     };
 
     const clearFilters = () => {
@@ -117,12 +117,13 @@ const AllProducts = () => {
         setMinRating(0);
         setSelectedCategory("");
         setSearchQuery("");
+        setData([]); // Clear data before resetting page
         setPage(1);
     };
 
     return (
         <div className="min-h-screen bg-[#fcf8ed]">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-6 lg:px-10 py-8">
                 <Breadcrumbs />
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between mt-6 mb-10 gap-6">
@@ -275,40 +276,24 @@ const AllProducts = () => {
                                     ))}
                                 </div>
 
-                                {/* Pagination Buttons */}
-                                {totalPages > 1 && (
-                                    <div className="flex items-center justify-center space-x-4 mt-16 pb-12">
+                                { /* Load More Button */ }
+                                {totalPages > page && (
+                                    <div className="flex items-center justify-center mt-16 pb-12">
                                         <button
-                                            onClick={handlePrevPage}
-                                            disabled={page === 1}
-                                            className={`flex items-center space-x-2 px-8 py-3 rounded-2xl font-bold transition-all shadow-lg ${
-                                                page === 1 
-                                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none' 
-                                                : 'bg-white text-gray-700 hover:bg-[#98c17b] hover:text-white border border-gray-100'
+                                            onClick={handleLoadMore}
+                                            disabled={loading}
+                                            className={`flex items-center space-x-3 px-12 py-4 rounded-2xl font-bold transition-all shadow-xl group ${
+                                                loading 
+                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                                : 'bg-[#70a139] text-white hover:bg-[#5e8730] hover:scale-105 active:scale-95 shadow-green-100'
                                             }`}
                                         >
-                                            <LuChevronLeft size={22} />
-                                            <span>Prev</span>
-                                        </button>
-                                        
-                                        <div className="flex items-center bg-gray-50 px-6 py-3 rounded-2xl border border-gray-100">
-                                            <span className="text-xs font-bold text-gray-400 mr-3 uppercase tracking-widest">Page</span>
-                                            <span className="font-extrabold text-[#98c17b] bg-white w-8 h-8 flex items-center justify-center rounded-lg shadow-sm border border-gray-100 mr-2">{page}</span>
-                                            <span className="text-xs font-bold text-gray-300 mx-2">OF</span>
-                                            <span className="font-extrabold text-gray-800">{totalPages}</span>
-                                        </div>
-
-                                        <button
-                                            onClick={handleNextPage}
-                                            disabled={page === totalPages}
-                                            className={`flex items-center space-x-2 px-8 py-3 rounded-2xl font-bold transition-all shadow-lg ${
-                                                page === totalPages 
-                                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none' 
-                                                : 'bg-[#70a139] text-white hover:bg-[#5e8730] shadow-green-100'
-                                            }`}
-                                        >
-                                            <span>Next</span>
-                                            <LuChevronRight size={22} />
+                                            {loading ? (
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <LuChevronRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                                            )}
+                                            <span>{loading ? 'Loading...' : 'Load More Products'}</span>
                                         </button>
                                     </div>
                                 )}

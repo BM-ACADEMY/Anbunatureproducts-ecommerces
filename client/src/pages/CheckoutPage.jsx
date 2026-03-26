@@ -14,6 +14,7 @@ import { MdPayment } from "react-icons/md";
 import EditAddressDetails from "../components/EditAddressDetails";
 import Breadcrumbs from "../components/Breadcrumbs";
 import DeleteConfirmation from "../components/DeleteConfirmation";
+import AddressCard from "../components/AddressCard";
 
 
 const CheckoutPage = () => {
@@ -185,74 +186,30 @@ const CheckoutPage = () => {
           <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-slate-700 uppercase text-xs tracking-widest">Select Shipping Address</h3>
-                {addressList.filter(a => a.status).length < 2 && (
-                    <button
-                        onClick={() => setOpenAddress(true)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full transition-all"
-                    >
-                        <FiPlus size={14} />
-                        <span>NEW ADDRESS</span>
-                    </button>
-                )}
+                <button
+                    onClick={() => setOpenAddress(true)}
+                    disabled={addressList.filter(a => a.status).length >= 2}
+                    className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition-all border ${
+                        addressList.filter(a => a.status).length >= 2
+                        ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
+                        : "text-blue-600 hover:text-blue-700 bg-blue-50 border-blue-100"
+                    }`}
+                >
+                    <FiPlus size={14} />
+                    <span>{addressList.filter(a => a.status).length >= 2 ? "LIMIT REACHED" : "NEW ADDRESS"}</span>
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-500">
               {addressList.filter(a => a.status).map((address, index) => (
-                <div
+                <AddressCard
                   key={address._id}
-                  className={`relative border-2 rounded-2xl p-4 transition-all duration-300 ${
-                    selectAddress === address._id
-                    ? "border-blue-300 bg-blue-50/30 shadow-md"
-                    : "border-slate-100 hover:border-slate-200 hover:shadow-sm"
-                  }`}
-                >
-                  <label
-                    htmlFor={`address${address._id}`}
-                    className="flex gap-3 items-start cursor-pointer"
-                  >
-                    <input
-                      id={`address${address._id}`}
-                      type="radio"
-                      value={address._id}
-                      checked={selectAddress === address._id}
-                      onChange={(e) => setSelectAddress(e.target.value)}
-                      name="address"
-                      className="accent-blue-600 mt-1 h-4 w-4 flex-shrink-0"
-                    />
-                    <div className="flex-grow min-w-0 pr-2">
-                        <p className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-2">
-                            {address.address_line}{address.address_line_2 && `, ${address.address_line_2}`}
-                        </p>
-
-                      <div className="text-[11px] text-slate-500 mt-2 space-y-1">
-                        <p className="font-medium">{address.city}, {address.state}</p>
-                        <p className="font-bold text-slate-400">{address.pincode}</p>
-                        <p className="font-bold text-slate-700 pt-1 flex items-center gap-1">
-                            <span className="text-[9px] bg-blue-50 text-blue-500 px-1 rounded border border-blue-100 uppercase tracking-tighter font-black">PH</span>
-                            {address.mobile}
-                        </p>
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Actions Bar */}
-                  <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-end gap-2">
-                      <button
-                          onClick={() => handleEditAddress(address)}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                          title="Edit Address"
-                      >
-                          <FiEdit2 size={13} />
-                      </button>
-                      <button
-                          onClick={() => handleDeleteAddress(address._id)}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          title="Delete Address"
-                      >
-                          <FiTrash2 size={13} />
-                      </button>
-                  </div>
-                </div>
+                  address={address}
+                  isSelected={selectAddress === address._id}
+                  onSelect={(id) => setSelectAddress(id)}
+                  onEdit={handleEditAddress}
+                  onDelete={handleDeleteAddress}
+                />
               ))}
 
               {/* Add New Address Card Placeholder */}

@@ -15,7 +15,8 @@ const SearchPage = () => {
   const [page,setPage] = useState(1)
   const [totalPage,setTotalPage] = useState(1)
   const params = useLocation()
-  const searchText = params?.search?.slice(3)
+  const urlParams = new URLSearchParams(params.search)
+  const searchText = urlParams.get('q')
 
   const fetchData = async() => {
     if (!searchText || searchText.trim() === "") {

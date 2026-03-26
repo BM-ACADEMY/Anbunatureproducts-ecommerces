@@ -16,8 +16,8 @@ const Search = ({ isFullWidth = false, close }) => {
     const [isMobile] = useMobile()
     const inputRef = useRef(null)
 
-    const params = useLocation()
-    const searchText = params.search.slice(3)
+    const params = new URLSearchParams(location.search)
+    const searchText = params.get('q')
     const [inputValue, setInputValue] = useState(searchText || "")
     const [suggestions, setSuggestions] = useState([])
     const [loading, setLoading] = useState(false)

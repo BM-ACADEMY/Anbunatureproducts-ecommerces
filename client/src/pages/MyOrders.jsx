@@ -15,16 +15,20 @@ import {
   FiMapPin,
   FiCreditCard,
   FiAlertOctagon,
-  FiChevronRight
+  FiChevronRight,
+  FiEye
 } from 'react-icons/fi';
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
 import { setOrder } from "../store/orderSlice";
 import UserTrackingModal from "../components/UserTrackingModal";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { useNavigate } from "react-router-dom";
 
 const MyOrders = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const orders = useSelector((state) => state.orders.order || []);
   const [openCancelModal, setOpenCancelModal] = useState(false);
   const [openTrackingModal, setOpenTrackingModal] = useState(false);
@@ -33,6 +37,32 @@ const MyOrders = () => {
   const [cancellationReason, setCancellationReason] = useState("");
   const [customReason, setCustomReason] = useState("");
   const [menuOrderId, setMenuOrderId] = useState(null);
+
+  // Grouping logic
+  const groupedOrders = orders.reduce((acc, order) => {
+    const gid = order.groupId || order.orderId; // Fallback to orderId for legacy
+    if (!acc[gid]) {
+      acc[gid] = {
+        groupId: gid,
+        items: [],
+        createdAt: order.createdAt,
+        totalAmt: 0,
+        status: order.tracking_status,
+        address: order.delivery_address,
+        payment_status: order.payment_status,
+        orderId: order.orderId, // Keep one for display if needed
+      };
+    }
+    acc[gid].items.push(order);
+    acc[gid].totalAmt += order.totalAmt;
+    // Use the most "advanced" status if multiple items have different statuses? 
+    // Usually they'd be the same for a group initially.
+    return acc;
+  }, {});
+
+  const sortedGroupedOrders = Object.values(groupedOrders).sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   const fetchOrders = async () => {
     try {
@@ -154,126 +184,112 @@ const MyOrders = () => {
   };
 
   return (
-    <div className="bg-white min-h-full">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">My Orders</h1>
-          <p className="text-gray-500 mt-1 font-medium">Track and manage your recent purchases</p>
+    <div className="bg-white min-h-screen py-8">
+      <div className="container mx-auto px-6 lg:px-10">
+        <div className="mb-6">
+          <Breadcrumbs />
         </div>
-      </div>
+        
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Orders</h1>
+            <p className="text-gray-500 mt-1 font-medium">Track and manage your recent purchases</p>
+          </div>
+        </div>
 
-      {!orders.length ? (
-        <NoData />
-      ) : (
-        <div className="space-y-6">
-          {orders.map((order, index) => {
-            const status = getStatusConfig(order?.tracking_status);
-            return (
-              <div
-                key={order._id + index}
-                className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-              >
-                <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100">
-                      <FiShoppingBag className="text-indigo-600" size={18} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Order ID</p>
-                      <h3 className="text-sm font-extrabold text-gray-900 mt-1">#{order?.orderId || "N/A"}</h3>
-                    </div>
-                  </div>
-                  
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${status.bg} ${status.text} ${status.border} text-[11px] font-bold uppercase tracking-wider`}>
-                    {status.icon}
-                    <span>{order?.tracking_status || "Unknown"}</span>
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="relative w-24 h-24 bg-gray-50 rounded-2xl border border-gray-100 p-2 flex-shrink-0">
-                      <img
-                        src={order?.product_details?.image?.[0] || "/placeholder.jpg"}
-                        alt={order?.product_details?.name || "Product"}
-                        className={`w-full h-full object-scale-down ${order.isCancelled ? "grayscale opacity-50" : ""}`}
-                      />
+        {!sortedGroupedOrders.length ? (
+          <NoData />
+        ) : (
+          <div className="space-y-6">
+            {sortedGroupedOrders.map((group, index) => {
+              const mainOrder = group.items[0];
+              const status = getStatusConfig(group.status);
+              const itemCount = group.items.length;
+              
+              return (
+                <div
+                  key={group.groupId + index}
+                  onClick={() => navigate(`/order-details/${group.groupId}`)}
+                  className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
+                >
+                  <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100">
+                        <FiShoppingBag className="text-indigo-600" size={18} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Order ID</p>
+                        <h3 className="text-sm font-extrabold text-gray-900 mt-1">#{group.groupId.slice(-12).toUpperCase()}</h3>
+                      </div>
                     </div>
                     
-                    <div className="flex-1 min-w-0">
-                      <h2 className={`text-lg font-bold text-gray-900 truncate ${order.isCancelled ? "line-through text-gray-400" : ""}`}>
-                        {order?.product_details?.name || "N/A"}
-                      </h2>
-                      <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2">
-                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
-                          <span className="text-xs text-gray-400 font-medium">Price:</span>
-                          <span>₹{order?.totalAmt?.toLocaleString() || 0}</span>
+                    <div className="flex items-center gap-6">
+                        <div className="text-right hidden sm:block">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Status</p>
+                            <div className={`mt-1 flex items-center gap-2 px-3 py-1 rounded-full border ${status.bg} ${status.text} ${status.border} text-[10px] font-bold uppercase tracking-wider`}>
+                                {status.icon}
+                                <span>{group.status}</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
-                          <span className="text-xs text-gray-400 font-medium">Qty:</span>
-                          <span>{order?.quantity || 1}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs">
-                          <FiCreditCard size={12} />
-                          <span className="uppercase tracking-widest">{order?.payment_status || "N/A"}</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex items-start gap-2 text-xs text-gray-500 font-medium max-w-lg">
-                        <FiMapPin className="text-gray-300 mt-0.5 flex-shrink-0" size={14} />
-                        <span className="leading-relaxed">
-                          {order?.delivery_address?.address_line}, {order?.delivery_address?.city}, {order?.delivery_address?.state} {order?.delivery_address?.pincode}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex md:flex-col justify-end md:justify-start gap-2">
-                       <button 
-                          onClick={() => handleOpenDetailsModal(order)}
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-xs rounded-xl transition-all"
-                       >
-                          <FiInfo size={16} />
-                          <span>Details</span>
-                       </button>
-                       <button 
-                          onClick={() => handleOpenTrackingModal(order)}
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 font-bold text-xs rounded-xl transition-all"
-                       >
-                          <FiTruck size={16} />
-                          <span>Track</span>
-                       </button>
-                       {!order?.isCancelled && (
-                         <button 
-                            onClick={() => handleOpenCancelModal(order)}
-                            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-500 font-bold text-xs rounded-xl transition-all"
-                         >
-                            <FiX size={16} />
-                            <span>Cancel</span>
-                         </button>
-                       )}
+                        <FiChevronRight className="text-gray-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" size={20} />
                     </div>
                   </div>
 
-                  {order?.isCancelled && (
-                    <div className="mt-6 p-4 bg-rose-50/50 rounded-2xl border border-rose-100 flex items-start gap-3">
-                      <FiAlertOctagon className="text-rose-500 mt-0.5" size={18} />
-                      <div>
-                        <p className="text-xs font-bold text-rose-900 uppercase tracking-widest leading-none">Order Cancelled</p>
-                        <p className="text-sm text-rose-600 mt-1 font-medium italic">
-                          "{order.cancellationReason || "N/A"}" 
-                          <span className="text-rose-300 not-italic ml-2">
-                            • {new Date(order.cancellationDate).toLocaleDateString()}
-                          </span>
-                        </p>
+                  <div className="p-6">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="flex -space-x-4 overflow-hidden">
+                        {group.items.slice(0, 3).map((item, idx) => (
+                           <div key={idx} className="relative w-20 h-20 bg-white rounded-2xl border-2 border-white shadow-md p-1.5 flex-shrink-0 z-[idx]">
+                                <img
+                                src={item?.product_details?.image?.[0] || "/placeholder.jpg"}
+                                alt={item?.product_details?.name || "Product"}
+                                className={`w-full h-full object-scale-down rounded-xl ${item.isCancelled ? "grayscale opacity-50" : ""}`}
+                                />
+                                {idx === 2 && itemCount > 3 && (
+                                    <div className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center text-white text-xs font-bold">
+                                        +{itemCount - 2}
+                                    </div>
+                                )}
+                           </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg font-bold text-gray-900 truncate">
+                          {mainOrder?.product_details?.name || "N/A"}
+                          {itemCount > 1 && <span className="text-gray-400 ml-2 font-medium">and {itemCount - 1} more items</span>}
+                        </h2>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2">
+                          <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                            <span className="text-xs text-gray-400 font-medium">Total Amount:</span>
+                            <span className="text-lg">₹{group.totalAmt?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl text-xs">
+                            <FiCreditCard size={14} />
+                            <span className="uppercase tracking-widest">{group.payment_status || "N/A"}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex items-center gap-2 text-xs text-gray-400 font-medium">
+                           <FiClock size={14} />
+                           <span>Placed on {new Date(group.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                         <div className="px-6 py-3 bg-[#1d9963] text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-[#168050] transition-colors flex items-center gap-2">
+                            <FiEye size={16} />
+                            View Details
+                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Cancel Modal */}
       {openCancelModal && (

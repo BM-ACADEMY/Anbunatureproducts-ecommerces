@@ -75,12 +75,12 @@ const UserProfileAvatarEdit = ({ open, close }) => {
       />
       
       {/* Modal content */}
-      <div className={`relative bg-white rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col transition-all ${imageSrc ? 'w-full max-w-xl' : 'w-full max-w-sm'}`}>
+      <div className={`relative bg-white rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col transition-all ${imageSrc ? 'w-full max-w-xl' : 'w-full max-w-sm'}`}>
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
           <h2 className="text-lg font-bold text-gray-800">Edit Profile Picture</h2>
           <button 
             onClick={close}
-            className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-all"
+            className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-full transition-all"
           >
             <IoClose size={20} />
           </button>
@@ -112,7 +112,7 @@ const UserProfileAvatarEdit = ({ open, close }) => {
               </div>
               <div className="mt-8 w-full">
                 <label htmlFor='uploadProfile' className="block w-full">
-                  <div className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-[0.98] cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
+                  <div className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-all shadow-sm active:scale-[0.98] cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
                     <FaUpload size={14} />
                     Select Image
                   </div>

@@ -12,7 +12,7 @@ import UserMenuMobile from "../pages/UserMenuMobile";
 import Dashboard from "../layouts/Dashboard";
 import Profile from "../pages/Profile";
 import MyOrders from "../pages/MyOrders";
-import Address from "../pages/Address";
+import OrderDetails from "../pages/OrderDetails";
 import CategoryPage from "../pages/CategoryPage";
 import SubCategoryPage from "../pages/SubCategoryPage";
 import ProductAdmin from "../pages/ProductAdmin";
@@ -105,10 +105,6 @@ const router = createBrowserRouter([
             path: "myorders",
             element: <MyOrders />,
           },
-          {
-            path: "address",
-            element: <Address />,
-          },
         ]
       },
       {
@@ -130,10 +126,6 @@ const router = createBrowserRouter([
           {
             path: "myorders",
             element: <MyOrders />,
-          },
-          {
-            path: "address",
-            element: <Address />,
           },
           {
             path: "category",
@@ -210,6 +202,10 @@ const router = createBrowserRouter([
       {
         path: "cancel",
         element: <Cancel />,
+      },
+      {
+        path: "order-details/:groupId",
+        element: <OrderDetails />,
       },
     ],
   },

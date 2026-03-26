@@ -16,6 +16,7 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
         ...SummaryApi.updateTracking,
         data: {
           orderId: order.orderId,
+          groupId: order.groupId,
           tracking_status: selectedStatus,
         },
       });
@@ -49,7 +50,9 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
         <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-gray-900">Update Tracking</h3>
-            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">Order #{order?.orderId}</p>
+            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">
+              {order?.groupId ? `Group #${order.groupId.slice(-12).toUpperCase()}` : `Order #${order?.orderId}`}
+            </p>
           </div>
           <button 
             onClick={handleClose}

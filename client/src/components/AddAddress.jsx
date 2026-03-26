@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
+// Removed PhoneInput
 import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import { toast } from 'sonner'
@@ -9,9 +10,11 @@ import { useGlobalContext } from '../provider/GlobalProvider'
 import { State, City } from 'country-state-city';
 
 const AddAddress = ({ close }) => {
-    const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, watch, setValue, control, formState: { errors } } = useForm({
         defaultValues: {
-            country: 'India'
+            country: 'India',
+            mobile: "",
+            alternative_mobile: ""
         }
     })
     const { fetchAddress } = useGlobalContext()
@@ -67,7 +70,7 @@ const AddAddress = ({ close }) => {
     }
 
     return (
-        <section className='fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4'>
+        <section className='fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-hidden'>
             <div className='bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col'>
 
                 {/* Header */}
@@ -189,17 +192,27 @@ const AddAddress = ({ close }) => {
                             {/* Mobile Number */}
                             <div className='space-y-1.5'>
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Mobile Number <span className="text-red-500">*</span></label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">+91</span>
-                                    <input
-                                        {...register('mobile', { required: "Mobile number is required", pattern: { value: /^[0-9]{10}$/, message: "Invalid mobile number" } })}
-                                        placeholder="Phone number"
-                                        maxLength={10}
-                                        className={`w-full pl-12 pr-4 py-2.5 bg-white border rounded-xl text-sm font-medium outline-none transition-all focus:ring-4 focus:ring-slate-50 ${
-                                            errors.mobile ? "border-red-200 focus:border-red-500" : "border-slate-200 focus:border-slate-400"
-                                        }`}
-                                    />
-                                </div>
+                                    <div className="relative group/phone">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none border-r border-slate-200 pr-3">
+                                            <span className="text-xl">🇮🇳</span>
+                                            <span className="text-sm font-bold text-slate-400">+91</span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            {...register('mobile', { 
+                                                required: "Mobile number is required",
+                                                pattern: { value: /^[0-9]{10}$/, message: "Enter 10-digit number" } 
+                                            })}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                setValue('mobile', val);
+                                            }}
+                                            placeholder="Mobile number"
+                                            className={`w-full pl-24 pr-4 py-2.5 bg-white border rounded-xl text-sm font-medium outline-none transition-all focus:ring-4 focus:ring-slate-50 ${
+                                                errors.mobile ? "border-red-200 focus:border-red-500" : "border-slate-200 focus:border-slate-400"
+                                            }`}
+                                        />
+                                    </div>
                                 {errors.mobile && (
                                     <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{errors.mobile.message}</p>
                                 )}
@@ -208,15 +221,24 @@ const AddAddress = ({ close }) => {
                             {/* Alternative Mobile Number */}
                             <div className='space-y-1.5'>
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Alt. Mobile (Optional)</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">+91</span>
-                                    <input
-                                        {...register('alternative_mobile', { pattern: { value: /^[0-9]{10}$/, message: "Invalid mobile number" } })}
-                                        placeholder="Alternative contact"
-                                        maxLength={10}
-                                        className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none transition-all focus:ring-4 focus:ring-slate-50 focus:border-slate-400"
-                                    />
-                                </div>
+                                    <div className="relative group/phone">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none border-r border-slate-200 pr-3">
+                                            <span className="text-xl">🇮🇳</span>
+                                            <span className="text-sm font-bold text-slate-400">+91</span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            {...register('alternative_mobile', { 
+                                                pattern: { value: /^[0-9]{10}$/, message: "Enter 10-digit number" } 
+                                            })}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                setValue('alternative_mobile', val);
+                                            }}
+                                            placeholder="Alternative contact"
+                                            className="w-full pl-24 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none transition-all focus:ring-4 focus:ring-slate-50 focus:border-slate-400"
+                                        />
+                                    </div>
                                 {errors.alternative_mobile && (
                                     <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{errors.alternative_mobile.message}</p>
                                 )}

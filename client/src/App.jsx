@@ -75,13 +75,15 @@ function App() {
 
   return (
     <GlobalProvider>
-      {!hideHeaderFooter && <Header />}
-      <main>
-        <Outlet />
-      </main>
-      {!hideHeaderFooter && <Footer />}
-      <Toaster position="top-right" duration={1000} />
-      {/* <WhatsappFloatButton/> */}
+      <div className="min-h-screen flex flex-col">
+        {!hideHeaderFooter && <Header />}
+        <main className="flex-grow">
+          <Outlet />
+        </main>
+        {!hideHeaderFooter && <Footer />}
+        <Toaster position="top-right" duration={1000} />
+        {/* <WhatsappFloatButton/> */}
+      </div>
     </GlobalProvider>
   );
 }

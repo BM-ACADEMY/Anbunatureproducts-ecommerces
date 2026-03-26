@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText } from "react-icons/fi";
 import { LayoutList, ArrowUpDown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { setOrder } from "../store/orderSlice";
@@ -80,9 +81,13 @@ const AllOrders = () => {
     }
 
     try {
-      const response = await Axios.delete(`${SummaryApi.deleteOrder.url}/${orderToDelete.orderId}`);
+      const url = orderToDelete.groupId 
+        ? `${SummaryApi.deleteOrder.url}/${orderToDelete.groupId}?groupId=${orderToDelete.groupId}`
+        : `${SummaryApi.deleteOrder.url}/${orderToDelete.orderId}`;
+      
+      const response = await Axios.delete(url);
       if (response.data.success) {
-        toast.success("Order deleted successfully");
+        toast.success("Order(s) deleted successfully");
         fetchAllOrders();
         setOpenConfirm(false);
         setOrderToDelete(null);
@@ -126,31 +131,52 @@ const AllOrders = () => {
     }
   };
 
+  const groupedOrders = orders?.reduce((acc, order) => {
+    const gid = order.groupId || order.orderId;
+    if (!acc[gid]) {
+      acc[gid] = {
+        groupId: gid,
+        userId: order.userId,
+        createdAt: order.createdAt,
+        items: [],
+        totalAmt: 0,
+        payment_status: order.payment_status,
+        tracking_status: order.tracking_status,
+        isCancelled: order.isCancelled,
+      };
+    }
+    acc[gid].items.push(order);
+    acc[gid].totalAmt += order.totalAmt;
+    // If any item in the group is not cancelled, the group might be active, 
+    // but usually groups have consistent status
+    return acc;
+  }, {});
+
+  const groupedOrdersList = groupedOrders ? Object.values(groupedOrders) : [];
+
   const statusCounts = {
-    All: orders?.length || 0,
-    Processing: orders?.filter(o => o.tracking_status === "Processing")?.length || 0,
-    Shipped: orders?.filter(o => o.tracking_status === "Shipped")?.length || 0,
-    Cancelled: orders?.filter(o => o.isCancelled || o.tracking_status === "Cancelled")?.length || 0,
+    All: groupedOrdersList.length,
+    Processing: groupedOrdersList.filter(o => o.tracking_status === "Processing").length,
+    Shipped: groupedOrdersList.filter(o => o.tracking_status === "Shipped").length,
+    Cancelled: groupedOrdersList.filter(o => o.isCancelled || o.tracking_status === "Cancelled").length,
   };
 
-  const filteredOrders = orders
-    ?.filter((order) => {
-      // Tab filter
-      if (activeTab === "Processing") return order.tracking_status === "Processing";
-      if (activeTab === "Shipped") return order.tracking_status === "Shipped";
-      if (activeTab === "Cancelled") return order.isCancelled || order.tracking_status === "Cancelled";
+  const filteredOrders = groupedOrdersList
+    .filter((group) => {
+      if (activeTab === "Processing") return group.tracking_status === "Processing";
+      if (activeTab === "Shipped") return group.tracking_status === "Shipped";
+      if (activeTab === "Cancelled") return group.isCancelled || group.tracking_status === "Cancelled";
       return true;
     })
-    ?.filter((order) => {
-      // Search filter
+    .filter((group) => {
       const searchLower = searchQuery.toLowerCase();
       return (
-        order.userId?.name?.toLowerCase().includes(searchLower) ||
-        order.orderId?.toLowerCase().includes(searchLower) ||
-        order.product_details?.name?.toLowerCase().includes(searchLower)
+        group.userId?.name?.toLowerCase().includes(searchLower) ||
+        group.groupId?.toLowerCase().includes(searchLower) ||
+        group.items.some(item => item.product_details?.name?.toLowerCase().includes(searchLower))
       );
     })
-    ?.sort((a, b) => {
+    .sort((a, b) => {
       if (sortBy === "Newest") return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortBy === "Oldest") return new Date(a.createdAt) - new Date(b.createdAt);
       if (sortBy === "Price: High to Low") return b.totalAmt - a.totalAmt;
@@ -316,101 +342,108 @@ const AllOrders = () => {
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {currentOrders.map((order, index) => (
-              <div key={order._id + index} className="group hover:bg-slate-50/10 transition-colors">
+            {currentOrders.map((group, index) => (
+              <div key={group.groupId + index} className="group hover:bg-slate-50/10 transition-colors">
                 {/* Metadata Header Bar */}
                 <div className="px-8 py-3.5 bg-[#F8FAFC] flex items-center justify-between border-y border-gray-50">
                   <div className="flex items-center gap-8">
                     <div className="flex items-center gap-2">
                        <span className="text-[12px] font-medium text-gray-500">Customer:</span>
-                       <span className="text-[12px] font-bold text-[#1A1C21]">{order?.userId?.name}</span>
+                       <span className="text-[12px] font-bold text-[#1A1C21]">{group?.userId?.name || "N/A"}</span>
                     </div>
                     <div className="flex items-center gap-3 border-l border-gray-200 pl-8">
-                       <span className="text-[12px] font-medium text-gray-500">Date of Order:</span>
+                       <span className="text-[12px] font-medium text-gray-500">Date:</span>
                        <span className="text-[12px] font-bold text-[#1A1C21]">
-                          {new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {new Date(group.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                        </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-[12px] font-medium text-gray-500">Order ID:</span>
-                        <span className="text-[12px] font-bold text-[#1A1C21]">{order.orderId}</span>
+                        <span className="text-[12px] font-medium text-gray-500 text-right">Group ID:</span>
+                        <span className="text-[12px] font-bold text-[#1A1C21]">#{group.groupId.slice(-12).toUpperCase()}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Dotted Line Separator */}
-                <div className="mx-8 border-t border-dashed border-gray-200 opacity-60" />
-
-                {/* Main Content Grid (No Spacer) */}
+                {/* Main Content Grid */}
                 <div className="grid grid-cols-11 gap-4 px-8 py-6 items-center">
                   
-                    {/* Product Info */}
+                    {/* Product Summary */}
                     <div className="col-span-5 flex items-center gap-5">
-                      <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 shadow-sm bg-white">
-                        <img
-                          src={order.product_details.image[0]}
-                          alt={order.product_details.name}
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="flex -space-x-3 overflow-hidden">
+                        {group.items.slice(0, 3).map((item, idx) => (
+                          <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white flex-shrink-0 shadow-sm bg-white z-[idx]">
+                            <img
+                              src={item.product_details.image[0]}
+                              className={`w-full h-full object-cover ${item.isCancelled ? "grayscale opacity-50" : ""}`}
+                              alt="product"
+                            />
+                            {idx === 2 && group.items.length > 3 && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[10px] text-white font-bold">
+                                    +{group.items.length - 2}
+                                </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                       <div className="space-y-1">
-                        <h4 className="font-bold text-[#0F172A] text-[14px] leading-tight transition-colors line-clamp-2">
-                          {order.product_details.name}
+                        <h4 className="font-bold text-[#0F172A] text-[14px] leading-tight transition-colors line-clamp-1">
+                          {group.items[0].product_details.name}
+                          {group.items.length > 1 && <span className="text-gray-400 ml-2 font-medium">and {group.items.length - 1} more items</span>}
                         </h4>
-                        <div className="flex items-center gap-2 text-[12px] font-medium text-gray-500">
-                          <span>Quantity: <span className="text-gray-900 font-bold">{order.quantity}</span></span>
-                          {order.product_details.price && <span>Price: <span className="text-gray-900 font-bold">₹{order.product_details.price}</span></span>}
+                        <div className="flex items-center gap-3 text-[12px] font-medium text-gray-500">
+                          <span>Items: <span className="text-gray-900 font-bold">{group.items.length}</span></span>
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          <Link 
+                            to={`/order-details/${group.groupId}`} 
+                            className="text-indigo-600 font-bold uppercase tracking-wider text-[10px] cursor-pointer hover:underline"
+                          >
+                            Full details
+                          </Link>
                         </div>
                       </div>
                     </div>
 
-                    {/* Price */}
+                    {/* Total Price */}
                     <div className="col-span-1 text-center font-bold text-[#0F172A] text-lg">
-                      ₹{order.totalAmt.toLocaleString()}
+                      ₹{group.totalAmt.toLocaleString()}
                     </div>
 
                     {/* Payment Status */}
-                    <div className="col-span-2 text-center text-[14px] font-bold text-[#64748B] capitalize">
-                      {order.payment_status}
+                    <div className="col-span-2 text-center text-[10px] font-black text-[#64748B] uppercase tracking-widest px-3 py-1 bg-gray-50 rounded-lg w-fit mx-auto border border-gray-100">
+                      {group.payment_status}
                     </div>
 
                     {/* Status Badge */}
                     <div className="col-span-2 flex flex-col items-center gap-1.5">
-                      <span className={`px-4 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg border-b-2 ${getStatusClasses(order.tracking_status)}`}>
-                        {order.tracking_status}
+                      <span className={`px-4 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border-b-2 ${getStatusClasses(group.tracking_status)}`}>
+                        {group.tracking_status}
                       </span>
-                      <p className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                        {order.tracking_status === "Pending" && "Please process before..."}
-                        {order.tracking_status === "Processing" && "Preparing for dispatch..."}
-                        {order.tracking_status === "Shipped" && "Estimated delivery by next week"}
-                        {order.tracking_status === "Delivered" && "Successfully received"}
-                      </p>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="col-span-1 flex flex-col gap-2 scale-95 origin-right">
-                      <button
-                        onClick={() => handleOpenInvoice(order)}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#1D9963] text-white rounded-lg text-[12px] font-bold hover:bg-[#168050] transition-all shadow-sm active:scale-95"
+                      <Link
+                        to={`/order-details/${group.groupId}`}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-[11px] font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95"
                       >
-                        <FiFileText className="size-3.5" />
-                        Invoice
-                      </button>
+                        <FiEye className="size-3.5" />
+                        Details
+                      </Link>
                       <button
-                        onClick={() => handleOpenTracking(order)}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-[#0F172A] rounded-lg text-[12px] font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+                        onClick={() => handleOpenTracking(group.items[0])}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-[#0F172A] rounded-lg text-[11px] font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
                       >
                         <FiActivity className="size-3.5" />
-                        Track
+                        Manage
                       </button>
-                      {!order.isCancelled && order.tracking_status !== "Delivered" && (
+                      {!group.isCancelled && group.tracking_status !== "Delivered" && (
                         <button
-                          onClick={() => handleDeleteOrder(order)}
+                          onClick={() => handleDeleteOrder(group.items[0])}
                           className="text-[11px] text-rose-500 font-bold hover:text-rose-600 mt-1 transition-colors text-center w-full"
                         >
-                          Delete Order
+                          Delete Group
                         </button>
                       )}
                     </div>

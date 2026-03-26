@@ -81,8 +81,7 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
   const userItems = [
     { text: "Profile", icon: <FiUser size={20} />, path: "/user/profile" },
     { text: "My Cart", icon: <FiShoppingCart size={20} />, path: "/cart" },
-    { text: "My Orders", icon: <FiList size={20} />, path: "/user/myorders" },
-    { text: "Save Address", icon: <FiHome size={20} />, path: "/user/address" },
+    { text: "My Orders", icon: <FiList size={18} />, path: "/user/myorders" },
   ];
 
   const menuItems = isAdmin(user?.role) 

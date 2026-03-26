@@ -23,6 +23,8 @@ export async function CashOnDeliveryOrderController(req, res) {
       });
     }
 
+    const commonGroupId = `GRP-${new mongoose.Types.ObjectId()}`;
+
     const payload = await Promise.all(
       list_items.map(async (el) => {
         const cartItem = await CartProductModel.findById(el._id).populate("productId");
@@ -40,6 +42,7 @@ export async function CashOnDeliveryOrderController(req, res) {
         return {
           userId,
           orderId: `ORD-${new mongoose.Types.ObjectId()}`,
+          groupId: commonGroupId,
           productId: cartItem.productId._id,
           product_details: {
             name: cartItem.productId.name,
@@ -230,7 +233,7 @@ export async function paymentController(request, response) {
     }
 }
 
-export const getOrderProductItems = async ({ lineItems, userId, addressId, paymentId, payment_status }) => {
+export const getOrderProductItems = async ({ lineItems, userId, addressId, paymentId, payment_status, groupId }) => {
     const productList = [];
 
     if (lineItems?.data?.length) {
@@ -240,6 +243,7 @@ export const getOrderProductItems = async ({ lineItems, userId, addressId, payme
             const payload = {
                 userId: userId,
                 orderId: `ORD-${new mongoose.Types.ObjectId()}`,
+                groupId: groupId,
                 productId: product.metadata.productId,
                 product_details: {
                     name: product.name,
@@ -278,6 +282,7 @@ export async function webhookStripe(request, response) {
                     addressId: addressId,
                     paymentId: session.payment_intent,
                     payment_status: session.payment_status,
+                    groupId: session.id, // Use Stripe session ID as groupId
                 });
 
                 const order = await OrderModel.insertMany(orderProduct);
@@ -443,12 +448,12 @@ export async function cancelOrderController(request, response) {
 
 export async function updateTrackingStatusController(request, response) {
     try {
-        const userId = request.userId; // From auth middleware
-        const { orderId, tracking_status } = request.body;
+        const { orderId, tracking_status, groupId } = request.body;
+        const userId = request.userId;
 
-        if (!orderId || !tracking_status) {
+        if (!orderId && !groupId) {
             return response.status(400).json({
-                message: "Provide orderId and tracking_status",
+                message: "Provide orderId or groupId",
                 error: true,
                 success: false,
             });
@@ -463,38 +468,58 @@ export async function updateTrackingStatusController(request, response) {
             });
         }
 
-        const order = await OrderModel.findOne({ orderId, isDeleted: false });
-        if (!order) {
+        // Find existing order(s)
+        const filter = groupId ? { groupId, isDeleted: false } : { orderId, isDeleted: false };
+        const orders = await OrderModel.find(filter);
+
+        if (!orders.length) {
             return response.status(404).json({
-                message: "Order not found",
+                message: "Order(s) not found",
                 error: true,
                 success: false,
             });
         }
 
-        if (order.isCancelled) {
-            return response.status(400).json({
+        // Check if any order in the group is cancelled
+        const hasCancelled = orders.some(o => o.isCancelled);
+        if (hasCancelled && !groupId) { // For individual order, block if cancelled
+             return response.status(400).json({
                 message: "Cannot update tracking for cancelled order",
                 error: true,
                 success: false,
             });
         }
-
-        // Prevent moving backward in tracking status
-        const statusOrder = ["Pending", "Processing", "Shipped", "Delivered"];
-        const currentIndex = statusOrder.indexOf(order.tracking_status);
-        const newIndex = statusOrder.indexOf(tracking_status);
-        if (newIndex <= currentIndex && order.tracking_status !== "Pending") {
-            return response.status(400).json({
-                message: "Cannot revert to a previous tracking status",
+        
+        // For groups, we only update non-cancelled ones later, or block if all are cancelled
+        const nonCancelledOrders = orders.filter(o => !o.isCancelled);
+        if (!nonCancelledOrders.length) {
+             return response.status(400).json({
+                message: "All items in this group are cancelled",
                 error: true,
                 success: false,
             });
         }
 
-        // Update tracking status and add to history
-        const updatedOrder = await OrderModel.findOneAndUpdate(
-            { orderId },
+        // Prevent moving backward (check against each order)
+        const statusOrder = ["Pending", "Processing", "Shipped", "Delivered"];
+        const newIndex = statusOrder.indexOf(tracking_status);
+        
+        for (const order of nonCancelledOrders) {
+            const currentIndex = statusOrder.indexOf(order.tracking_status);
+            if (newIndex < currentIndex && order.tracking_status !== "Pending") {
+                return response.status(400).json({
+                    message: `Cannot revert ${order.product_details.name} to a previous tracking status`,
+                    error: true,
+                    success: false,
+                });
+            }
+        }
+
+        // Update tracking status and add to history for all eligible orders
+        const updateResult = await OrderModel.updateMany(
+            { 
+               _id: { $in: nonCancelledOrders.map(o => o._id) } 
+            },
             {
                 tracking_status,
                 $push: {
@@ -503,16 +528,12 @@ export async function updateTrackingStatusController(request, response) {
                         updatedBy: userId,
                     },
                 },
-            },
-            { new: true }
-        )
-            .populate("delivery_address")
-            .populate("productId")
-            .populate("userId", "name email");
+            }
+        );
 
         return response.json({
             message: "Tracking status updated successfully",
-            data: updatedOrder,
+            data: updateResult,
             error: false,
             success: true,
         });
@@ -528,41 +549,44 @@ export async function updateTrackingStatusController(request, response) {
 export async function deleteOrderController(request, response) {
     try {
         const { orderId } = request.params;
+        const { groupId } = request.query; // Support groupId via query param
 
-        if (!orderId) {
+        if (!orderId && !groupId) {
             return response.status(400).json({
-                message: "Provide orderId",
+                message: "Provide orderId or groupId",
                 error: true,
                 success: false,
             });
         }
 
-        const order = await OrderModel.findOne({ orderId, isDeleted: false });
-        if (!order) {
+        const filter = groupId ? { groupId, isDeleted: false } : { orderId, isDeleted: false };
+        const orders = await OrderModel.find(filter);
+
+        if (!orders.length) {
             return response.status(404).json({
-                message: "Order not found",
+                message: "Order(s) not found",
                 error: true,
                 success: false,
             });
         }
 
-        if (order.tracking_status === "Delivered") {
+        // Cannot delete if any item is delivered
+        if (orders.some(o => o.tracking_status === "Delivered")) {
             return response.status(400).json({
-                message: "Cannot delete a delivered order",
+                message: "Cannot delete a group with delivered items",
                 error: true,
                 success: false,
             });
         }
 
-        const updatedOrder = await OrderModel.findOneAndUpdate(
-            { orderId },
-            { isDeleted: true },
-            { new: true }
+        const updateResult = await OrderModel.updateMany(
+            { _id: { $in: orders.map(o => o._id) } },
+            { isDeleted: true }
         );
 
         return response.json({
-            message: "Order deleted successfully",
-            data: updatedOrder,
+            message: "Order(s) deleted successfully",
+            data: updateResult,
             error: false,
             success: true,
         });
