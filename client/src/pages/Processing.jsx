@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import uploadImage from "../utils/UploadImage";
 import { FaCopy, FaCheckCircle } from "react-icons/fa"; // Import icons
 import Qrcodeiamge from '../assets/qrcodeimage.jpg'
+import Breadcrumbs from "../components/Breadcrumbs";
+
 
 const Processing = () => {
   const { totalPrice, totalQty, fetchCartItem, fetchOrder } =
@@ -134,10 +136,10 @@ const Processing = () => {
           <div className="bg-white shadow-2xl rounded-3xl overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-2">
               {/* Order Summary Section - Left Side */}
-              <div className="p-8 md:p-10 bg-gray-50 border-r border-gray-100">
+              <div className="p-8 md:p-10 bg-[#f3f9f2] border-r border-green-50">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                   Order Summary
-                  <span className="text-sm font-medium bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                  <span className="text-sm font-medium bg-green-100 text-[#196806] px-3 py-1 rounded-full">
                     {displayTotalQty} {displayTotalQty > 1 ? "items" : "item"}
                   </span>
                 </h3>
@@ -166,7 +168,7 @@ const Processing = () => {
                             alt={item.productId?.name}
                             className="w-24 h-24 object-cover rounded-xl"
                           />
-                          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
+                          <span className="absolute -top-2 -right-2 bg-[#196806] text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
                             {item.quantity}
                           </span>
                         </div>
@@ -184,7 +186,7 @@ const Processing = () => {
                                         {DisplayPriceInRupees(itemOriginalPrice)}
                                     </span>
                                 )}
-                                <p className="text-blue-700 font-extrabold text-lg">
+                                <p className="text-[#196806] font-extrabold text-lg">
                                     {DisplayPriceInRupees(itemOfferPrice)}
                                 </p>
                             </div>
@@ -202,7 +204,7 @@ const Processing = () => {
                   </div>
                   <div className="flex justify-between items-center text-xl font-extrabold text-gray-900 border-t border-dashed border-gray-300 pt-4">
                     <span>Grand Total</span>
-                    <span className="text-blue-700">{DisplayPriceInRupees(displayTotalPrice)}</span>
+                    <span className="text-[#196806]">{DisplayPriceInRupees(displayTotalPrice)}</span>
                   </div>
                 </div>
               </div>
@@ -225,7 +227,7 @@ const Processing = () => {
                       />
                       <div className="mt-4 p-3 bg-blue-50 rounded-2xl flex items-center justify-between gap-3">
                          <div className="flex flex-col items-start px-1 overflow-hidden">
-                           <span className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">UPI ID</span>
+                           <span className="text-[10px] text-[#196806] font-bold uppercase tracking-wider">UPI ID</span>
                            <span className="text-sm font-bold text-gray-700 truncate w-full">{upiId}</span>
                          </div>
                          <button
@@ -245,11 +247,11 @@ const Processing = () => {
                     <div className="mt-8 space-y-4 w-full">
                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                           <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Payable Amount</p>
-                          <p className="text-3xl font-black text-blue-700">{DisplayPriceInRupees(displayTotalPrice)}</p>
+                          <p className="text-3xl font-black text-[#196806]">{DisplayPriceInRupees(displayTotalPrice)}</p>
                        </div>
                        <button
                           onClick={() => setStep(2)}
-                          className="w-full py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold text-lg shadow-lg shadow-blue-100 transition-all transform hover:-translate-y-1 active:scale-95"
+                          className="w-full py-4 bg-[#196806] text-white rounded-2xl hover:bg-[#104a02] font-bold text-lg shadow-lg shadow-green-100 transition-all transform hover:-translate-y-1 active:scale-95"
                         >
                           I Have Paid, Proceed
                         </button>
@@ -353,7 +355,7 @@ const Processing = () => {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 shadow-sm">
+              <div className="bg-[#f3f9f2] p-8 rounded-2xl border border-green-50 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -382,7 +384,7 @@ const Processing = () => {
                 )}
               </div>
 
-              <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
+              <div className="bg-[#f3f9f2] p-8 rounded-2xl border border-green-50 shadow-sm flex flex-col">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,7 +404,7 @@ const Processing = () => {
                    </div>
                    <div className="pt-4 mt-4 border-t border-dashed border-gray-200 flex justify-between items-center text-xl font-black text-gray-900">
                       <span>Total</span>
-                      <span className="text-blue-700">{DisplayPriceInRupees(displayTotalPrice)}</span>
+                      <span className="text-[#196806]">{DisplayPriceInRupees(displayTotalPrice)}</span>
                    </div>
                 </div>
               </div>
@@ -480,8 +482,11 @@ const Processing = () => {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-tr from-blue-50 via-white to-indigo-50 py-12">
+    <section className="min-h-screen bg-[#fcf8ed] py-8 lg:py-12">
       <div className="container mx-auto px-6 lg:px-10">
+        <div className="mb-6 max-w-4xl mx-auto">
+          <Breadcrumbs />
+        </div>
         {/* Progress Bar */}
         <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center">
@@ -491,7 +496,7 @@ const Processing = () => {
               }`}
             >
               <div className="relative mb-2">
-                <div className="w-10 h-10 mx-auto bg-blue-600 rounded-full text-lg text-white flex items-center justify-center">
+                <div className="w-10 h-10 mx-auto bg-[#196806] rounded-full text-lg text-white flex items-center justify-center">
                   1
                 </div>
               </div>

@@ -1,25 +1,41 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "sonner";
 import SummaryApi from "../common/SummaryApi";
 import Axios from "../utils/Axios";
 import AxiosToastError from "../utils/AxiosToastError";
 import { FaAngleRight, FaAngleLeft } from "react-icons/fa6";
+import { FiZap } from "react-icons/fi";
 import { DisplayPriceInRupees } from "../utils/DisplayPriceInRupees";
 import Divider from "../components/Divider";
 import AddToCartButton from "../components/AddToCartButton";
-import {
-  Box,
-  Chip,
-  Typography,
-  Rating,
-  Button,
-  Avatar,
-  TextField,
-  FormControl,
-  Alert,
-  Modal,
-} from "@mui/material";
-import { ChevronDown } from "lucide-react";
+import CategoryWiseProductDisplay from "../components/CategoryWiseProductDisplay";
+import { FaStar } from "react-icons/fa";
+
+// --- StarRating Component ---
+const StarRating = ({ value, onChange, readOnly = false, size = "large" }) => {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={readOnly}
+          onClick={() => !readOnly && onChange && onChange(null, star)}
+          className={`${readOnly ? "cursor-default" : "cursor-pointer"} ${
+            size === "small" ? "text-sm lg:text-base" : "text-2xl lg:text-3xl"
+          } transition-colors`}
+        >
+          <FaStar
+            className={star <= value ? "text-yellow-400" : "text-gray-300"}
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
+import { ChevronDown, User } from "lucide-react";
 import fetchUserDetails from "../utils/fetchUserDetails";
 
 // --- ReviewsSection Component (moved outside ProductDisplayPage and memoized) ---
@@ -39,254 +55,133 @@ const ReviewsSection = ({
   reviewSuccess,
 }) => {
   return (
-    <Box
-      sx={{
-        my: 4,
-        p: 3,
-        borderRadius: "12px",
-        transition: "all 0.3s ease",
-      }}
-    >
-      <Typography
-        variant="h6"
-        fontWeight="medium"
-        sx={{ mb: 2, color: "#1e293b" }}
-      >
-        Customer Reviews
-      </Typography>
+    <div className="my-10 transition-all duration-300">
+      <h6 className="font-bold text-lg text-gray-800 mb-3">   Product Review</h6>
 
-      {/* Button to open the review submission modal */}
-      <Button
-        variant="contained"
-        onClick={() => setIsReviewModalOpen(true)}
-        sx={{
-          backgroundColor: "#1d9962",
-          color: "#ffffff",
-          borderRadius: "10px",
-          px: 3,
-          py: 1.5,
-          mb: 4,
-          "&:hover": {
-            backgroundColor: "#16794d",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-          },
-        }}
-      >
-        Write a Review
-      </Button>
 
-      {/* Review Submission Modal */}
-      <Modal
-        open={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        aria-labelledby="review-modal-title"
-        aria-describedby="review-modal-description"
-      >
-        <Box
-          key="review-form-modal-content" // Keep this key for modal content stability
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: { xs: "90%", sm: 450, md: 500 },
-            bgcolor: "background.paper",
-            borderRadius: "12px",
-            boxShadow: 24,
-            p: 4,
-            outline: "none",
-          }}
-        >
-          <Typography id="review-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
-            Submit Your Review
-          </Typography>
-          <Box
-            component="form"
-            onSubmit={handleReviewSubmit}
-            sx={{
-              p: 1,
-            }}
-          >
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-14 items-start">
+        {/* Left Column: Reviews List */}
+        <div className="flex-1 w-full flex flex-col lg:pr-10">
+          {dataReviews && dataReviews.length > 0 ? (
+            <>
+              {dataReviews.slice(0, visibleReviews).map((review, index) => (
+                <div
+                  key={review._id || index}
+                  className="py-5 border-b border-gray-200 flex items-start gap-4 transition-all duration-300 last:border-0"
+                >
+                  <div className="w-9 h-9 min-w-[36px] rounded-full flex items-center justify-center bg-[#aeb4b7] text-white">
+                    <User size={20} strokeWidth={2} />
+                  </div>
+                  <div className="flex-1 mt-0.5">
+                    <h6 className="font-bold text-slate-800 text-[15px]">
+                      {review.name}
+                    </h6>
+                    <div className="mt-1">
+                      <StarRating
+                        value={review.stars}
+                        readOnly
+                        size="small"
+                      />
+                    </div>
+                    <p className="mt-2 text-[#999999] text-[13px] leading-relaxed break-words">
+                      {review.comment}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              
+              {dataReviews.length > visibleReviews && (
+                <div className="pt-4 pb-2 flex justify-start">
+                  <button
+                    onClick={handleViewMoreReviews}
+                    className="text-[#648b3b] hover:text-[#4d6c2d] hover:underline transition-all duration-300 text-[13px] font-medium"
+                  >
+                    View More Reviews
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-[#999999] italic py-4 text-[13px]">
+              No reviews yet. Be the first to review this product!
+            </p>
+          )}
+        </div>
+
+        {/* Right Column: Review Form */}
+        <div className="lg:w-[480px] w-full bg-white rounded-lg p-6 md:p-8 border border-gray-200 flex-shrink-0 h-fit sticky top-32">
+          <form onSubmit={handleReviewSubmit} className="space-y-6">
             {reviewError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <div className="bg-red-50 text-red-600 p-3 rounded text-[13px]">
                 {reviewError}
-              </Alert>
+              </div>
             )}
             {reviewSuccess && (
-              <Alert severity="success" sx={{ mb: 2 }}>
+              <div className="bg-green-50 text-green-600 p-3 rounded text-[13px]">
                 {reviewSuccess}
-              </Alert>
+              </div>
             )}
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <TextField
-                label="Your Name"
+
+            <div className="flex items-center gap-3">
+              <label className="text-[14px] text-gray-700 w-[80px] text-right flex-shrink-0">
+                <span className="text-red-500 mr-1">*</span>Rating:
+              </label>
+              <div className="flex-1">
+                <StarRating
+                  value={reviewData.stars}
+                  onChange={(event, newValue) => {
+                    setReviewData((prev) => ({ ...prev, stars: newValue }));
+                  }}
+                  size="small"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-[14px] text-gray-700 w-[80px] text-right flex-shrink-0">
+                <span className="text-red-500 mr-1">*</span>Name:
+              </label>
+              <input
+                type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                variant="outlined"
-                disabled={!!userName}
                 required
+                placeholder="Enter Name"
+                className="flex-1 w-full border border-gray-200 rounded-md px-3 py-2 outline-none transition-all font-outfit text-[14px] placeholder-gray-300"
               />
-            </FormControl>
-            <FormControl sx={{ mb: 2 }}>
-              <Typography component="legend" sx={{ mb: 1 }}>
-                Rating
-              </Typography>
-              <Rating
-                value={reviewData.stars}
-                onChange={(event, newValue) => {
-                  setReviewData((prev) => ({ ...prev, stars: newValue }));
-                }}
-                size="large"
-                required
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <TextField
-                label="Your Comment"
-                multiline
-                rows={4}
-                value={reviewData.comment}
-                onChange={(e) =>
-                  setReviewData((prev) => ({ ...prev, comment: e.target.value }))
-                }
-                variant="outlined"
-                required
-              />
-            </FormControl>
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: "#1d9962",
-                color: "#ffffff",
-                borderRadius: "10px",
-                px: 3,
-                py: 1.5,
-                "&:hover": {
-                  backgroundColor: "#16794d",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                },
-              }}
-            >
-              Submit Review
-            </Button>
-            <Button
-              onClick={() => setIsReviewModalOpen(false)}
-              variant="outlined"
-              sx={{
-                ml: 2,
-                borderRadius: "10px",
-                borderColor: "#d1d5db",
-                color: "#4b5563",
-                "&:hover": {
-                  borderColor: "#a1a1aa",
-                  backgroundColor: "#f3f4f6",
-                },
-              }}
-            >
-              Cancel
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+            </div>
 
-      {/* Existing Reviews */}
-      {dataReviews && dataReviews.length > 0 ? (
-        <Box>
-          {dataReviews.slice(0, visibleReviews).map((review, index) => (
-            <Box
-              key={review._id || index} // Use _id for unique identification
-              sx={{
-                mb: 2,
-                p: 2,
-                background: "white",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 2,
-                transition: "transform 0.2s ease, opacity 0.5s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 6px 12px rgba(0, 0, 0, 0.08)",
-                },
-              }}
-            >
-              <Avatar
-                sx={{
-                  bgcolor: getAvatarColor(index),
-                  width: 40,
-                  height: 40,
-                  fontSize: "1rem",
-                  fontWeight: "medium",
-                }}
-              >
-                {review.name.slice(0, 2).toUpperCase()}
-              </Avatar>
-              <Box>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="medium"
-                  sx={{ color: "#1e293b" }}
-                >
-                  {review.name}
-                </Typography>
-                <Rating
-                  value={review.stars}
-                  readOnly
-                  size="small"
-                  sx={{ my: 0.5 }}
+            <div className="flex items-start gap-3">
+              <label className="text-[14px] text-gray-700 w-[80px] text-right mt-2 flex-shrink-0">
+                <span className="text-red-500 mr-1">*</span>Comment:
+              </label>
+              <div className="flex-1 w-full">
+                <textarea
+                  rows={4}
+                  maxLength={250}
+                  value={reviewData.comment}
+                  onChange={(e) =>
+                    setReviewData((prev) => ({ ...prev, comment: e.target.value }))
+                  }
+                  required
+                  placeholder="Enter Message"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 outline-none transition-all resize-none font-outfit text-[14px] placeholder-gray-300"
                 />
-                <Typography variant="body2" sx={{ mt: 1, color: "#4b5563" }}>
-                  {review.comment}
-                </Typography>
-                {review.createdAt && (
-                  <Typography
-                    variant="caption"
-                    color="text.disabled"
-                    sx={{ mt: 0.5, display: "block" }}
-                  >
-                    Reviewed on: {new Date(review.createdAt).toLocaleDateString()}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          ))}
-          {dataReviews.length > visibleReviews && (
-            <Button
-              variant="outlined"
-              onClick={handleViewMoreReviews}
-              sx={{
-                mt: 2,
-                minWidth: 0,
-                px: 1.5,
-                py: 1,
-                borderRadius: "10px",
-                borderWidth: "2px",
-                borderColor: "#1d9962",
-                color: "#3b82f6",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "#1d9962",
-                  color: "#ffffff",
-                  borderColor: "#1d9962",
-                  boxShadow: "0 2px 6px rgba(59, 130, 246, 0.4)",
-                },
-              }}
-            >
-              <ChevronDown size={18} />
-            </Button>
-          )}
-        </Box>
-      ) : (
-        <Typography
-          variant="body1"
-          sx={{ color: "#6b7280", fontStyle: "italic" }}
-        >
-          No reviews yet. Be the first to review!
-        </Typography>
-      )}
-    </Box>
+              </div>
+            </div>
+
+            <div className="flex pl-[92px]">
+              <button
+                type="submit"
+                className="bg-[#648b3b] text-white rounded-md px-6 py-2 hover:bg-[#4d6c2d] transition-all duration-300 font-medium text-[14px]"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -296,6 +191,8 @@ const MemoizedReviewsSection = memo(ReviewsSection);
 // --- ProductDisplayPage Component ---
 const ProductDisplayPage = () => {
   const params = useParams();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
   let productId = params?.product?.split("-")?.slice(-1)[0];
   const [data, setData] = useState({
     name: "",
@@ -317,6 +214,9 @@ const ProductDisplayPage = () => {
   const [currentCalculatedStock, setCurrentCalculatedStock] = useState(null);
   const [currentCalculatedUnit, setCurrentCalculatedUnit] = useState("");
   const [priceError, setPriceError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [pincode, setPincode] = useState("");
+  const [pincodeStatus, setPincodeStatus] = useState(null);
   const [visibleReviews, setVisibleReviews] = useState(5);
   const [revealedReviewsCount, setRevealedReviewsCount] = useState(5);
   const [userName, setUserName] = useState("");
@@ -460,6 +360,20 @@ const ProductDisplayPage = () => {
   }, [productId]); // Add fetchProductDetails and fetchUser if they are not stable
 
   useEffect(() => {
+    if (data.name) {
+      document.title = `${data.name} | Anbu Nature Products`;
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.name = "description";
+        document.head.appendChild(metaDescription);
+      }
+      const plainDesc = data.description ? data.description.replace(/<[^>]+>/g, '').slice(0, 160) : `Buy ${data.name} online at Anbu Nature Products.`;
+      metaDescription.content = plainDesc;
+    }
+  }, [data.name, data.description]);
+
+  useEffect(() => {
     let totalCalculatedPrice = 0;
     let totalCalculatedOriginalPrice = 0;
     let combinedStock = null;
@@ -570,82 +484,71 @@ const ProductDisplayPage = () => {
     );
   }
 
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    if (user?._id) {
+        const item = {
+            productId: data,
+            product_details: {
+                name: data.name,
+                image: data.image
+            },
+            quantity: quantity,
+            selectedAttributes: Object.entries(selectedAttributes).map(([name, option]) => ({
+                attributeName: name,
+                optionName: option.name,
+                price: option.offerPrice || option.price,
+                stock: option.stock,
+                unit: option.unit
+            }))
+        };
+        navigate('/checkout', { state: { singleItem: item } });
+    } else {
+        toast.error('Please Login to proceed');
+        navigate('/login');
+    }
+  };
+
   return (
-    <section className="bg-[#16794d0a]">
-      <div className="container mx-auto p-4 grid lg:grid-cols-2 gap-8">
-        <div className="relative">
-          {/* Main Image Display */}
-          <div
-            ref={mainImageRef}
-            onMouseEnter={() => setIsMainImageHovered(true)}
-            onMouseLeave={() => setIsMainImageHovered(false)}
-            className="lg:min-h-[65vh] lg:max-h-[65vh] rounded-lg min-h-56 max-h-56 h-full w-full flex items-center justify-center overflow-hidden relative"
-          >
-            {data.image.length > 0 ? (
-              <img
-                src={data.image[image]}
-                className={`w-full h-full object-contain rounded-lg ${
-                  isFading ? "image-fade-out" : "image-fade-in"
-                }`}
-                alt="product"
-              />
-            ) : (
-              <img
-                src="https://via.placeholder.com/150"
-                className="w-full h-full object-contain rounded-lg"
-                alt="placeholder"
-              />
-            )}
+    <section className="">
+      <div className="container mx-auto p-4 grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        {/* Custom Breadcrumb matching product name */}
+        <nav className="lg:col-span-12 flex px-0 pb-0 text-gray-700 bg-transparent rounded-lg w-full -mb-4 lg:-mb-8" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3 w-full">
+            <li className="inline-flex items-center">
+              <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#1d9962] transition-colors">
+                Home
+              </Link>
+            </li>
+            <li className="flex items-center">
+               <FaAngleRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400 mx-1 md:mx-2 flex-shrink-0" />
+               <span className="text-sm font-medium text-gray-500">
+                 Product
+               </span>
+            </li>
+            <li className="flex items-center w-full min-w-0" aria-current="page">
+               <FaAngleRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400 mx-1 md:mx-2 flex-shrink-0" />
+               <span className="text-sm font-medium text-[#1d9962] truncate">
+                 {data.name || "Loading..."}
+               </span>
+            </li>
+          </ol>
+        </nav>
 
-            {/* Navigation Buttons for Main Image */}
-            {data.image.length > 1 && isMainImageHovered && (
-              <>
-                <button
-                  onClick={handlePrevImage}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Previous image"
-                >
-                  <FaAngleLeft className="text-gray-600 text-lg" />
-                </button>
-                <button
-                  onClick={handleNextImage}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Next image"
-                >
-                  <FaAngleRight className="text-gray-600 text-lg" />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Thumbnail Indicators (Dots) */}
-          {data.image.length > 1 && (
-            <div className="flex items-center justify-center gap-2 my-3">
-              {data.image.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-1 h-1 lg:w-2 lg:h-2 rounded-full transition-all duration-300 ${
-                    index === image ? "bg-green-500 scale-125" : "bg-gray-300"
-                  }`}
-                ></div>
-              ))}
-            </div>
-          )}
-
-          {/* Scrollable Thumbnail Strip */}
-          {data.image.length > 0 && (
-            <div className="grid relative mt-3">
-              <div
-                ref={imageContainer}
-                className="flex gap-3 z-10 relative w-full overflow-x-auto scrollbar-none px-5 py-2"
-              >
+        {/* Left Column: Images (Takes 5 columns out of 12) */}
+        <div className="relative lg:sticky lg:top-24 z-10 lg:col-span-5">
+          <div className="flex flex-col lg:flex-row gap-4 items-start">
+            
+            {/* Thumbnails (Left on Desktop, Bottom on Mobile) */}
+            {data.image.length > 0 && (
+              <div className="order-2 lg:order-1 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full lg:w-auto lg:min-w-[90px] lg:max-h-[500px] py-2 px-2">
                 {data.image.map((img, index) => (
                   <div
                     key={img + index}
-                    className={`w-20 h-20 min-h-20 min-w-20 cursor-pointer rounded-lg overflow-hidden shadow-md transition-all duration-300 ${
+                    className={`min-w-[4rem] min-h-[4rem] w-16 h-16 lg:min-w-[5rem] lg:min-h-[5rem] lg:w-20 lg:h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                       index === image
-                        ? "ring-2 ring-green-500"
-                        : "hover:ring-2 hover:ring-green-300"
+                        ? "border-[#279d68] shadow-md transform lg:scale-105"
+                        : "border-transparent hover:border-[#279d68]/50 shadow-sm"
                     }`}
                     onMouseEnter={() => setImage(index)}
                     onClick={() => setImage(index)}
@@ -653,199 +556,277 @@ const ProductDisplayPage = () => {
                     <img
                       src={img}
                       alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-contain hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                 ))}
               </div>
-              <div className="w-full h-full flex justify-between absolute items-center px-2">
-                <button
-                  onClick={handleScrollLeft}
-                  className="z-10 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Scroll thumbnails left"
-                >
-                  <FaAngleLeft className="text-gray-600" />
-                </button>
-                <button
-                  onClick={handleScrollRight}
-                  className="z-10 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Scroll thumbnails right"
-                >
-                  <FaAngleRight className="text-gray-600" />
-                </button>
-              </div>
-            </div>
-          )}
-          <Box sx={{ display: { xs: "none", md: "none", lg: "block" } }}>
-            <MemoizedReviewsSection
-              dataReviews={data.reviews}
-              visibleReviews={visibleReviews}
-              handleViewMoreReviews={memoizedHandleViewMoreReviews}
-              getAvatarColor={memoizedGetAvatarColor}
-              isReviewModalOpen={isReviewModalOpen}
-              setIsReviewModalOpen={memoizedSetIsReviewModalOpen}
-              handleReviewSubmit={memoizedHandleReviewSubmit}
-              userName={userName}
-              setUserName={memoizedSetUserName}
-              reviewData={reviewData}
-              setReviewData={memoizedSetReviewData}
-              reviewError={reviewError}
-              reviewSuccess={reviewSuccess}
-            />
-          </Box>
-        </div>
+            )}
 
-        <div className="p-4 lg:pl-7 text-base lg:text-lg">
-          <h2 className="text-lg font-light font-outfit lg:text-3xl">
-            {data.name}
-          </h2>
-
-          <Divider />
-          <div>
-            <p className="font-outfit">Price</p>
-            <div className="flex items-center gap-2 lg:gap-4">
-              {priceError ? (
-                <p className="text-red-500">{priceError}</p>
-              ) : currentCalculatedPrice > 0 ? (
-                <div className="py-2 rounded w-fit flex items-center gap-3">
-                  <p className="font-bold font-outfit text-2xl lg:text-3xl text-green-700">
-                    {DisplayPriceInRupees(currentCalculatedPrice)}
-                  </p>
-                  {currentCalculatedOriginalPrice > currentCalculatedPrice && (
-                    <div className="flex items-center gap-2">
-                        <p className="font-medium font-outfit text-lg lg:text-xl text-slate-400 line-through">
-                            {DisplayPriceInRupees(currentCalculatedOriginalPrice)}
-                        </p>
-                        <span className="bg-green-100 text-green-700 text-xs lg:text-sm font-bold px-2 py-1 rounded-md">
-                            {Math.round(((currentCalculatedOriginalPrice - currentCalculatedPrice) / currentCalculatedOriginalPrice) * 100)}% OFF
-                        </span>
-                    </div>
-                  )}
-                </div>
+            {/* Main Image Display (Right on Desktop, Top on Mobile) */}
+            <div
+              ref={mainImageRef}
+              onMouseEnter={() => setIsMainImageHovered(true)}
+              onMouseLeave={() => setIsMainImageHovered(false)}
+              className="order-1 lg:order-2 flex-1 rounded-2xl w-full flex items-center justify-center overflow-hidden relative"
+            >
+              {data.image.length > 0 ? (
+                <img
+                  src={data.image[image]}
+                  className={`w-full max-h-[500px] object-contain rounded-lg ${
+                    isFading ? "image-fade-out" : "image-fade-in"
+                  }`}
+                  alt="product"
+                />
               ) : (
-                <p className="text-red-500 font-outfit">
-                  Price not available from attributes
-                </p>
+                <img
+                  src="https://via.placeholder.com/570"
+                  className="w-full max-h-[500px] object-contain rounded-lg"
+                  alt="placeholder"
+                />
+              )}
+
+              {/* Navigation Buttons for Main Image */}
+              {data.image.length > 1 && isMainImageHovered && (
+                <>
+                  <button
+                    onClick={handlePrevImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-[#279d68] hover:text-white transition-all duration-200"
+                    aria-label="Previous image"
+                  >
+                    <FaAngleLeft className="text-lg" />
+                  </button>
+                  <button
+                    onClick={handleNextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-[#279d68] hover:text-white transition-all duration-200"
+                    aria-label="Next image"
+                  >
+                    <FaAngleRight className="text-lg" />
+                  </button>
+                </>
               )}
             </div>
           </div>
+        </div>
 
+        {/* Right Column: Details (Takes 7 columns out of 12) */}
+        <div className="lg:col-span-7 p-4 lg:pl-4 text-base lg:text-lg font-outfit">
+          <h2 className="text-xl lg:text-3xl font-medium text-gray-7  00 tracking-tight">
+            {data.name}
+          </h2>
+
+          {/* Rating */}
+          <div className="flex items-center gap-2 mt-2">
+            <FaStar className="text-yellow-400" size={18} />
+            <span className="font-semibold text-gray-700">
+              {data.reviews && data.reviews.length > 0 
+                ? (data.reviews.reduce((acc, r) => acc + r.stars, 0) / data.reviews.length).toFixed(1)
+                : "0.0"}
+            </span>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-500 text-sm">{data.reviews?.length || 0}</span>
+          </div>
+
+          {/* Price Block */}
+          <div className="mt-4">
+            {priceError ? (
+              <p className="text-red-500">{priceError}</p>
+            ) : currentCalculatedPrice > 0 ? (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <p className="font-bold text-3xl text-gray-900 border-none pb-1 leading-normal">
+                    {DisplayPriceInRupees(currentCalculatedPrice)}
+                  </p>
+                  {currentCalculatedOriginalPrice > currentCalculatedPrice && (
+                    <>
+                      <p className="font-medium text-lg text-slate-400 line-through pb-1 leading-normal">
+                          {DisplayPriceInRupees(currentCalculatedOriginalPrice)}
+                      </p>
+                      <span className="bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-full shadow-sm transform">
+                          <span className="inline-block transform">
+                            {Math.round(((currentCalculatedOriginalPrice - currentCalculatedPrice) / currentCalculatedOriginalPrice) * 100)}% OFF
+                          </span>
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400">Inclusive of all taxes</p>
+              </div>
+            ) : (
+              <p className="text-red-500 font-outfit">
+                Price not available from attributes
+              </p>
+            )}
+            <div className="mt-3">
+              <span className="bg-[#5DB02F] text-white text-xs font-bold px-3 py-1.5 rounded disabled:opacity-50">
+                Free Shipping
+              </span>
+            </div>
+          </div>
+
+          {/* Attributes / Net Quantity */}
           {data.attributes && data.attributes.length > 0 && (
-            <Box sx={{ my: 2 }}>
+            <div className="my-6">
               {data.attributes.map((attrGroup) => (
-                <Box key={attrGroup.name} sx={{ mb: 3 }}>
-                  <Typography
-                    variant="h6"
-                    className="font-outfit mb-3 text-gray-800"
-                  >
-                    {attrGroup.name}
-                  </Typography>
-                  <Box
-                    className="font-outfit"
-                    sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}
-                  >
+                <div key={attrGroup.name} className="mb-4">
+                  <h6 className="text-sm font-semibold mb-2 text-gray-800">
+                    {attrGroup.name} :
+                  </h6>
+                  <div className="flex flex-wrap gap-2">
                     {attrGroup.options.map((option, idx) => {
-                      const isSelected =
-                        selectedAttributes[attrGroup.name]?.name === option.name;
+                      const isSelected = selectedAttributes[attrGroup.name]?.name === option.name;
                       return (
-                        <Chip
+                        <button
                           key={option.name + idx}
-                          label={option.name}
                           onClick={() => handleAttributeClick(attrGroup.name, option)}
-                          sx={{
-                            cursor: "pointer",
-                            borderRadius: "15px",
-                            fontWeight: isSelected ? 600 : 500,
-                            py: 1.5,
-                            fontSize: "0.9rem",
-                            borderWidth: "0.6px",
-                            borderStyle: "solid",
-                            transition: "all 0.25s ease-in-out",
-                            backgroundColor: isSelected ? "#e0f2f1" : "#ffffff",
-                            borderColor: isSelected ? "#26a69a" : "#d1d5db",
-                            color: isSelected ? "#00796b" : "#4b5563",
-                            "&:hover": {
-                              backgroundColor: isSelected ? "#b2dfdb" : "#f3f4f6",
-                              borderColor: isSelected ? "#00796b" : "#a1a1aa",
-                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                              transform: "translateY(-2px)",
-                            },
-                            "&:active": {
-                              transform: "translateY(0)",
-                              boxShadow: "none",
-                              backgroundColor: isSelected ? "#80cbc4" : "#e5e7eb",
-                            },
-                          }}
-                        />
+                          className={`rounded px-4 py-1.5 text-sm font-semibold transition-all duration-200 outline-none
+                            ${isSelected 
+                              ? "bg-[#5DB02F] text-white shadow-md border-transparent border-2 border-[#5DB02F]" 
+                              : "bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-400"
+                            }
+                            active:scale-95
+                          `}
+                        >
+                          {option.name}
+                        </button>
                       );
                     })}
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          {displayStock !== null && displayStock === 0 ? (
-            <p className="text-lg text-red-500 font-outfit my-2">Out of Stock</p>
-          ) : displayStock !== null ? (
-            <p className="text-lg text-green-600 font-outfit my-2">
-              In Stock: {displayStock} {displayUnit}
-            </p>
-          ) : (
-            <p className="text-lg font-outfit text-neutral-500 my-2">
-              Stock information not available.
-            </p>
-          )}
-
-          <div className="my-4">
-            <AddToCartButton
-              data={{ ...data, selectedAttributes }}
-              buttonColor="#475569"
-              hoverColor="#334155"
-              textColor="#f8fafc"
-            />
-          </div>
-
-          <div className="my-4 grid gap-3">
-            <div>
-              <p className="font-medium font-outfit">Description</p>
-              <p className="text-base text-gray-700 leading-relaxed break-words">
-                {data.description}
-              </p>
-            </div>
-            {data?.more_details && Object.keys(data?.more_details).length > 0 && (
-              <>
-                <p className="font-medium font-outfit">Requirements</p>
-                {Object.keys(data?.more_details).map((element, index) => (
-                  <div key={element + index}>
-                    <p className="font-base font-outfit">{element}</p>
-                    <p className="text-base font-light font-outfit">
-                      {data?.more_details[element]}
-                    </p>
                   </div>
-                ))}
-              </>
-            )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Stock Display */}
+          {displayStock !== null && displayStock === 0 ? (
+            <p className="text-sm font-semibold text-red-500 my-2">Out of Stock</p>
+          ) : displayStock !== null ? (
+            <p className="text-sm font-semibold text-green-600 my-2">
+              In Stock
+            </p>
+          ) : null}
+
+          {/* Add to Cart & Buy Now */}
+          <div className="my-6 w-full lg:w-4/5 xl:w-2/3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <AddToCartButton
+                  data={{ ...data, selectedAttributes }}
+                  buttonColor="#ffb703"
+                  hoverColor="#e6a500"
+                  textColor="#111827"
+                  fullWidth={true}
+                />
+              </div>
+              <button 
+                onClick={handleBuyNow}
+                className="flex-1 bg-[#1d9962] hover:bg-[#16794d] text-white font-medium py-2 px-6 rounded-full transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] h-9 lg:h-10 text-sm lg:text-base border-none"
+              >
+                <FiZap size={18} />
+                BUY NOW
+              </button>
+            </div>
           </div>
-          <Box sx={{ display: { xs: "block", md: "block", lg: "none" } }}>
-            <MemoizedReviewsSection
-              dataReviews={data.reviews}
-              visibleReviews={visibleReviews}
-              handleViewMoreReviews={memoizedHandleViewMoreReviews}
-              getAvatarColor={memoizedGetAvatarColor}
-              isReviewModalOpen={isReviewModalOpen}
-              setIsReviewModalOpen={memoizedSetIsReviewModalOpen}
-              handleReviewSubmit={memoizedHandleReviewSubmit}
-              userName={userName}
-              setUserName={memoizedSetUserName}
-              reviewData={reviewData}
-              setReviewData={memoizedSetReviewData}
-              reviewError={reviewError}
-              reviewSuccess={reviewSuccess}
-            />
-          </Box>
+
+          {/* Description */}
+          <div className="my-8">
+            <h6 className="font-bold text-lg text-gray-800 mb-3 border-b border-gray-200 pb-2">Product Description</h6>
+            <p className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light">
+              {data.description}
+            </p>
+          </div>
+
+          {/* Specifications Table */}
+          {data?.more_details && Object.keys(data?.more_details).length > 0 && (
+            <div className="my-8">
+              <h6 className="font-bold text-lg text-gray-800 mb-3">Specifications</h6>
+              <div className="border border-gray-300 rounded-md overflow-hidden">
+                <table className="w-full text-sm text-left">
+                  <tbody>
+                    {Object.keys(data?.more_details).map((element, index) => (
+                      <tr key={element + index} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                        <td className="w-1/3 p-3 font-semibold text-gray-700 bg-gray-50/50 border-r border-gray-200">{element}</td>
+                        <td className="p-3 text-gray-600 font-light">{data?.more_details[element]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
+
+      {/* Storage/Nutrition Section */}
+      {(data.storage_instructions || data.storage_image) && (
+        <div className="mt-12 mb-8 overflow-hidden relative">
+          <div className="paper-edge-top h-5 bg-[#f0f0f0] w-full mb-[-1px]"></div>
+          <div className="bg-[#f0f0f0] text-gray-800 p-8 md:p-14 relative z-[2]">
+            <div className="container mx-auto grid md:grid-cols-2 gap-10 items-center">
+              {/* Left Side: Image */}
+              <div className="flex justify-center order-2 md:order-1">
+                {data.storage_image ? (
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gray-300/30 rounded-2xl blur opacity-25"></div>
+                    <img 
+                      src={data.storage_image} 
+                      alt="Storage/Nutrition Information" 
+                      className="relative max-w-full h-auto rounded-xl shadow-2xl border border-gray-200 transform transition-transform duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-64 bg-gray-200/50 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
+                    <p className="text-gray-500 font-outfit text-center px-4">Quality & Nutrition Information</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Side: Content */}
+              <div className="flex flex-col gap-6 order-1 md:order-2">
+                <div className="space-y-4">
+                  <div 
+                    className="storage-instructions-content text-gray-800 text-lg md:text-xl leading-relaxed font-outfit whitespace-pre-wrap drop-shadow-sm"
+                  >
+                    {data.storage_instructions}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="paper-edge-bottom h-5 bg-[#f0f0f0] w-full mt-[-1px]"></div>
+        </div>
+      )}
+
+      {/* Products that you need (Related Products) */}
+      {data.category?.[0] && (
+        <div className="container mx-auto my-12">
+          <CategoryWiseProductDisplay 
+            id={typeof data.category[0] === 'object' ? data.category[0]._id : data.category[0]} 
+            name="Products that you need" 
+          />
+        </div>
+      )}
+
+      {/* Full-width Reviews Section at the bottom */}
+      <div className="container mx-auto px-4 mb-16">
+        <MemoizedReviewsSection
+          dataReviews={data.reviews}
+          visibleReviews={visibleReviews}
+          handleViewMoreReviews={memoizedHandleViewMoreReviews}
+          getAvatarColor={memoizedGetAvatarColor}
+          isReviewModalOpen={isReviewModalOpen}
+          setIsReviewModalOpen={memoizedSetIsReviewModalOpen}
+          handleReviewSubmit={memoizedHandleReviewSubmit}
+          userName={userName}
+          setUserName={memoizedSetUserName}
+          reviewData={reviewData}
+          setReviewData={memoizedSetReviewData}
+          reviewError={reviewError}
+          reviewSuccess={reviewSuccess}
+        />
+      </div>
+
     </section>
   );
 };

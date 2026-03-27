@@ -11,6 +11,8 @@ import successAlert from '../utils/SuccessAlert';
 import { toast } from 'sonner';
 
 import CategoryDropdown from './CategoryDropdown';
+import Cropper from 'react-easy-crop';
+import { getCroppedImgBlob } from '../utils/cropImage';
 
 const UploadProductModel = ({ close, fetchData }) => {
   const [data, setData] = useState({
@@ -40,6 +42,17 @@ const UploadProductModel = ({ close, fetchData }) => {
 
   const [openAddField, setOpenAddField] = useState(false);
   const [fieldName, setFieldName] = useState('');
+
+  // Crop State
+  const [openCrop, setOpenCrop] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
   const [openAddAttribute, setOpenAddAttribute] = useState(false);
   const [newAttributeTypeName, setNewAttributeTypeName] = useState('');
@@ -74,28 +87,48 @@ const UploadProductModel = ({ close, fetchData }) => {
   };
 
   const handleUploadImages = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
     const MAX_SIZE = 2 * 1024 * 1024;
-    const invalidFiles = Array.from(files).filter(file => file.size > MAX_SIZE);
-
-    if (invalidFiles.length > 0) {
-      toast.error(`Some images exceed the 2MB limit: ${invalidFiles.map(f => f.name).join(', ')}`);
+    if (file.size > MAX_SIZE) {
+      toast.error(`Image exceeds the 2MB limit: ${file.name}`);
       return;
     }
 
-    const newImageData = {};
-    Array.from(files).forEach(file => {
-      const previewUrl = URL.createObjectURL(file);
-      newImageData[previewUrl] = file;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setCropImageSrc(reader.result);
+      setOpenCrop(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
     });
+    reader.readAsDataURL(file);
+    e.target.value = null; // reset input
+  };
 
-    setImageFileMap(prev => ({ ...prev, ...newImageData }));
-    setData((prev) => ({
-      ...prev,
-      image: [...prev.image, ...Object.keys(newImageData)],
-    }));
+  const handleCropSave = async () => {
+    try {
+      const croppedImageBlob = await getCroppedImgBlob(cropImageSrc, croppedAreaPixels);
+      const croppedFile = new File([croppedImageBlob], 'product_image.jpg', { type: 'image/jpeg' });
+      
+      const previewUrl = URL.createObjectURL(croppedFile);
+      setImageFileMap(prev => ({ ...prev, [previewUrl]: croppedFile }));
+      setData((prev) => ({
+        ...prev,
+        image: [...prev.image, previewUrl],
+      }));
+      setOpenCrop(false);
+      setCropImageSrc(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error cropping image");
+    }
+  };
+
+  const handleCropCancel = () => {
+    setOpenCrop(false);
+    setCropImageSrc(null);
   };
 
   const handleDeleteImage = (index) => {
@@ -325,7 +358,7 @@ const UploadProductModel = ({ close, fetchData }) => {
                 ))}
                 {data.image.length < 10 && (
                   <label htmlFor='productImages' className='cursor-pointer group'>
-                     <input type='file' id='productImages' className='hidden' accept='image/*' multiple onChange={handleUploadImages} disabled={imageLoading} />
+                     <input type='file' id='productImages' className='hidden' accept='image/*' onChange={handleUploadImages} disabled={imageLoading} />
                      <img
                        className='w-24 h-32 object-cover rounded-xl border-2 border-dashed border-gray-300 group-hover:border-indigo-400 transition-all'
                        src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"
@@ -567,6 +600,56 @@ const UploadProductModel = ({ close, fetchData }) => {
             </div>
           </div>
         )}
+
+        {/* Cropper Modal */}
+        {openCrop && cropImageSrc && (
+          <div className='fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm'>
+            <div className='bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200'>
+              <div className='flex items-center justify-between px-6 py-4 border-b bg-white'>
+                <h3 className='text-lg font-bold text-gray-800'>Crop Product Image (1:1 Aspect Ratio)</h3>
+                <button onClick={handleCropCancel} className='text-gray-400 hover:text-red-500 transition-colors'>
+                  <IoClose size={24} />
+                </button>
+              </div>
+              
+              <div className='relative h-[400px] w-full bg-slate-900'>
+                <Cropper
+                  image={cropImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              </div>
+              
+              <div className='p-6 bg-gray-50 flex flex-col gap-4 border-t border-gray-100'>
+                <div className='flex items-center gap-4'>
+                  <span className='text-xs font-bold text-gray-400 uppercase tracking-wider'>Zoom</span>
+                  <input
+                    type='range'
+                    value={zoom}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    onChange={(e) => setZoom(e.target.value)}
+                    className='flex-grow h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600'
+                  />
+                </div>
+                <div className='flex gap-3'>
+                  <button onClick={handleCropCancel} className='flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-white border border-gray-200 hover:bg-slate-50 transition-all'>
+                    Cancel
+                  </button>
+                  <button onClick={handleCropSave} className='flex-[2] py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all'>
+                    Crop & Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

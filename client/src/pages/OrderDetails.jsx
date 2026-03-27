@@ -153,7 +153,7 @@ const OrderDetails = () => {
                     </button>
                 </div>
 
-                <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-gray-300">
+                <div className="bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-gray-100">
                     <div className="flex flex-col lg:flex-row justify-between gap-8 mb-10 border-b border-gray-50 pb-10">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
@@ -169,7 +169,7 @@ const OrderDetails = () => {
                                 <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest mb-0.5">Items</p>
                                 <p className="text-sm font-bold text-[#1a1c21]">{groupItems.length} Products</p>
                             </div>
-                            <div className="bg-[#f6fcf8] px-5 py-2.5 rounded-xl border border-[#eef5f0]">
+                            <div className="bg-[#f3f9f2] px-5 py-2.5 rounded-xl border border-green-50">
                                 <p className="text-[10px] font-bold text-[#1d9963] uppercase tracking-widest mb-0.5">Paid</p>
                                 <p className="text-sm font-bold text-[#1d9963]">₹{totalAmount.toLocaleString()}</p>
                             </div>
@@ -186,7 +186,7 @@ const OrderDetails = () => {
                             {groupItems.map((item) => {
                                 const status = getStatusConfig(item.tracking_status);
                                 return (
-                                    <div key={item._id} className="relative bg-white rounded-2xl border border-gray-300 p-6 flex flex-col md:flex-row gap-6 items-center transition-all">
+                                    <div key={item._id} className="relative bg-white rounded-2xl border border-gray-100 p-6 flex flex-col md:flex-row gap-6 items-center transition-all shadow-sm">
                                         <div className="w-24 h-24 bg-gray-50 rounded-xl p-3 flex-shrink-0">
                                             <img 
                                                 src={item.product_details?.image?.[0] || "/placeholder.jpg"} 
@@ -283,7 +283,7 @@ const OrderDetails = () => {
                         </div>
 
                         <div className="md:col-span-2 space-y-4">
-                             <div className="bg-[#f6fcf8] rounded-[2rem] p-8 border-2 border-gray-200">
+                             <div className="bg-[#f3f9f2] rounded-2xl p-6 shadow-sm border border-green-50">
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center text-[#64748b] font-medium text-sm">
                                         <span>Subtotal</span>
@@ -302,10 +302,9 @@ const OrderDetails = () => {
                                     </div>
 
                                     {/* Total Savings Badge */}
-                                    <div className="bg-[#f0f9f2] border border-[#1d9963] border-dashed rounded-xl py-2 px-4 flex items-center justify-center gap-2 my-2">
-                                                   <FaCoins className="text-yellow-500 shadow-sm flex-shrink-0" size={14} />
-                                       
-                                        <span className="text-[#1d9963] text-[16px] font-bold tracking-tight">Total Savings of ₹{(totalAmount * 0.2).toLocaleString()} From this order</span>
+                                    <div className="border border-dashed border-green-500 rounded-lg p-3 flex items-center justify-center gap-2 bg-white/40 my-2">
+                                        <FaCoins className="text-yellow-500 shadow-sm flex-shrink-0" size={14} />
+                                        <span className="text-[#1d9963] text-sm font-bold tracking-tight">Total Savings of ₹{(totalAmount * 0.2).toLocaleString()} From this order</span>
                                     </div>
 
                                     <div className="pt-6 border-t border-[#eef5f0] flex justify-between items-center mt-4">

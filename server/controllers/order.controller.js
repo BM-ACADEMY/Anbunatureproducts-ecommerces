@@ -27,9 +27,23 @@ export async function CashOnDeliveryOrderController(req, res) {
 
     const payload = await Promise.all(
       list_items.map(async (el) => {
-        const cartItem = await CartProductModel.findById(el._id).populate("productId");
+        let cartItem = null;
+        if (el._id) {
+            cartItem = await CartProductModel.findById(el._id).populate("productId");
+        }
+
         if (!cartItem) {
-          throw new Error(`Cart item ${el._id} not found`);
+          // Fallback for Buy Now: extract productId from el and fetch it
+          const productId = el.productId?._id || el.productId;
+          const product = await ProductModel.findById(productId);
+          if (!product) {
+            throw new Error(`Cart item ${el._id || ''} and Product ${productId || ''} not found`);
+          }
+          cartItem = {
+              productId: product,
+              quantity: el.quantity,
+              selectedAttributes: el.selectedAttributes || []
+          };
         }
 
         let productBasePrice = cartItem.selectedAttributes.reduce(
@@ -63,8 +77,25 @@ export async function CashOnDeliveryOrderController(req, res) {
     const generatedOrder = await OrderModel.insertMany(payload);
 
     for (const item of list_items) {
-      const cartItem = await CartProductModel.findById(item._id).populate("productId");
-      const product = cartItem.productId;
+      let cartItem = null;
+      if (item._id) {
+          cartItem = await CartProductModel.findById(item._id).populate("productId");
+      }
+      
+      if (!cartItem) {
+          const productId = item.productId?._id || item.productId;
+          const product = await ProductModel.findById(productId);
+          if (product) {
+              cartItem = {
+                  productId: product,
+                  quantity: item.quantity,
+                  selectedAttributes: item.selectedAttributes || []
+              };
+          }
+      }
+
+      if (cartItem) {
+        const product = cartItem.productId;
 
       for (const selectedAttr of cartItem.selectedAttributes) {
         const attrGroup = product.attributes.find(
@@ -80,6 +111,7 @@ export async function CashOnDeliveryOrderController(req, res) {
         }
       }
     }
+  }
 
     await CartProductModel.deleteMany({ userId });
     await UserModel.updateOne({ _id: userId }, { shopping_cart: [] });

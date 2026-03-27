@@ -4,7 +4,25 @@ import { FiHome } from 'react-icons/fi';
 
 const Breadcrumbs = () => {
   const location = useLocation();
+  const segmentsToSkip = ['user', 'dashboard', 'order-details'];
   const pathnames = location.pathname.split('/').filter((x) => x);
+  
+  // Create breadcrumb items, skipping specific segments
+  const breadcrumbItems = [];
+  let accumulatedPath = '';
+  
+  pathnames.forEach((segment) => {
+    accumulatedPath += `/${segment}`;
+    if (!segmentsToSkip.includes(segment.toLowerCase())) {
+      breadcrumbItems.push({
+        label: segment
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' '),
+        path: accumulatedPath,
+      });
+    }
+  });
 
   return (
     <nav className="flex px-0 py-3 text-gray-700 bg-transparent rounded-lg" aria-label="Breadcrumb">
@@ -18,30 +36,23 @@ const Breadcrumbs = () => {
             Home
           </Link>
         </li>
-        {pathnames.map((value, index) => {
-          const last = index === pathnames.length - 1;
-          const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-
-          // Format the value for display (e.g., all-products -> All Products)
-          const displayValue = value
-            .split('-')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
+        {breadcrumbItems.map((item, index) => {
+          const last = index === breadcrumbItems.length - 1;
 
           return (
-            <li key={to}>
+            <li key={item.path}>
               <div className="flex items-center">
                 <LuChevronRight className="w-5 h-5 text-gray-400" />
                 {last ? (
                   <span className="ml-1 text-sm font-medium text-green-600 md:ml-2">
-                    {displayValue}
+                    {item.label}
                   </span>
                 ) : (
                   <Link
-                    to={to}
+                    to={item.path}
                     className="ml-1 text-sm font-medium text-gray-700 hover:text-green-600 md:ml-2 transition-colors"
                   >
-                    {displayValue}
+                    {item.label}
                   </Link>
                 )}
               </div>

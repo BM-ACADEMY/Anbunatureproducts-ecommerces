@@ -184,7 +184,7 @@ const MyOrders = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen py-8">
+    <div className="bg-[#fcf8ed] min-h-screen py-8">
       <div className="container mx-auto px-6 lg:px-10">
         <div className="mb-6">
           <Breadcrumbs />
@@ -498,4 +498,4 @@ const MyOrders = () => {
   );
 };
 
-export default MyOrders;
+export default MyOrders;

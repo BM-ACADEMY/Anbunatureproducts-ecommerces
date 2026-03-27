@@ -79,7 +79,7 @@ const OtpVerification = () => {
     };
 
     return (
-        <section className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gray-50 p-4">
+        <section className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-[#fcf8ed] p-4">
             <form onSubmit={handleSubmit} className="max-w-96 w-full text-center border border-gray-300/60 rounded-2xl px-8 py-10 bg-white shadow-sm">
                 <h1 className="text-gray-900 text-3xl font-medium">Verify OTP</h1>
                 <p className="text-gray-500 text-sm mt-3 px-2">Enter the 6-digit code sent to your email address.</p>
@@ -94,7 +94,7 @@ const OtpVerification = () => {
                             ref={(el) => (inputRef.current[index] = el)}
                             onChange={(e) => handleChange(index, e.target.value)}
                             onKeyDown={(e) => handleKeyDown(index, e)}
-                            className="w-11 h-12 text-center text-xl font-semibold text-gray-700 bg-white border border-gray-300/80 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                            className="w-11 h-12 text-center text-xl font-semibold text-gray-700 bg-white border border-gray-300/80 rounded-xl focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all"
                             disabled={isLoading}
                             required
                             autoFocus={index === 0}
@@ -105,7 +105,7 @@ const OtpVerification = () => {
                 <button 
                     type="submit" 
                     disabled={!valideValue || isLoading}
-                    className="w-full h-11 rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm flex items-center justify-center"
+                    className="w-full h-11 rounded-full text-white bg-green-600 hover:bg-green-700 shadow-md shadow-green-100 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none font-medium text-sm flex items-center justify-center"
                 >
                     {isLoading ? (
                         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -119,7 +119,7 @@ const OtpVerification = () => {
 
                 <p className="text-gray-500 text-sm mt-8">
                     Didn't receive code?{' '}
-                    <button type="button" className="text-indigo-500 hover:text-indigo-600 font-medium">
+                    <button type="button" className="text-green-600 hover:text-green-700 font-medium">
                         Resend
                     </button>
                 </p>

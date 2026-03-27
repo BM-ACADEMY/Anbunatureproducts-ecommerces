@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { IoCloudUploadOutline, IoClose, IoAdd, IoTrashOutline, IoStar, IoStarOutline } from "react-icons/io5";
+import { BiCrop } from "react-icons/bi";
 import uploadImage from '../utils/UploadImage';
 import Loading from '../components/Loading';
 import ViewImage from './ViewImage';
@@ -11,6 +12,8 @@ import AxiosToastError from '../utils/AxiosToastError';
 import successAlert from '../utils/SuccessAlert';
 import { toast } from 'sonner';
 import CategoryDropdown from './CategoryDropdown';
+import Cropper from 'react-easy-crop';
+import { getCroppedImgBlob } from '../utils/cropImage';
 
 const predefinedAttributeNames = ['Size', 'Weight', 'Material', 'Memory', 'Storage', 'Processor', 'Color', 'Capacity'];
 
@@ -44,6 +47,18 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   const [openAddField, setOpenAddField] = useState(false);
   const [fieldName, setFieldName] = useState('');
 
+  // Crop State
+  const [openCrop, setOpenCrop] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [croppingIndex, setCroppingIndex] = useState(null);
+
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
   const [openAddAttribute, setOpenAddAttribute] = useState(false);
   const [newAttributeTypeName, setNewAttributeTypeName] = useState('');
   const [attributeNameInputType, setAttributeNameInputType] = useState('select');
@@ -76,23 +91,73 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   const handleTrendingToggle = (e) => {
     setData((prev) => ({ ...prev, trending: e.target.checked }));
   };
+  const handleCropExistingImage = (index, imgUrl) => {
+    setCroppingIndex(index);
+    setCropImageSrc(imgUrl);
+    setOpenCrop(true);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  };
+
   const handleUploadImages = (e) => {
-    const files = e.target.files;
-    if (!files) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-    const newImageFiles = Array.from(files);
-    const newImageData = {};
+    const MAX_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      toast.error(`Image exceeds the 2MB limit: ${file.name}`);
+      return;
+    }
 
-    newImageFiles.forEach(file => {
-      const previewUrl = URL.createObjectURL(file);
-      newImageData[previewUrl] = file;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setCroppingIndex(null);
+      setCropImageSrc(reader.result);
+      setOpenCrop(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
     });
+    reader.readAsDataURL(file);
+    e.target.value = null; // reset input
+  };
 
-    setImageFileMap(prev => ({ ...prev, ...newImageData }));
-    setData((prev) => ({
-      ...prev,
-      image: [...prev.image, ...Object.keys(newImageData)],
-    }));
+  const handleCropSave = async () => {
+    try {
+      const croppedImageBlob = await getCroppedImgBlob(cropImageSrc, croppedAreaPixels);
+      const croppedFile = new File([croppedImageBlob], 'product_image.jpg', { type: 'image/jpeg' });
+      
+      const previewUrl = URL.createObjectURL(croppedFile);
+      setImageFileMap(prev => ({ ...prev, [previewUrl]: croppedFile }));
+      
+      if (croppingIndex !== null) {
+        setData(prev => {
+          const newImages = [...prev.image];
+          const oldUrl = newImages[croppingIndex];
+          if (imageFileMap[oldUrl]) {
+            URL.revokeObjectURL(oldUrl);
+          }
+          newImages[croppingIndex] = previewUrl;
+          return { ...prev, image: newImages };
+        });
+      } else {
+        setData((prev) => ({
+          ...prev,
+          image: [...prev.image, previewUrl],
+        }));
+      }
+      setOpenCrop(false);
+      setCropImageSrc(null);
+      setCroppingIndex(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error cropping image");
+    }
+  };
+
+  const handleCropCancel = () => {
+    setOpenCrop(false);
+    setCropImageSrc(null);
+    setCroppingIndex(null);
   };
 
   const handleDeleteImage = (index) => {
@@ -447,11 +512,18 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                      >
                        <IoClose size={14} />
                      </button>
+                     <button
+                        type='button' onClick={(e) => { e.stopPropagation(); handleCropExistingImage(index, img); }}
+                        className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10'
+                        title="Crop Image"
+                     >
+                       <BiCrop size={18} />
+                     </button>
                   </div>
                 ))}
                 {data.image.length < 10 && (
                   <label htmlFor='editProductImages' className='cursor-pointer group'>
-                     <input type='file' id='editProductImages' className='hidden' accept='image/*' multiple onChange={handleUploadImages} disabled={imageLoading} />
+                     <input type='file' id='editProductImages' className='hidden' accept='image/*' onChange={handleUploadImages} disabled={imageLoading} />
                      <img
                        className='w-24 h-36 object-cover rounded-xl border-2 border-dashed border-gray-300 group-hover:border-[#279d68] transition-all'
                        src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"
@@ -769,6 +841,55 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                  <button onClick={() => setOpenAddReview(false)} className='flex-1 py-3 text-sm font-bold text-slate-500'>Cancel</button>
                  <button onClick={handleAddReview} className='flex-1 py-3 text-sm font-bold text-white bg-[#279d68] rounded-xl shadow-lg shadow-green-100'>Submit Review</button>
                </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cropper Modal */}
+        {openCrop && cropImageSrc && (
+          <div className='fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm'>
+            <div className='bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200'>
+              <div className='flex items-center justify-between px-6 py-4 border-b bg-white'>
+                <h3 className='text-lg font-bold text-gray-800'>Crop Product Image (1:1 Aspect Ratio)</h3>
+                <button type='button' onClick={handleCropCancel} className='text-gray-400 hover:text-red-500 transition-colors'>
+                  <IoClose size={24} />
+                </button>
+              </div>
+              
+              <div className='relative h-[400px] w-full bg-slate-900'>
+                <Cropper
+                  image={cropImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              </div>
+              
+              <div className='p-6 bg-gray-50 flex flex-col gap-4 border-t border-gray-100'>
+                <div className='flex items-center gap-4'>
+                  <span className='text-xs font-bold text-gray-400 uppercase tracking-wider'>Zoom</span>
+                  <input
+                    type='range'
+                    value={zoom}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    onChange={(e) => setZoom(e.target.value)}
+                    className='flex-grow h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#279d68]'
+                  />
+                </div>
+                <div className='flex gap-3'>
+                  <button type='button' onClick={handleCropCancel} className='flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-white border border-gray-200 hover:bg-slate-50 transition-all'>
+                    Cancel
+                  </button>
+                  <button type='button' onClick={handleCropSave} className='flex-[2] py-2.5 rounded-xl text-sm font-bold text-white bg-[#279d68] hover:bg-[#279d68]/90 shadow-md transition-all'>
+                    Crop & Add
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

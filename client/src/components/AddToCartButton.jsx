@@ -154,7 +154,7 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
   return (
     <div className={`w-full ${fullWidth ? 'max-w-full' : 'max-w-[150px]'}`}> 
       {isAvailableCart ? (
-        <div className="flex items-center w-full h-9 lg:h-10 rounded-lg overflow-hidden border border-gray-200 shadow-md">
+        <div className="flex items-center w-full h-9 lg:h-10 rounded-full overflow-hidden border border-gray-200 shadow-md">
           <button
             onClick={decreaseQty}
             className="flex-1 h-full flex items-center justify-center transition-colors text-white"
@@ -182,7 +182,7 @@ const AddToCartButton = ({ data, buttonColor = '#16a34a', hoverColor = '#15803d'
       ) : (
         <button
           onClick={handleADDTocart}
-          className="w-full h-9 lg:h-10 rounded-lg font-bold text-sm lg:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-9 lg:h-10 rounded-full font-medium text-sm lg:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: buttonColor, color: textColor }}
           onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = hoverColor)}
           onMouseLeave={(e) => !isDisabled && (e.currentTarget.style.backgroundColor = buttonColor)}
