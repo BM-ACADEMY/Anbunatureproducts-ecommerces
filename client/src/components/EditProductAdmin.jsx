@@ -33,7 +33,8 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     storage_instructions: propsData.storage_instructions || '',
     storage_image: propsData.storage_image || '',
     megaCombo: propsData.megaCombo || false,
-    trending: propsData.trending || false
+    trending: propsData.trending || false,
+    demoVideoLink: propsData.demoVideoLink || ''
   });
 
   const [imageFileMap, setImageFileMap] = useState({}); // Maps previewUrl to File object
@@ -407,6 +408,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         altText: data.altText,
         storage_instructions: data.storage_instructions,
         storage_image: storageImageUrl,
+        demoVideoLink: data.demoVideoLink || ""
       };
 
       const response = await Axios({
@@ -472,6 +474,15 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                 placeholder='Enter product description'
                 className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium resize-none'
               />
+            </div>
+
+            <div className='flex flex-col gap-1.5'>
+                <label className='text-[15px] font-bold text-gray-700' htmlFor='demoVideoLink'>Demo Video Link (YouTube/Vimeo)</label>
+                <input
+                  type='text' id='demoVideoLink' name='demoVideoLink' value={data.demoVideoLink} onChange={handleChange}
+                  placeholder='Paste video link here'
+                  className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium'
+                />
             </div>
 
             <div className='flex items-center gap-2.5 bg-white p-3 rounded-xl border border-gray-100 shadow-sm w-fit'>

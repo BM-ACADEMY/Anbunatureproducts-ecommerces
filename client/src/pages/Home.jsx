@@ -17,6 +17,8 @@ import "swiper/css/autoplay";
 import BannerSlider from "../components/BannerSlider";
 import WhyChooseUs from "../components/WhyChooseUs";
 import FounderSection from "../components/FounderSection";
+import TestimonialSection from "../components/TestimonialSection";
+
 
 const Home = () => {
   const loadingCategory = useSelector((state) => state.product.loadingCategory);
@@ -162,6 +164,8 @@ const Home = () => {
 
       <WhyChooseUs />
       <FounderSection />
+      <TestimonialSection />
+
     </section>
   );
 };

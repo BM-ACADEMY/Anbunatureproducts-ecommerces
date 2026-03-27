@@ -31,9 +31,12 @@ import DashboardOverview from "../pages/DashboardOverview";
 import BannerAdmin from "../pages/BannerAdmin";
 import AllProducts from "../pages/AllProducts";
 import CartPage from "../pages/CartPage";
+import WriteReview from "../pages/WriteReview";
+import AdminSiteReviews from "../pages/AdminSiteReviews";
 // import Overview from "../pages/Overview";
 
 const router = createBrowserRouter([
+
   {
     path: "/",
     element: <App />,
@@ -70,6 +73,11 @@ const router = createBrowserRouter([
         path: "all-products",
         element: <AllProducts />,
       },
+      {
+        path: "write-review",
+        element: <WriteReview />,
+      },
+
       {
         path: "login",
         element: <Login />,
@@ -167,6 +175,15 @@ const router = createBrowserRouter([
               </AdminPermision>
             ),
           },
+          {
+            path: "site-reviews",
+            element: (
+              <AdminPermision>
+                <AdminSiteReviews />
+              </AdminPermision>
+            ),
+          },
+
           
           // {
           //   path: "overview",

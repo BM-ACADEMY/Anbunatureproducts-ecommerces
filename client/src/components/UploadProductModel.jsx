@@ -29,7 +29,8 @@ const UploadProductModel = ({ close, fetchData }) => {
     trending: false,
     altText: '',
     storage_instructions: '',
-    storage_image: ''
+    storage_image: '',
+    demoVideoLink: ''
   });
 
   const [imageFileMap, setImageFileMap] = useState({}); // Maps previewUrl to File object
@@ -321,6 +322,15 @@ const UploadProductModel = ({ close, fetchData }) => {
                 placeholder='Enter product description'
                 className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium resize-none'
               />
+            </div>
+
+            <div className='flex flex-col gap-1.5'>
+                <label className='text-[15px] font-bold text-gray-700' htmlFor='demoVideoLink'>Demo Video Link (YouTube/Vimeo)</label>
+                <input
+                  type='text' id='demoVideoLink' name='demoVideoLink' value={data.demoVideoLink} onChange={handleChange}
+                  placeholder='Paste video link here'
+                  className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium'
+                />
             </div>
 
             <div className='flex flex-wrap items-center gap-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm'>

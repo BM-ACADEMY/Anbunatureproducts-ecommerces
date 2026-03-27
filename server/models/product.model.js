@@ -119,6 +119,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  demoVideoLink: {
+    type: String,
+    default: ""
+  },
 }, { timestamps: true });
 
 // Text search index

@@ -19,6 +19,8 @@ import addressRouter from "./route/address.route.js";
 import orderRouter from "./route/order.route.js";
 import emailRouter from "./route/email.route.js";
 import bannerRouter from "./route/banner.route.js";
+import siteReviewRouter from "./route/siteReview.route.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +88,8 @@ app.use("/api/address", addressRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/email", emailRouter);
 app.use("/api/banner", bannerRouter);
+app.use("/api/site-review", siteReviewRouter);
+
 
 // Connect DB + Start server
 connectDB()

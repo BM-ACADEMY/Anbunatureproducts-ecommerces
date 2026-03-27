@@ -16,32 +16,7 @@ const Footer = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // Navigation handler for category clicks
-  const handleRedirectProductListpage = (id, cat) => {
-    if (!subCategoryData || subCategoryData.length === 0) {
-      console.warn("Subcategory data not available yet.");
-      const url = `/${valideURLConvert(cat)}-${id}`;
-      navigate(url);
-      return;
-    }
-
-    const subcategory = subCategoryData.find((sub) =>
-      sub.category.some((c) => c._id === id)
-    );
-
-    if (subcategory) {
-      const url = `/${valideURLConvert(cat)}-${id}/${valideURLConvert(
-        subcategory.name
-      )}-${subcategory._id}`;
-      navigate(url);
-    } else {
-      const url = `/${valideURLConvert(cat)}-${id}`;
-      navigate(url);
-      console.warn(
-        `No specific subcategory found for category ID: ${id}. Navigating to general category page.`
-      );
-    }
-  };
+  // Navigation handler for category clicks removed as we use direct NavLinks or Link with query params now
 
   const modalStyle = {
     position: 'absolute',
@@ -101,12 +76,12 @@ const Footer = () => {
             <ul className="space-y-4">
               {categoryData.slice(0, 5).map((cat) => (
                 <li key={cat._id}>
-                  <button
-                    onClick={() => handleRedirectProductListpage(cat._id, cat.name)}
+                  <NavLink
+                    to={`/all-products?category=${cat._id}`}
                     className="text-white hover:text-[#1d9a62] text-left"
                   >
                     {cat.name}
-                  </button>
+                  </NavLink>
                 </li>
               ))}
             </ul>
@@ -114,20 +89,28 @@ const Footer = () => {
 
           {/* Column 3: Navigation Links */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Navigation</h3>
+            <h3 className="text-lg font-medium mb-4">Useful Links</h3>
             <ul className="space-y-4">
               <li>
                 <NavLink
                   to="/"
-                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
                 >
                   Home
                 </NavLink>
               </li>
               <li>
                 <NavLink
+                  to="/all-products"
+                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
+                >
+                  Product
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
                   to="/about"
-                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
                 >
                   About
                 </NavLink>
@@ -135,7 +118,7 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/contact"
-                  className={({ isActive }) => (isActive ? 'underline' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
                 >
                   Contact
                 </NavLink>

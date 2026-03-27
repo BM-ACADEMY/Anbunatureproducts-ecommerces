@@ -201,8 +201,10 @@ const ProductDisplayPage = () => {
     more_details: {},
     attributes: [],
     reviews: [],
+    demoVideoLink: "",
   });
   const [image, setImage] = useState(0);
+  const [isVideoSelected, setIsVideoSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const imageContainer = useRef();
   const mainImageRef = useRef();
@@ -433,6 +435,7 @@ const ProductDisplayPage = () => {
     setIsFading(true);
     setTimeout(() => {
       setImage((prev) => (prev + 1) % data.image.length);
+      setIsVideoSelected(false);
       setIsFading(false);
     }, 200);
   };
@@ -441,6 +444,7 @@ const ProductDisplayPage = () => {
     setIsFading(true);
     setTimeout(() => {
       setImage((prev) => (prev - 1 + data.image.length) % data.image.length);
+      setIsVideoSelected(false);
       setIsFading(false);
     }, 200);
   };
@@ -510,7 +514,7 @@ const ProductDisplayPage = () => {
   };
 
   return (
-    <section className="overflow-x-hidden">
+    <section className="bg-transparent">
       <div className="container mx-auto p-3 sm:p-4 grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start justify-center">
         {/* Custom Breadcrumb matching product name */}
         <nav className="lg:col-span-12 flex px-0 pb-0 text-gray-700 bg-transparent rounded-lg w-full -mb-4 lg:-mb-8" aria-label="Breadcrumb">
@@ -535,12 +539,12 @@ const ProductDisplayPage = () => {
           </ol>
         </nav>
 
-        {/* Left Column: Images (Takes 5 columns out of 12) */}
-        <div className="relative lg:sticky lg:top-24 z-10 lg:col-span-5">
+        {/* Left Column: Images + Demo Video (Takes 5 columns out of 12) */}
+        <div className="lg:sticky lg:top-32 z-30 lg:col-span-5 h-fit self-start">
           <div className="flex flex-col lg:flex-row gap-4 items-start">
             
             {/* Thumbnails (Left on Desktop, Bottom on Mobile) */}
-            {data.image.length > 0 && (
+            {(data.image.length > 0 || data.demoVideoLink) && (
               <div className="order-2 lg:order-1 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full lg:w-auto lg:min-w-[90px] lg:max-h-[500px] py-2 px-2">
                 {data.image.map((img, index) => (
                   <div
@@ -550,8 +554,8 @@ const ProductDisplayPage = () => {
                         ? "border-[#279d68] shadow-md transform lg:scale-105"
                         : "border-transparent hover:border-[#279d68]/50 shadow-sm"
                     }`}
-                    onMouseEnter={() => setImage(index)}
-                    onClick={() => setImage(index)}
+                    onMouseEnter={() => { setImage(index); setIsVideoSelected(false); }}
+                    onClick={() => { setImage(index); setIsVideoSelected(false); }}
                   >
                     <img
                       src={img}
@@ -560,6 +564,24 @@ const ProductDisplayPage = () => {
                     />
                   </div>
                 ))}
+
+                {/* Video Thumbnail at the end */}
+                {data.demoVideoLink && (
+                  <div
+                    className={`min-w-[3.5rem] min-h-[3.5rem] w-14 h-14 lg:min-w-[5rem] lg:min-h-[5rem] lg:w-20 lg:h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 flex items-center justify-center bg-gray-100 ${
+                      isVideoSelected
+                        ? "border-[#279d68] shadow-md transform lg:scale-105"
+                        : "border-transparent hover:border-[#279d68]/50 shadow-sm"
+                    }`}
+                    onMouseEnter={() => setIsVideoSelected(true)}
+                    onClick={() => setIsVideoSelected(true)}
+                  >
+                    <div className="flex flex-col items-center justify-center gap-1 text-gray-600">
+                       <FiZap className={`text-xl ${isVideoSelected ? "text-[#279d68]" : ""}`} />
+                       <span className="text-[10px] font-bold uppercase">Video</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -570,7 +592,41 @@ const ProductDisplayPage = () => {
               onMouseLeave={() => setIsMainImageHovered(false)}
               className="order-1 lg:order-2 flex-1 rounded-2xl w-full flex items-center justify-center overflow-hidden relative"
             >
-              {data.image.length > 0 ? (
+              {isVideoSelected && data.demoVideoLink ? (
+                 <div className="w-full h-full aspect-video">
+                    {data.demoVideoLink.includes('youtube.com') || data.demoVideoLink.includes('youtu.be') ? (
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={`https://www.youtube.com/embed/${data.demoVideoLink.split('v=')[1] || data.demoVideoLink.split('/').pop()}`}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      ></iframe>
+                    ) : data.demoVideoLink.includes('vimeo.com') ? (
+                      <iframe
+                        src={`https://player.vimeo.com/video/${data.demoVideoLink.split('/').pop()}`}
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-white p-6 gap-4 bg-gray-900 border-none outline-none">
+                         <a 
+                           href={data.demoVideoLink} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="bg-[#ffb703] hover:bg-[#e6a500] text-gray-900 px-8 py-3 rounded-full font-bold transition-all shadow-lg flex items-center gap-2"
+                         >
+                           Watch Video <FiZap className="inline" />
+                         </a>
+                      </div>
+                    )}
+                 </div>
+              ) : data.image.length > 0 ? (
                 <img
                   src={data.image[image]}
                   className={`w-full max-h-[300px] md:max-h-[400px] lg:max-h-[500px] object-contain rounded-lg ${
@@ -607,6 +663,8 @@ const ProductDisplayPage = () => {
               )}
             </div>
           </div>
+
+          {/* Removed separate demo video section as it is now integrated in the gallery */}
         </div>
 
         {/* Right Column: Details (Takes 7 columns out of 12) */}

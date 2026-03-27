@@ -221,7 +221,28 @@ const SummaryApi = {
   updateBanner: {
     url: "/api/banner/update",
     method: "post"
+  },
+  submitSiteReview: {
+    url: "/api/site-review/submit",
+    method: "post"
+  },
+  getVerifiedSiteReviews: {
+    url: "/api/site-review/get-verified",
+    method: "get"
+  },
+  getAllSiteReviews: {
+    url: "/api/site-review/admin/all",
+    method: "get"
+  },
+  verifySiteReview: {
+    url: "/api/site-review/admin/verify", // Will append /:id
+    method: "patch"
+  },
+  deleteSiteReview: {
+    url: "/api/site-review/admin/delete", // Will append /:id
+    method: "delete"
   }
 };
+
 
 export default SummaryApi;

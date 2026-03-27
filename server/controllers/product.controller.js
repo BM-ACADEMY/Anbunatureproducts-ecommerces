@@ -77,7 +77,8 @@ export const createProductController = async (request, response) => {
       trending,
       altText,
       storage_instructions,
-      storage_image
+      storage_image,
+      demoVideoLink
     } = request.body;
 
     console.log("Received create product data:", { name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer });
@@ -142,7 +143,8 @@ export const createProductController = async (request, response) => {
       trending: trending || false,
       altText: altText || "",
       storage_instructions: storage_instructions || "",
-      storage_image: storage_image || ""
+      storage_image: storage_image || "",
+      demoVideoLink: demoVideoLink || ""
     });
 
     const saveProduct = await product.save();
@@ -235,7 +237,7 @@ export const addReviewToProduct = async (request, response) => {
  */
 export const updateProductDetails = async (request, response) => {
   try {
-    const { _id, name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer, megaCombo, trending, altText, storage_instructions, storage_image } = request.body;
+    const { _id, name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer, megaCombo, trending, altText, storage_instructions, storage_image, demoVideoLink } = request.body;
 
     console.log("Received update product data:", { _id, name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer });
 
@@ -309,7 +311,8 @@ export const updateProductDetails = async (request, response) => {
       trending,
       altText,
       storage_instructions,
-      storage_image
+      storage_image,
+      demoVideoLink
     };
 
     Object.keys(updatedProductData).forEach(key => {
