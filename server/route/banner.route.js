@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { addBannerController, deleteBannerController, getBannersController, updateBannerController } from "../controllers/banner.controller.js";
 import auth from "../middleware/auth.js";
-import { admin } from "../middleware/admin.js";
+import { admin } from "../middleware/Admin.js";
 
 const bannerRouter = Router();
 

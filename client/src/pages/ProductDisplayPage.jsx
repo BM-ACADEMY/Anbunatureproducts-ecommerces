@@ -433,18 +433,32 @@ const ProductDisplayPage = () => {
 
   const handleNextImage = () => {
     setIsFading(true);
+    const totalItems = data.image.length + (data.demoVideoLink ? 1 : 0);
     setTimeout(() => {
-      setImage((prev) => (prev + 1) % data.image.length);
-      setIsVideoSelected(false);
+      if (isVideoSelected) {
+        setIsVideoSelected(false);
+        setImage(0);
+      } else if (image === data.image.length - 1 && data.demoVideoLink) {
+        setIsVideoSelected(true);
+      } else {
+        setImage((prev) => (prev + 1) % data.image.length);
+      }
       setIsFading(false);
     }, 200);
   };
 
   const handlePrevImage = () => {
     setIsFading(true);
+    const totalItems = data.image.length + (data.demoVideoLink ? 1 : 0);
     setTimeout(() => {
-      setImage((prev) => (prev - 1 + data.image.length) % data.image.length);
-      setIsVideoSelected(false);
+      if (isVideoSelected) {
+        setIsVideoSelected(false);
+        setImage(data.image.length - 1);
+      } else if (image === 0 && data.demoVideoLink) {
+        setIsVideoSelected(true);
+      } else {
+        setImage((prev) => (prev - 1 + data.image.length) % data.image.length);
+      }
       setIsFading(false);
     }, 200);
   };
@@ -642,8 +656,8 @@ const ProductDisplayPage = () => {
                 />
               )}
 
-              {/* Navigation Buttons for Main Image */}
-              {data.image.length > 1 && isMainImageHovered && (
+               {/* Navigation Buttons for Main Image */}
+              {((data.image.length + (data.demoVideoLink ? 1 : 0)) > 1) && isMainImageHovered && (
                 <>
                   <button
                     onClick={handlePrevImage}
