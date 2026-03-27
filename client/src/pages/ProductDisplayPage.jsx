@@ -56,12 +56,12 @@ const ReviewsSection = ({
 }) => {
   return (
     <div className="my-10 transition-all duration-300">
-      <h6 className="font-bold text-lg text-gray-800 mb-3">   Product Review</h6>
+      <h6 className="font-bold text-lg text-gray-800 mb-3">Product Review</h6>
 
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-14 items-start">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-14 items-start w-full overflow-hidden">
         {/* Left Column: Reviews List */}
-        <div className="flex-1 w-full flex flex-col lg:pr-10">
+        <div className="flex-1 w-full min-w-0 flex flex-col lg:pr-10">
           {dataReviews && dataReviews.length > 0 ? (
             <>
               {dataReviews.slice(0, visibleReviews).map((review, index) => (
@@ -72,8 +72,8 @@ const ReviewsSection = ({
                   <div className="w-9 h-9 min-w-[36px] rounded-full flex items-center justify-center bg-[#aeb4b7] text-white">
                     <User size={20} strokeWidth={2} />
                   </div>
-                  <div className="flex-1 mt-0.5">
-                    <h6 className="font-bold text-slate-800 text-[15px]">
+                  <div className="flex-1 min-w-0 mt-0.5">
+                    <h6 className="font-bold text-slate-800 text-[15px] break-words">
                       {review.name}
                     </h6>
                     <div className="mt-1">
@@ -109,7 +109,7 @@ const ReviewsSection = ({
         </div>
 
         {/* Right Column: Review Form */}
-        <div className="lg:w-[480px] w-full bg-white rounded-lg p-6 md:p-8 border border-gray-200 flex-shrink-0 h-fit sticky top-32">
+        <div className="lg:w-[480px] w-full bg-white rounded-lg p-4 sm:p-6 md:p-8 border border-gray-200 flex-shrink-0 h-fit lg:sticky lg:top-32">
           <form onSubmit={handleReviewSubmit} className="space-y-6">
             {reviewError && (
               <div className="bg-red-50 text-red-600 p-3 rounded text-[13px]">
@@ -122,8 +122,8 @@ const ReviewsSection = ({
               </div>
             )}
 
-            <div className="flex items-center gap-3">
-              <label className="text-[14px] text-gray-700 w-[80px] text-right flex-shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <label className="text-[14px] text-gray-700 w-full sm:w-[80px] sm:text-right flex-shrink-0">
                 <span className="text-red-500 mr-1">*</span>Rating:
               </label>
               <div className="flex-1">
@@ -137,8 +137,8 @@ const ReviewsSection = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <label className="text-[14px] text-gray-700 w-[80px] text-right flex-shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <label className="text-[14px] text-gray-700 w-full sm:w-[80px] sm:text-right flex-shrink-0">
                 <span className="text-red-500 mr-1">*</span>Name:
               </label>
               <input
@@ -151,8 +151,8 @@ const ReviewsSection = ({
               />
             </div>
 
-            <div className="flex items-start gap-3">
-              <label className="text-[14px] text-gray-700 w-[80px] text-right mt-2 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+              <label className="text-[14px] text-gray-700 w-full sm:w-[80px] sm:text-right mt-0 sm:mt-2 flex-shrink-0">
                 <span className="text-red-500 mr-1">*</span>Comment:
               </label>
               <div className="flex-1 w-full">
@@ -170,7 +170,7 @@ const ReviewsSection = ({
               </div>
             </div>
 
-            <div className="flex pl-[92px]">
+            <div className="flex sm:pl-[92px] justify-center sm:justify-start">
               <button
                 type="submit"
                 className="bg-[#648b3b] text-white rounded-md px-6 py-2 hover:bg-[#4d6c2d] transition-all duration-300 font-medium text-[14px]"
@@ -510,25 +510,25 @@ const ProductDisplayPage = () => {
   };
 
   return (
-    <section className="">
-      <div className="container mx-auto p-4 grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+    <section className="overflow-x-hidden">
+      <div className="container mx-auto p-3 sm:p-4 grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start justify-center">
         {/* Custom Breadcrumb matching product name */}
         <nav className="lg:col-span-12 flex px-0 pb-0 text-gray-700 bg-transparent rounded-lg w-full -mb-4 lg:-mb-8" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3 w-full">
-            <li className="inline-flex items-center">
+          <ol className="flex flex-wrap items-center gap-y-1 gap-x-1 md:gap-x-3 w-full">
+            <li className="flex items-center flex-shrink-0">
               <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#1d9962] transition-colors">
                 Home
               </Link>
             </li>
-            <li className="flex items-center">
+            <li className="flex items-center flex-shrink-0">
                <FaAngleRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400 mx-1 md:mx-2 flex-shrink-0" />
                <span className="text-sm font-medium text-gray-500">
                  Product
                </span>
             </li>
-            <li className="flex items-center w-full min-w-0" aria-current="page">
+            <li className="flex items-center min-w-0 flex-1" aria-current="page">
                <FaAngleRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400 mx-1 md:mx-2 flex-shrink-0" />
-               <span className="text-sm font-medium text-[#1d9962] truncate">
+               <span className="text-sm font-medium text-[#1d9962] truncate block">
                  {data.name || "Loading..."}
                </span>
             </li>
@@ -545,7 +545,7 @@ const ProductDisplayPage = () => {
                 {data.image.map((img, index) => (
                   <div
                     key={img + index}
-                    className={`min-w-[4rem] min-h-[4rem] w-16 h-16 lg:min-w-[5rem] lg:min-h-[5rem] lg:w-20 lg:h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                    className={`min-w-[3.5rem] min-h-[3.5rem] w-14 h-14 lg:min-w-[5rem] lg:min-h-[5rem] lg:w-20 lg:h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                       index === image
                         ? "border-[#279d68] shadow-md transform lg:scale-105"
                         : "border-transparent hover:border-[#279d68]/50 shadow-sm"
@@ -573,7 +573,7 @@ const ProductDisplayPage = () => {
               {data.image.length > 0 ? (
                 <img
                   src={data.image[image]}
-                  className={`w-full max-h-[500px] object-contain rounded-lg ${
+                  className={`w-full max-h-[300px] md:max-h-[400px] lg:max-h-[500px] object-contain rounded-lg ${
                     isFading ? "image-fade-out" : "image-fade-in"
                   }`}
                   alt="product"
@@ -581,7 +581,7 @@ const ProductDisplayPage = () => {
               ) : (
                 <img
                   src="https://via.placeholder.com/570"
-                  className="w-full max-h-[500px] object-contain rounded-lg"
+                  className="w-full max-h-[300px] md:max-h-[400px] lg:max-h-[500px] object-contain rounded-lg"
                   alt="placeholder"
                 />
               )}
@@ -611,7 +611,7 @@ const ProductDisplayPage = () => {
 
         {/* Right Column: Details (Takes 7 columns out of 12) */}
         <div className="lg:col-span-7 p-4 lg:pl-4 text-base lg:text-lg font-outfit">
-          <h2 className="text-xl lg:text-3xl font-medium text-gray-7  00 tracking-tight">
+          <h2 className="text-xl lg:text-3xl font-medium text-gray-700 tracking-tight break-words">
             {data.name}
           </h2>
 
@@ -633,21 +633,19 @@ const ProductDisplayPage = () => {
               <p className="text-red-500">{priceError}</p>
             ) : currentCalculatedPrice > 0 ? (
               <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-3">
-                  <p className="font-bold text-3xl text-gray-900 border-none pb-1 leading-normal">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <p className="font-bold text-2xl lg:text-3xl text-gray-900 border-none pb-1 leading-normal">
                     {DisplayPriceInRupees(currentCalculatedPrice)}
                   </p>
                   {currentCalculatedOriginalPrice > currentCalculatedPrice && (
-                    <>
-                      <p className="font-medium text-lg text-slate-400 line-through pb-1 leading-normal">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-base lg:text-lg text-slate-400 line-through pb-1 leading-normal">
                           {DisplayPriceInRupees(currentCalculatedOriginalPrice)}
                       </p>
-                      <span className="bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-full shadow-sm transform">
-                          <span className="inline-block transform">
-                            {Math.round(((currentCalculatedOriginalPrice - currentCalculatedPrice) / currentCalculatedOriginalPrice) * 100)}% OFF
-                          </span>
+                      <span className="bg-red-600 text-white text-[10px] lg:text-xs font-bold py-1 px-3 rounded-full shadow-sm">
+                          {Math.round(((currentCalculatedOriginalPrice - currentCalculatedPrice) / currentCalculatedOriginalPrice) * 100)}% OFF
                       </span>
-                    </>
+                    </div>
                   )}
                 </div>
                 <p className="text-xs text-gray-400">Inclusive of all taxes</p>
@@ -708,7 +706,7 @@ const ProductDisplayPage = () => {
 
           {/* Add to Cart & Buy Now */}
           <div className="my-6 w-full lg:w-4/5 xl:w-2/3">
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1">
                 <AddToCartButton
                   data={{ ...data, selectedAttributes }}
@@ -740,13 +738,13 @@ const ProductDisplayPage = () => {
           {data?.more_details && Object.keys(data?.more_details).length > 0 && (
             <div className="my-8">
               <h6 className="font-bold text-lg text-gray-800 mb-3">Specifications</h6>
-              <div className="border border-gray-300 rounded-md overflow-hidden">
-                <table className="w-full text-sm text-left">
+              <div className="border border-gray-300 rounded-md overflow-hidden overflow-x-auto">
+                <table className="w-full text-sm text-left min-w-0 sm:min-w-[450px] md:min-w-full">
                   <tbody>
                     {Object.keys(data?.more_details).map((element, index) => (
                       <tr key={element + index} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
                         <td className="w-1/3 p-3 font-semibold text-gray-700 bg-gray-50/50 border-r border-gray-200">{element}</td>
-                        <td className="p-3 text-gray-600 font-light">{data?.more_details[element]}</td>
+                        <td className="p-3 text-gray-600 font-light break-words">{data?.more_details[element]}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -762,8 +760,8 @@ const ProductDisplayPage = () => {
       {(data.storage_instructions || data.storage_image) && (
         <div className="mt-12 mb-8 overflow-hidden relative">
           <div className="paper-edge-top h-5 bg-[#f0f0f0] w-full mb-[-1px]"></div>
-          <div className="bg-[#f0f0f0] text-gray-800 p-8 md:p-14 relative z-[2]">
-            <div className="container mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div className="bg-[#f0f0f0] text-gray-800 p-6 md:p-14 relative z-[2]">
+            <div className="container mx-auto grid lg:grid-cols-2 gap-10 items-center">
               {/* Left Side: Image */}
               <div className="flex justify-center order-2 md:order-1">
                 {data.storage_image ? (
@@ -772,7 +770,7 @@ const ProductDisplayPage = () => {
                     <img 
                       src={data.storage_image} 
                       alt="Storage/Nutrition Information" 
-                      className="relative max-w-full h-auto rounded-xl shadow-2xl border border-gray-200 transform transition-transform duration-500"
+                      className="relative w-full max-h-[250px] md:max-h-[400px] object-contain rounded-xl shadow-2xl border border-gray-200 transform transition-transform duration-500"
                     />
                   </div>
                 ) : (
@@ -783,10 +781,10 @@ const ProductDisplayPage = () => {
               </div>
 
               {/* Right Side: Content */}
-              <div className="flex flex-col gap-6 order-1 md:order-2">
+              <div className="flex flex-col gap-6 order-1 md:order-2 min-w-0">
                 <div className="space-y-4">
                   <div 
-                    className="storage-instructions-content text-gray-800 text-lg md:text-xl leading-relaxed font-outfit whitespace-pre-wrap drop-shadow-sm"
+                    className="storage-instructions-content text-gray-800 text-lg md:text-xl leading-relaxed font-outfit whitespace-pre-wrap drop-shadow-sm break-words"
                   >
                     {data.storage_instructions}
                   </div>
@@ -809,7 +807,7 @@ const ProductDisplayPage = () => {
       )}
 
       {/* Full-width Reviews Section at the bottom */}
-      <div className="container mx-auto px-4 mb-16">
+      <div className="container mx-auto px-3 sm:px-4 mb-16">
         <MemoizedReviewsSection
           dataReviews={data.reviews}
           visibleReviews={visibleReviews}

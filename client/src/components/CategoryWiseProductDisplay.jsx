@@ -51,7 +51,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
 
   return (
     <div className="mb-12">
-      <div className="max-w-[1800px] mx-auto p-4 flex items-center justify-between gap-4">
+      <div className="max-w-[1800px] mx-auto p-3 sm:p-4 flex items-center justify-between gap-4">
         <div class="flex items-center space-x-2">
           <motion.span
             initial={{ opacity: 0, y: 30 }}
@@ -72,7 +72,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
         </div>
       </div>
 
-      <div className="relative max-w-[1800px] mx-auto px-4">
+      <div className="relative max-w-[1800px] mx-auto px-4 overflow-hidden">
         <Swiper
           modules={[Navigation, Pagination]}
           spaceBetween={16}
