@@ -555,11 +555,11 @@ const ProductDisplayPage = () => {
 
         {/* Left Column: Images + Demo Video (Takes 5 columns out of 12) */}
         <div className="lg:sticky lg:top-32 z-30 lg:col-span-5 h-fit self-start">
-          <div className="flex flex-col lg:flex-row gap-4 items-start">
+          <div className="flex flex-col lg:flex-row gap-4 items-center lg:items-start text-center lg:text-left transition-all duration-300">
             
             {/* Thumbnails (Left on Desktop, Bottom on Mobile) */}
             {(data.image.length > 0 || data.demoVideoLink) && (
-              <div className="order-2 lg:order-1 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full lg:w-auto lg:min-w-[90px] lg:max-h-[500px] py-2 px-2">
+              <div className="order-2 lg:order-1 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full lg:w-auto lg:min-w-[90px] lg:max-h-[464px] max-w-[344px] lg:max-w-none py-2 px-2 scroll-smooth mx-auto lg:mx-0">
                 {data.image.map((img, index) => (
                   <div
                     key={img + index}

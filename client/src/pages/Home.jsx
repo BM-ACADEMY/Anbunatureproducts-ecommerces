@@ -30,29 +30,8 @@ const Home = () => {
   const swiperRef = useRef(null);
 
   const handleRedirectProductListpage = (id, cat) => {
-    if (!subCategoryData || subCategoryData.length === 0) {
-      console.warn("Subcategory data not available yet.");
-      const url = `/${valideURLConvert(cat)}-${id}`;
-      navigate(url);
-      return;
-    }
-
-    const subcategory = subCategoryData.find((sub) =>
-      sub.category.some((c) => c._id === id)
-    );
-
-    if (subcategory) {
-      const url = `/${valideURLConvert(cat)}-${id}/${valideURLConvert(
-        subcategory.name
-      )}-${subcategory._id}`;
-      navigate(url);
-    } else {
-      const url = `/${valideURLConvert(cat)}-${id}`;
-      navigate(url);
-      console.warn(
-        `No specific subcategory found for category ID: ${id}. Navigating to general category page.`
-      );
-    }
+    const url = `/${valideURLConvert(cat)}-${id}`;
+    navigate(url);
   };
 
   return (

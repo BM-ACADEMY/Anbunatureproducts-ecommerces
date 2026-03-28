@@ -8,6 +8,7 @@ import CardProduct from '../components/CardProduct';
 import { useSelector } from 'react-redux';
 import { valideURLConvert } from '../utils/valideURLConvert';
 import { Slider, Box, Typography } from '@mui/material';
+import { motion } from 'framer-motion';
 
 const ProductListPage = () => {
   const [data, setData] = useState([]);
@@ -19,10 +20,10 @@ const ProductListPage = () => {
   const [DisplaySubCategory, setDisplaySubCategory] = useState([]);
   const [subCategoryLoading, setSubCategoryLoading] = useState(false);
 
-  const subCategory = params?.subCategory?.split('-');
-  const subCategoryName = subCategory?.slice(0, subCategory?.length - 1)?.join(' ') || 'Products';
   const categoryId = params.category?.split('-').slice(-1)[0] || '';
   const subCategoryId = params.subCategory?.split('-').slice(-1)[0] || '';
+  const subCategory = params?.subCategory?.split('-');
+  const subCategoryName = subCategoryId ? (subCategory?.slice(0, subCategory?.length - 1)?.join(' ') || 'Products') : (params.category?.split('-').slice(0, -1).join(' ') || 'Category');
 
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [debouncedPriceRange, setDebouncedPriceRange] = useState([0, 5000]);
@@ -31,11 +32,12 @@ const ProductListPage = () => {
   const fetchProductdata = async (reset = false) => {
     try {
       setLoading(true);
+      const apiUrl = subCategoryId ? SummaryApi.getProductByCategoryAndSubCategory : SummaryApi.getProductByCategory;
       const response = await Axios({
-        ...SummaryApi.getProductByCategoryAndSubCategory,
+        ...apiUrl,
         data: {
           categoryId,
-          subCategoryId,
+          subCategoryId: subCategoryId || undefined,
           page,
           limit: 8,
           minPrice: debouncedPriceRange[0],
@@ -146,56 +148,44 @@ const ProductListPage = () => {
               <Loading />
             </div>
           ) : (
-            <div className="flex overflow-x-auto space-x-3 pb-2 scrollbarCustom">
+            <div className="flex overflow-x-auto space-x-4 pb-6 pt-4 scrollbar-hide px-2">
               {DisplaySubCategory.map((s, index) => {
                 const link = `/${valideURLConvert(s?.category[0]?.name || 'category')}-${s?.category[0]?._id || ''}/${valideURLConvert(s.name || 'subcategory')}-${s._id || ''}`;
+                const isActive = subCategoryId === s._id;
+                
                 return (
                   <Link
                     key={s._id + index}
                     to={link}
-                    className="flex flex-col items-center min-w-[120px] p-1 rounded-xl transition-colors"
+                    className="flex-shrink-0"
                   >
-                    <div className="w-24 h-24 overflow-hidden shadow">
-                      <img
-                        src={s.image || '/placeholder.png'}
-                        alt={s.name || 'Subcategory'}
-                        className="w-full h-full object-scale-down p-1"
-                      />
-                    </div>
-                    <p className="mt-1 font-outfit text-sm text-center">{s.name || 'Subcategory'}</p>
+                    <motion.div
+                       whileHover={{ y: -8 }}
+                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                       className={`flex flex-col items-center group cursor-pointer min-w-[100px] xs:min-w-[120px]`}
+                    >
+                        <div className={`w-[85px] xs:w-[100px] h-[85px] xs:h-[100px] rounded-full overflow-hidden relative flex items-center justify-center shadow-md border-2 transition-all duration-500 bg-white ${isActive ? 'border-green-500 shadow-green-100 scale-105' : 'border-transparent group-hover:shadow-lg'}`}>
+                            <img
+                              src={s.image || '/placeholder.png'}
+                              alt={s.name || 'Subcategory'}
+                              className="w-full h-full object-scale-down p-2 transition-transform duration-700 group-hover:scale-110"
+                            />
+                            {/* Hover Overlay */}
+                            <div className={`absolute inset-0 bg-black/40 flex items-center justify-center p-2 transition-all duration-500 rounded-full ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100'}`}>
+                               <span className="text-white font-bold text-[0.65rem] xs:text-[0.75rem] uppercase text-center leading-tight font-outfit tracking-wider">
+                                 {s.name}
+                               </span>
+                            </div>
+                        </div>
+                        {/* <p className={`mt-3 font-outfit text-sm font-semibold transition-colors duration-300 ${isActive ? 'text-green-600' : 'text-gray-600 group-hover:text-green-500'}`}>
+                            {s.name || 'Subcategory'}
+                        </p> */}
+                    </motion.div>
                   </Link>
                 );
               })}
             </div>
           )}
-        </div>
-
-        {/* Price Filter */}
-        <div className="px-4 py-4 bg-white rounded-lg shadow-sm mb-4">
-          <Typography gutterBottom className="font-outfit font-medium text-gray-700">
-            Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
-          </Typography>
-          <Box className="px-2">
-            <Slider
-              value={priceRange}
-              onChange={handlePriceChange}
-              valueLabelDisplay="auto"
-              min={0}
-              max={maxPriceLimit}
-              sx={{
-                color: '#22c55e', // text-green-500
-                '& .MuiSlider-thumb': {
-                  backgroundColor: '#22c55e',
-                },
-                '& .MuiSlider-track': {
-                  backgroundColor: '#22c55e',
-                },
-                '& .MuiSlider-rail': {
-                  backgroundColor: '#d1d5db', // text-gray-300
-                },
-              }}
-            />
-          </Box>
         </div>
 
         {/* Product Grid */}
