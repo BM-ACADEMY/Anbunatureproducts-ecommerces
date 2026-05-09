@@ -40,7 +40,7 @@ const uploadImageLocal = async (imageFile, section = 'misc') => {
                 }
                 
                 // Construct the URL to return to the client
-                const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 8080}`;
+                const baseUrl = (process.env.BACKEND_URL).replace(/\/$/, "");
                 const imageUrl = `${baseUrl}/uploads/${section}/${filename}`;
                 
                 resolve({
