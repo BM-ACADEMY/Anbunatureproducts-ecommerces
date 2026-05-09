@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import whatsappIcon from "../assets/whatsapp.png";
+const whatsappIcon = "/assets/common/whatsapp.webp";
 import { ArrowUp } from "lucide-react";
 
 const WhatsappFloatButton = () => {

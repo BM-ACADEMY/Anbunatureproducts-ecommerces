@@ -1,6 +1,6 @@
 import React from 'react';
-import founderDesktop from '../assets/Founder/Banners founder.png';
-import founderMobile from '../assets/Founder/founder Banner  mobile.png';
+const founderDesktop = '/assets/Founder/Banners founder.webp';
+const founderMobile = '/assets/Founder/founder Banner  mobile.webp';
 
 const FounderSection = () => {
     return (

@@ -278,7 +278,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { Leaf, Shield, Hand, Book, Heart, Check } from "lucide-react";
-import AboutImage from "../assets/about.png"; 
+const AboutImage = "/assets/about/about.webp"; 
 import { Link as RouterLink } from 'react-router-dom';
 import { FaLeaf, FaEye } from "react-icons/fa";
 

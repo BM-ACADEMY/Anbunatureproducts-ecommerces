@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { Mail, Phone, Instagram } from 'lucide-react';
-import { Modal, Box, Typography, Button } from '@mui/material';
-import { valideURLConvert } from '../utils/valideURLConvert'; // Import the utility function
-import Logo from '../assets/logo.png';
+import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { Mail, Phone, Instagram } from "lucide-react";
+import { Modal, Box, Typography, Button } from "@mui/material";
+import { valideURLConvert } from "../utils/valideURLConvert"; // Import the utility function
+const Logo = "/assets/common/logo.png";
 
 const Footer = () => {
   const date = new Date().getFullYear();
@@ -19,19 +19,19 @@ const Footer = () => {
   // Navigation handler for category clicks removed as we use direct NavLinks or Link with query params now
 
   const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "90%",
     maxWidth: 600,
-    maxHeight: '80vh',
-    bgcolor: 'white',
-    border: '1px solid #e5e5e5',
+    maxHeight: "80vh",
+    bgcolor: "white",
+    border: "1px solid #e5e5e5",
     boxShadow: 24,
     p: 4,
-    overflowY: 'auto',
-    borderRadius: '8px',
+    overflowY: "auto",
+    borderRadius: "8px",
   };
 
   return (
@@ -41,7 +41,11 @@ const Footer = () => {
           {/* Column 1: Anbu Natural Contact Info */}
           <div>
             <div className="flex items-center mb-4">
-              <img src={Logo} alt="Anbu Natural Logo" className="w-20 h-w-20 mr-2" />
+              <img
+                src={Logo}
+                alt="Anbu Natural Logo"
+                className="w-20 h-w-20 mr-2"
+              />
               <h3 className="text-lg font-medium">Anbu Natural</h3>
             </div>
             <p className="mb-2 flex items-center">
@@ -94,7 +98,11 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/"
-                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "underline font-bold"
+                      : "hover:underline hover:text-[#1d9a62]"
+                  }
                 >
                   Home
                 </NavLink>
@@ -102,7 +110,11 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/all-products"
-                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "underline font-bold"
+                      : "hover:underline hover:text-[#1d9a62]"
+                  }
                 >
                   Product
                 </NavLink>
@@ -110,7 +122,11 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/about"
-                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "underline font-bold"
+                      : "hover:underline hover:text-[#1d9a62]"
+                  }
                 >
                   About
                 </NavLink>
@@ -118,7 +134,11 @@ const Footer = () => {
               <li>
                 <NavLink
                   to="/contact"
-                  className={({ isActive }) => (isActive ? 'underline font-bold' : 'hover:underline hover:text-[#1d9a62]')}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "underline font-bold"
+                      : "hover:underline hover:text-[#1d9a62]"
+                  }
                 >
                   Contact
                 </NavLink>
@@ -168,8 +188,9 @@ const Footer = () => {
             <strong>Last Updated: 29.7.2025</strong>
             <p className="mt-4">
               Welcome to Anbu Natural. By accessing or using our website
-              (www.anbunatural.com), you agree to be bound by the following Terms
-              and Conditions. Please read them carefully before using our services.
+              (www.anbunatural.com), you agree to be bound by the following
+              Terms and Conditions. Please read them carefully before using our
+              services.
             </p>
             {/* ... (rest of the modal content remains unchanged) ... */}
           </Typography>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Container, Breadcrumbs, Link, Typography, Button, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { Sofa, Lamp, Check } from 'lucide-react';
-import Wood from '../assets/wood.jpg';
-import Service1 from '../assets/service-1.png';
-import Service2 from '../assets/service-2.png';
+const Wood = '/assets/manufacturing/wood.webp';
+const Service1 = '/assets/manufacturing/service-1.webp';
+const Service2 = '/assets/manufacturing/service-2.webp';
 
 
 const AboutUs = () => {

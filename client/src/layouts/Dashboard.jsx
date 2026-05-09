@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import UserMenu from '../components/UserMenu';
-import DashboardHeader from '../components/DashboardHeader';
-import { Link, Outlet } from 'react-router-dom';
-import { FiMenu, FiX } from 'react-icons/fi';
-import logo from '../assets/logo.png';
-import '../assets/css/dashboard.css';
-
+import React, { useState } from "react";
+import UserMenu from "../components/UserMenu";
+import DashboardHeader from "../components/DashboardHeader";
+import { Link, Outlet } from "react-router-dom";
+import { FiMenu, FiX } from "react-icons/fi";
+const logo = "/assets/common/logo.png";
+import "../assets/css/dashboard.css";
 
 const Dashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,37 +25,49 @@ const Dashboard = () => {
   };
 
   return (
-    <section className={`dashboard-layout ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <section
+      className={`dashboard-layout ${isCollapsed ? "sidebar-collapsed" : ""}`}
+    >
       {/* Mobile Overlay */}
-      <div 
-        className={`dash-modal-overlay ${mobileMenuOpen ? 'open' : ''}`} 
+      <div
+        className={`dash-modal-overlay ${mobileMenuOpen ? "open" : ""}`}
         onClick={closeMobileMenu}
         style={{ zIndex: 40 }}
       />
 
       {/* Sidebar */}
-      <aside className={`dashboard-sidebar ${mobileMenuOpen ? 'mobile-open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+      <aside
+        className={`dashboard-sidebar ${mobileMenuOpen ? "mobile-open" : ""} ${isCollapsed ? "collapsed" : ""}`}
+      >
         <Link to="/">
           <div className="sidebar-logo">
-             {isCollapsed ? (
-               <img src={logo} alt="Anbu Logo" className="logo-img mx-auto" />
-             ) : (
-               <>
-                 <img src={logo} alt="Anbu Logo" className="logo-img" />
-                 <span className="logo-text">Anbu</span>
-               </>
-             )}
+            {isCollapsed ? (
+              <img src={logo} alt="Anbu Logo" className="logo-img mx-auto" />
+            ) : (
+              <>
+                <img src={logo} alt="Anbu Logo" className="logo-img" />
+                <span className="logo-text">Anbu</span>
+              </>
+            )}
           </div>
         </Link>
         <div className="sidebar-content">
-          <UserMenu close={closeMobileMenu} isSidebar={true} isCollapsed={isCollapsed} />
+          <UserMenu
+            close={closeMobileMenu}
+            isSidebar={true}
+            isCollapsed={isCollapsed}
+          />
         </div>
       </aside>
 
       {/* Main Container */}
       <div className="dashboard-main-container">
         {/* Dashboard Top Header */}
-        <DashboardHeader onMenuClick={toggleMobileMenu} onSidebarToggle={toggleSidebar} isCollapsed={isCollapsed} />
+        <DashboardHeader
+          onMenuClick={toggleMobileMenu}
+          onSidebarToggle={toggleSidebar}
+          isCollapsed={isCollapsed}
+        />
 
         {/* Main Content Area */}
         <main className="dashboard-main">
@@ -68,6 +79,5 @@ const Dashboard = () => {
     </section>
   );
 };
-
 
 export default Dashboard;

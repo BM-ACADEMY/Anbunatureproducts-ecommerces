@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { useGlobalContext } from '../provider/GlobalProvider';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
-import imageEmpty from '../assets/empty_cart.png';
+const imageEmpty = '/assets/placeholder/empty_cart.webp';
 import { toast } from 'sonner';
 
 const DisplayCartItem = ({ close }) => {

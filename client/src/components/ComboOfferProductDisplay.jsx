@@ -14,11 +14,11 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 // Import your banner images
-import mobileComboBanner from "../assets/banners/bannermobile2.png"; // Adjust path as needed
-import desktopComboBanner from "../assets/banners/banner3.png"; // Adjust path as needed
+const mobileComboBanner = "/assets/banners/bannermobile2.webp";
+const desktopComboBanner = "/assets/banners/banner3.webp";
 
 // Import your new corner image
-import CornerVectorImage from "../assets/vectors/vector.png"; // <--- NEW IMPORT: Adjust this path to your desired image
+const CornerVectorImage = "/assets/vectors/vector.webp";
 
 const ComboOfferProductDisplay = () => {
   const [data, setData] = useState([]);

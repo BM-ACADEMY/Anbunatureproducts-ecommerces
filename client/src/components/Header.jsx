@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import logo from "../assets/logo.png";
+const logo = "/assets/common/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LuUserRound, LuSearch, LuTruck, LuChevronRight } from "react-icons/lu";
 import useMobile from "../hooks/useMobile";
@@ -14,320 +14,339 @@ import Search from "./Search";
 import { useGlobalContext } from "../provider/GlobalProvider";
 
 const Header = () => {
-    const [isMobile] = useMobile();
-    const location = useLocation();
-    const navigate = useNavigate();
-    const user = useSelector((state) => state?.user);
+  const [isMobile] = useMobile();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state?.user);
 
-    const [openUserMenu, setOpenUserMenu] = useState(false);
-    const [closeTimeout, setCloseTimeout] = useState(null);
-    
-    const userMenuRef = useRef(null);
-    const mobileUserMenuRef = useRef(null);
-    
-    const cartItem = useSelector((state) => state.cartItem.cart);
-    const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
+  const [openUserMenu, setOpenUserMenu] = useState(false);
+  const [closeTimeout, setCloseTimeout] = useState(null);
 
-    const { isCartOpen, setIsCartOpen } = useGlobalContext();
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
-    const [showSearch, setShowSearch] = useState(false);
+  const userMenuRef = useRef(null);
+  const mobileUserMenuRef = useRef(null);
 
-    // Close menus when navigating
-    useEffect(() => {
+  const cartItem = useSelector((state) => state.cartItem.cart);
+  const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
+
+  const { isCartOpen, setIsCartOpen } = useGlobalContext();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+
+  // Close menus when navigating
+  useEffect(() => {
+    setOpenUserMenu(false);
+    setShowSearch(false);
+    setShowMobileMenu(false);
+  }, [location.pathname]);
+
+  // Close user menu when user logs out
+  useEffect(() => {
+    if (!user?._id) {
+      setOpenUserMenu(false);
+    }
+  }, [user?._id]);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target) &&
+        mobileUserMenuRef.current &&
+        !mobileUserMenuRef.current.contains(event.target)
+      ) {
         setOpenUserMenu(false);
-        setShowSearch(false);
-        setShowMobileMenu(false);
-    }, [location.pathname]);
-
-    // Close user menu when user logs out
-    useEffect(() => {
-        if (!user?._id) {
-            setOpenUserMenu(false);
-        }
-    }, [user?._id]);
-
-    // Close menus when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                userMenuRef.current && !userMenuRef.current.contains(event.target) &&
-                mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(event.target)
-            ) {
-                setOpenUserMenu(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const handleMouseEnter = () => {
-        if (closeTimeout) {
-            clearTimeout(closeTimeout);
-            setCloseTimeout(null);
-        }
-        setOpenUserMenu(true);
+      }
     };
-
-    const handleMouseLeave = () => {
-        const timeout = setTimeout(() => {
-            setOpenUserMenu(false);
-        }, 300);
-        setCloseTimeout(timeout);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, []);
 
-    const toggleMobileMenu = () => {
-        setShowMobileMenu((prev) => !prev);
-    };
+  const handleMouseEnter = () => {
+    if (closeTimeout) {
+      clearTimeout(closeTimeout);
+      setCloseTimeout(null);
+    }
+    setOpenUserMenu(true);
+  };
 
-    const navLinks = [
-        { label: "Home", path: "/" },
-        { label: "Product", path: "/all-products" },
-        { label: "About", path: "/about" },
-        { label: "Contact", path: "/contact" },
-    ];
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setOpenUserMenu(false);
+    }, 300);
+    setCloseTimeout(timeout);
+  };
 
-    return (
-        <>
-            {/* Announcement Bar with Marquee Effect */}
-            <div className="w-full bg-[#fdf5e6] py-1 overflow-hidden whitespace-nowrap border-b border-gray-100">
-                <div className="inline-block animate-marquee hover:pause-marquee cursor-default">
-                    <div className="flex items-center space-x-12">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                            <div key={i} className="flex items-center space-x-2">
-                                <LuTruck size={18} className="text-green-700" />
-                                <span className="text-sm font-semibold text-gray-800 uppercase tracking-widest whitespace-nowrap">
-                                    deliver with in 2 to 5 days all over india
-                                </span>
-                            </div>
-                        ))}
+  const toggleMobileMenu = () => {
+    setShowMobileMenu((prev) => !prev);
+  };
+
+  const navLinks = [
+    { label: "Home", path: "/" },
+    { label: "Product", path: "/all-products" },
+    { label: "About", path: "/about" },
+    { label: "Contact", path: "/contact" },
+  ];
+
+  return (
+    <>
+      {/* Announcement Bar with Marquee Effect */}
+      <div className="w-full bg-[#fdf5e6] py-1 overflow-hidden whitespace-nowrap border-b border-gray-100">
+        <div className="inline-block animate-marquee hover:pause-marquee cursor-default">
+          <div className="flex items-center space-x-12">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <LuTruck size={18} className="text-green-700" />
+                <span className="text-sm font-semibold text-gray-800 uppercase tracking-widest whitespace-nowrap">
+                  deliver with in 2 to 5 days all over india
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+        <div className="container mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
+          {/* Logo - Increased Size */}
+          <Link to="/" className="flex-shrink-0 transition-transform">
+            <img src={logo} alt="Anbu Logo" className="h-12 lg:h-16 w-auto" />
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <div key={link.label} className="relative flex items-center h-20">
+                <Link
+                  to={link.path}
+                  className={`text-gray-700 hover:text-green-700 font-medium transition-colors ${
+                    location.pathname === link.path ? "text-green-700" : ""
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              </div>
+            ))}
+          </nav>
+
+          {/* Right Icons (Desktop) */}
+          <div className="hidden lg:flex items-center space-x-6">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`transition-colors ${showSearch ? "text-green-700" : "text-gray-700 hover:text-green-700"}`}
+              title="Search"
+            >
+              <LuSearch size={24} />
+            </button>
+
+            <div
+              className="relative"
+              onMouseEnter={() => user?._id && handleMouseEnter()}
+              onMouseLeave={() => user?._id && handleMouseLeave()}
+              ref={userMenuRef}
+            >
+              <button
+                className="transition-colors flex items-center"
+                onClick={() => {
+                  if (!user?._id) {
+                    navigate("/login");
+                  } else {
+                    setOpenUserMenu(!openUserMenu);
+                  }
+                }}
+              >
+                {user?._id ? (
+                  user?.avatar ? (
+                    <div className="w-9 h-9 rounded-full overflow-hidden border-2 shadow-sm">
+                      <img
+                        src={user.avatar}
+                        alt="avatar"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 ">
+                      {user?.name?.charAt(0)?.toUpperCase() ||
+                        user?.mobile?.charAt(0) ||
+                        "U"}
+                    </div>
+                  )
+                ) : (
+                  <LuUserRound
+                    size={24}
+                    className="text-gray-700 hover:text-green-700"
+                  />
+                )}
+              </button>
+
+              {user?._id && openUserMenu && (
+                <div className="absolute right-0 top-full pt-2">
+                  <UserMenu
+                    close={() => setOpenUserMenu(false)}
+                    isHome={true}
+                  />
                 </div>
+              )}
             </div>
 
-            <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-                <div className="container mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
-                    
-                    {/* Logo - Increased Size */}
-                    <Link to="/" className="flex-shrink-0 transition-transform">
-                        <img src={logo} alt="Anbu Logo" className="h-12 lg:h-16 w-auto" />
-                    </Link>
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="bg-[#1a1a1a] text-white flex items-center space-x-2 px-6 py-2.5 rounded-full hover:bg-black transition-all shadow-md group"
+            >
+              <SlHandbag
+                size={20}
+                className="group-hover:scale-110 transition-transform"
+              />
+              <span className="font-semibold text-sm">Cart ({totalQty})</span>
+            </button>
+          </div>
 
-                    {/* Desktop Navigation */}
-                    <nav className="hidden lg:flex items-center space-x-8">
-                        {navLinks.map((link) => (
-                            <div 
-                                key={link.label}
-                                className="relative flex items-center h-20"
-                            >
-                                <Link 
-                                    to={link.path}
-                                    className={`text-gray-700 hover:text-green-700 font-medium transition-colors ${
-                                        location.pathname === link.path ? 'text-green-700' : ''
-                                    }`}
-                                >
-                                    {link.label}
-                                </Link>
-                            </div>
-                        ))}
-                    </nav>
+          {/* Mobile Icons + Menu Toggle */}
+          <div className="flex lg:hidden items-center space-x-4">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`transition-colors ${showSearch ? "text-green-700" : "text-gray-700"}`}
+              title="Search"
+            >
+              <LuSearch size={22} />
+            </button>
 
-                    {/* Right Icons (Desktop) */}
-                    <div className="hidden lg:flex items-center space-x-6">
-                        <button 
-                            onClick={() => setShowSearch(!showSearch)}
-                            className={`transition-colors ${showSearch ? 'text-green-700' : 'text-gray-700 hover:text-green-700'}`}
-                            title="Search"
-                        >
-                            <LuSearch size={24} />
-                        </button>
-
-                        <div 
-                            className="relative"
-                            onMouseEnter={() => user?._id && handleMouseEnter()}
-                            onMouseLeave={() => user?._id && handleMouseLeave()}
-                            ref={userMenuRef}
-                        >
-                            <button 
-                                className="transition-colors flex items-center"
-                                onClick={() => {
-                                    if (!user?._id) {
-                                        navigate('/login');
-                                    } else {
-                                        setOpenUserMenu(!openUserMenu);
-                                    }
-                                }}
-                            >
-                                {user?._id ? (
-                                    user?.avatar ? (
-                                        <div className="w-9 h-9 rounded-full overflow-hidden border-2 shadow-sm">
-                                            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 ">
-                                            {user?.name?.charAt(0)?.toUpperCase() || user?.mobile?.charAt(0) || "U"}
-                                        </div>
-                                    )
-                                ) : (
-                                    <LuUserRound size={24} className="text-gray-700 hover:text-green-700" />
-                                )}
-                            </button>
-                            
-                            {user?._id && openUserMenu && (
-                                <div className="absolute right-0 top-full pt-2">
-                                    <UserMenu close={() => setOpenUserMenu(false)} isHome={true} />
-                                </div>
-                            )}
-                        </div>
-
-                        <button 
-                            onClick={() => setIsCartOpen(true)}
-                            className="bg-[#1a1a1a] text-white flex items-center space-x-2 px-6 py-2.5 rounded-full hover:bg-black transition-all shadow-md group"
-                        >
-                            <SlHandbag size={20} className="group-hover:scale-110 transition-transform" />
-                            <span className="font-semibold text-sm">Cart ({totalQty})</span>
-                        </button>
+            <div className="relative" ref={mobileUserMenuRef}>
+              <button
+                className="transition-colors flex items-center"
+                onClick={() => {
+                  if (!user?._id) {
+                    navigate("/login");
+                  } else {
+                    setOpenUserMenu(!openUserMenu);
+                  }
+                }}
+              >
+                {user?._id ? (
+                  user?.avatar ? (
+                    <div className="w-8 h-8 rounded-full overflow-hidden border border-green-500 shadow-sm">
+                      <img
+                        src={user.avatar}
+                        alt="avatar"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-
-                    {/* Mobile Icons + Menu Toggle */}
-                    <div className="flex lg:hidden items-center space-x-4">
-                        <button 
-                            onClick={() => setShowSearch(!showSearch)}
-                            className={`transition-colors ${showSearch ? 'text-green-700' : 'text-gray-700'}`}
-                            title="Search"
-                        >
-                            <LuSearch size={22} />
-                        </button>
-                        
-                        <div 
-                            className="relative"
-                            ref={mobileUserMenuRef}
-                        >
-                            <button 
-                                className="transition-colors flex items-center"
-                                onClick={() => {
-                                    if (!user?._id) {
-                                        navigate('/login');
-                                    } else {
-                                        setOpenUserMenu(!openUserMenu);
-                                    }
-                                }}
-                            >
-                                {user?._id ? (
-                                    user?.avatar ? (
-                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-green-500 shadow-sm">
-                                            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs shadow-sm border border-green-500">
-                                            {user?.name?.charAt(0)?.toUpperCase() || user?.mobile?.charAt(0) || "U"}
-                                        </div>
-                                    )
-                                ) : (
-                                    <LuUserRound size={22} className="text-gray-700" />
-                                )}
-                            </button>
-                            
-                            {user?._id && openUserMenu && (
-                                <div className="absolute right-[-80px] top-full pt-2 w-72 animate-in fade-in slide-in-from-top-2 duration-200 z-[1001]">
-                                    <UserMenu close={() => setOpenUserMenu(false)} isHome={true} />
-                                </div>
-                            )}
-                        </div>
-
-                        <button 
-                            onClick={() => setIsCartOpen(true)}
-                            className="relative text-gray-700"
-                        >
-                            <SlHandbag size={24} />
-                            {totalQty > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-[#70a139] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white">
-                                    {totalQty}
-                                </span>
-                            )}
-                        </button>
-
-                        <button 
-                            onClick={toggleMobileMenu}
-                            className="text-gray-700 focus:outline-none"
-                        >
-                            <AiOutlineMenu size={24} />
-                        </button>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xs shadow-sm border border-green-500">
+                      {user?.name?.charAt(0)?.toUpperCase() ||
+                        user?.mobile?.charAt(0) ||
+                        "U"}
                     </div>
+                  )
+                ) : (
+                  <LuUserRound size={22} className="text-gray-700" />
+                )}
+              </button>
+
+              {user?._id && openUserMenu && (
+                <div className="absolute right-[-80px] top-full pt-2 w-72 animate-in fade-in slide-in-from-top-2 duration-200 z-[1001]">
+                  <UserMenu
+                    close={() => setOpenUserMenu(false)}
+                    isHome={true}
+                  />
                 </div>
+              )}
+            </div>
 
-                {/* Mobile Menu Drawer */}
-                <div 
-                    className={`fixed inset-0 z-[60] bg-black bg-opacity-40 transition-opacity duration-300 ${
-                        showMobileMenu ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                    }`}
-                    onClick={toggleMobileMenu}
-                >
-                    <div 
-                        className={`absolute top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl transition-transform duration-300 transform ${
-                            showMobileMenu ? 'translate-x-0' : 'translate-x-full'
-                        }`}
-                        onClick={(e) => e.stopPropagation()}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative text-gray-700"
+            >
+              <SlHandbag size={24} />
+              {totalQty > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#70a139] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white">
+                  {totalQty}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={toggleMobileMenu}
+              className="text-gray-700 focus:outline-none"
+            >
+              <AiOutlineMenu size={24} />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Drawer */}
+        <div
+          className={`fixed inset-0 z-[60] bg-black bg-opacity-40 transition-opacity duration-300 ${
+            showMobileMenu
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+          onClick={toggleMobileMenu}
+        >
+          <div
+            className={`absolute top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl transition-transform duration-300 transform ${
+              showMobileMenu ? "translate-x-0" : "translate-x-full"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 flex flex-col h-full overflow-y-auto">
+              <div className="flex items-center justify-between mb-8">
+                <button onClick={toggleMobileMenu} className="text-gray-500">
+                  <IoCloseOutline size={30} />
+                </button>
+                <img src={logo} alt="Anbu Logo" className="h-10 w-auto" />
+                <div className="w-8" /> {/* Spacer */}
+              </div>
+
+              <nav className="flex flex-col space-y-2">
+                {navLinks.map((link) => (
+                  <div key={link.label}>
+                    <Link
+                      to={link.path}
+                      onClick={toggleMobileMenu}
+                      className={`block px-4 py-3 rounded-xl text-lg font-medium transition-all ${
+                        location.pathname === link.path
+                          ? "bg-[#70a139] text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
                     >
-                        <div className="p-6 flex flex-col h-full overflow-y-auto">
-                            <div className="flex items-center justify-between mb-8">
-                                <button onClick={toggleMobileMenu} className="text-gray-500">
-                                    <IoCloseOutline size={30} />
-                                </button>
-                                <img src={logo} alt="Anbu Logo" className="h-10 w-auto" />
-                                <div className="w-8" /> {/* Spacer */}
-                            </div>
+                      {link.label}
+                    </Link>
+                  </div>
+                ))}
+              </nav>
 
-                            <nav className="flex flex-col space-y-2">
-                                {navLinks.map((link) => (
-                                    <div key={link.label}>
-                                        <Link
-                                            to={link.path}
-                                            onClick={toggleMobileMenu}
-                                            className={`block px-4 py-3 rounded-xl text-lg font-medium transition-all ${
-                                                location.pathname === link.path
-                                                    ? 'bg-[#70a139] text-white shadow-md' 
-                                                    : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                        >
-                                            {link.label}
-                                        </Link>
-                                    </div>
-                                ))}
-                            </nav>
-
-                            <div className="mt-auto border-t pt-6 space-y-4">
-                                {isAdmin(user?.role) && (
-                                    <Link 
-                                        to="/dashboard" 
-                                        onClick={toggleMobileMenu}
-                                        className="block text-center py-3 bg-gray-100 rounded-xl font-medium text-gray-700"
-                                    >
-                                        Admin Dashboard
-                                    </Link>
-                                ) }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Search Bar Overlay */}
-                {showSearch && (
-                    <div className="absolute top-full left-0 w-full bg-transparent py-6 px-4  animate-in fade-in slide-in-from-top-4 duration-300 z-40">
-                        <div className="container mx-auto max-w-3xl">
-                            <Search isFullWidth={true} close={() => setShowSearch(false)} />
-                        </div>
-                    </div>
+              <div className="mt-auto border-t pt-6 space-y-4">
+                {isAdmin(user?.role) && (
+                  <Link
+                    to="/dashboard"
+                    onClick={toggleMobileMenu}
+                    className="block text-center py-3 bg-gray-100 rounded-xl font-medium text-gray-700"
+                  >
+                    Admin Dashboard
+                  </Link>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
 
-                {/* Cart Section Overlay */}
-                {isCartOpen && (
-                    <DisplayCartItem close={() => setIsCartOpen(false)} />
-                )}
-            </header>
-        </>
-    );
+        {/* Search Bar Overlay */}
+        {showSearch && (
+          <div className="absolute top-full left-0 w-full bg-transparent py-6 px-4  animate-in fade-in slide-in-from-top-4 duration-300 z-40">
+            <div className="container mx-auto max-w-3xl">
+              <Search isFullWidth={true} close={() => setShowSearch(false)} />
+            </div>
+          </div>
+        )}
+
+        {/* Cart Section Overlay */}
+        {isCartOpen && <DisplayCartItem close={() => setIsCartOpen(false)} />}
+      </header>
+    </>
+  );
 };
 
 export default Header;

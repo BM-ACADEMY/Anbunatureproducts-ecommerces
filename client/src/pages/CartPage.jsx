@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGlobalContext } from '../provider/GlobalProvider';
 import CartItem from '../components/CartItem';
 import CartSummary from '../components/CartSummary';
-import imageEmpty from '../assets/empty_cart.png';
+const imageEmpty = '/assets/placeholder/empty_cart.webp';
 import { toast } from 'sonner';
 import Breadcrumbs from '../components/Breadcrumbs';
 
