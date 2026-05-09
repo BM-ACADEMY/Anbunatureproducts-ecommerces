@@ -99,7 +99,7 @@ const ProductListPage = () => {
     console.log('AllSubCategory:', AllSubCategory.map(s => ({ name: s.name, createdAt: s.createdAt })));
 
     const sub = AllSubCategory.filter((s) => {
-      const filterData = s.category?.some((el) => el._id === categoryId);
+      const filterData = s.category?._id === categoryId || s.category === categoryId;
       return filterData || null;
     }).sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
@@ -150,7 +150,7 @@ const ProductListPage = () => {
           ) : (
             <div className="flex overflow-x-auto space-x-4 pb-6 pt-4 scrollbar-hide px-2">
               {DisplaySubCategory.map((s, index) => {
-                const link = `/${valideURLConvert(s?.category[0]?.name || 'category')}-${s?.category[0]?._id || ''}/${valideURLConvert(s.name || 'subcategory')}-${s._id || ''}`;
+                const link = `/${valideURLConvert(s?.category?.name || 'category')}-${s?.category?._id || ''}/${valideURLConvert(s.name || 'subcategory')}-${s._id || ''}`;
                 const isActive = subCategoryId === s._id;
                 
                 return (
@@ -167,7 +167,7 @@ const ProductListPage = () => {
                         <div className={`w-[85px] xs:w-[100px] h-[85px] xs:h-[100px] rounded-full overflow-hidden relative flex items-center justify-center shadow-md border-2 transition-all duration-500 bg-white ${isActive ? 'border-green-500 shadow-green-100 scale-105' : 'border-transparent group-hover:shadow-lg'}`}>
                             <img
                               src={s.image || '/placeholder.png'}
-                              alt={s.name || 'Subcategory'}
+                              alt={s.altText || s.name || 'Subcategory'}
                               className="w-full h-full object-scale-down p-2 transition-transform duration-700 group-hover:scale-110"
                             />
                             {/* Hover Overlay */}

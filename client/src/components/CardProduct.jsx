@@ -90,14 +90,14 @@ const CardProduct = ({ data }) => {
           </div>
           <img
             src={data.image[0]}
-            alt={data.name}
+            alt={data.altText || data.name}
             className={`w-full h-full object-cover transition-opacity duration-700 ${data.image.length > 1 ? 'group-hover/card:opacity-0' : ''}`}
             loading="lazy"
           />
           {data.image.length > 1 && (
             <img
               src={data.image[1]}
-              alt={`${data.name} hover view`}
+              alt={`${data.altText || data.name} hover view`}
               className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover/card:opacity-100 transition-opacity duration-700"
               loading="lazy"
             />

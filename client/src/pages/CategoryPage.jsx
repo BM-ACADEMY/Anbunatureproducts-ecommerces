@@ -26,7 +26,7 @@ const CategoryPage = () => {
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 10;
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -78,13 +78,13 @@ const CategoryPage = () => {
     return (
         <section className=''>
             {/* Header */}
-            <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded'>
-                <h2 className='font-semibold text-lg sm:text-xl'>Category</h2>
+            <div className='p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white shadow-sm rounded-lg'>
+                <h2 className='font-bold text-xl sm:text-2xl text-slate-800'>Category</h2>
                 <button 
                   onClick={() => setOpenUploadCategory(true)}
-                  className='bg-[#279d68] hover:bg-[#279d68]/90 text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
+                  className='w-full sm:w-auto bg-[#279d68] hover:bg-[#279d68]/90 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all font-bold text-sm sm:text-base shadow-sm active:scale-95'
                 >
-                  <IoAdd size={24} />
+                  <IoAdd size={22} />
                   <span>Add Category</span>
                 </button>
             </div>

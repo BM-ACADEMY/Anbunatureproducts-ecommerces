@@ -12,6 +12,8 @@ import { SlHandbag } from "react-icons/sl";
 import isAdmin from "../utils/isAdmin";
 import Search from "./Search";
 import { useGlobalContext } from "../provider/GlobalProvider";
+import Axios from "../utils/Axios";
+import SummaryApi from "../common/SummaryApi";
 
 const Header = () => {
   const [isMobile] = useMobile();
@@ -31,6 +33,23 @@ const Header = () => {
   const { isCartOpen, setIsCartOpen } = useGlobalContext();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+
+  const [announcementText, setAnnouncementText] = useState("deliver with in 2 to 5 days all over india");
+
+  // Fetch announcement text from API
+  useEffect(() => {
+    const fetchAnnouncement = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getAnnouncement });
+        if (response.data.success && response.data.data?.text) {
+          setAnnouncementText(response.data.data.text);
+        }
+      } catch (error) {
+        // Keep default text on error
+      }
+    };
+    fetchAnnouncement();
+  }, []);
 
   // Close menus when navigating
   useEffect(() => {
@@ -100,7 +119,7 @@ const Header = () => {
               <div key={i} className="flex items-center space-x-2">
                 <LuTruck size={18} className="text-green-700" />
                 <span className="text-sm font-semibold text-gray-800 uppercase tracking-widest whitespace-nowrap">
-                  deliver with in 2 to 5 days all over india
+                  {announcementText}
                 </span>
               </div>
             ))}

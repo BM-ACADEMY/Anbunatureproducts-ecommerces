@@ -241,6 +241,14 @@ const SummaryApi = {
   deleteSiteReview: {
     url: "/api/site-review/admin/delete", // Will append /:id
     method: "delete"
+  },
+  getAnnouncement: {
+    url: "/api/announcement/get",
+    method: "get"
+  },
+  updateAnnouncement: {
+    url: "/api/announcement/update",
+    method: "put"
   }
 };
 

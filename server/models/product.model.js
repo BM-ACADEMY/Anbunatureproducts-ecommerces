@@ -65,10 +65,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
-  category: [{
+  category: {
     type: mongoose.Schema.ObjectId,
     ref: 'category'
-  }],
+  },
   subCategory: [{
     type: mongoose.Schema.ObjectId,
     ref: 'subCategory'

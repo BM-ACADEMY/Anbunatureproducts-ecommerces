@@ -15,12 +15,13 @@ const EditSubCategory = ({ close, data, fetchData }) => {
     _id: data._id,
     name: data.name,
     image: data.image,
-    category: data.category || [],
+    category: data.category?._id || data.category || "", // Support both populated and ID
     altText: data.altText || "",
   });
   
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [selectedCategoryDetails, setSelectedCategoryDetails] = useState(data.category && typeof data.category === 'object' ? data.category : null);
   const allCategory = useSelector((state) => state.product.allCategory);
 
   const handleChange = (e) => {
@@ -50,17 +51,17 @@ const EditSubCategory = ({ close, data, fetchData }) => {
     }));
   };
 
-  const handleRemoveCategorySelected = (categoryId) => {
-    const updatedCategories = subCategoryData.category.filter((el) => el._id !== categoryId);
+  const handleRemoveCategorySelected = () => {
     setSubCategoryData((prev) => ({
       ...prev,
-      category: updatedCategories,
+      category: "",
     }));
+    setSelectedCategoryDetails(null);
   };
 
   const handleSubmitSubCategory = async (e) => {
     e.preventDefault();
-    if (!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length) {
+    if (!subCategoryData.name || !subCategoryData.image || !subCategoryData.category) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -104,7 +105,7 @@ const EditSubCategory = ({ close, data, fetchData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded shadow-lg w-full max-w-lg overflow-hidden flex flex-col'>
+      <div className='relative bg-white rounded shadow-lg w-full max-w-lg overflow-visible flex flex-col'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b'>
           <h3 className='text-lg font-medium text-gray-800'>Edit Sub Category</h3>
@@ -117,22 +118,33 @@ const EditSubCategory = ({ close, data, fetchData }) => {
           {/* Image Upload */}
           <div>
             <p className='text-base font-medium mb-2'>Sub Category Image</p>
-            <div className='flex flex-wrap items-center gap-3'>
-              <label htmlFor='uploadSubImgEdit' className='cursor-pointer'>
-                <input
-                  type='file'
-                  id='uploadSubImgEdit'
-                  className='hidden'
-                  accept='image/*'
-                  onChange={handleUploadSubCategoryImage}
-                  disabled={loading}
-                />
+            <div className='flex flex-wrap items-center gap-4'>
+              <div className='relative group'>
                 <img 
-                  className='max-w-24 w-24 h-24 object-cover rounded border border-gray-200' 
+                  className='w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm' 
                   src={subCategoryData.image || "https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"} 
-                  alt="uploadArea" 
+                  alt={subCategoryData.altText || subCategoryData.name || "Subcategory image"} 
                 />
-              </label>
+                {subCategoryData.image && (
+                  <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center'>
+                    <span className='text-white text-xs font-bold'>Change</span>
+                  </div>
+                )}
+              </div>
+              <div className='flex flex-col gap-2'>
+                <label htmlFor='uploadSubImgEdit' className='cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 font-medium text-sm rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100'>
+                  <input
+                    type='file'
+                    id='uploadSubImgEdit'
+                    className='hidden'
+                    accept='image/*'
+                    onChange={handleUploadSubCategoryImage}
+                    disabled={loading}
+                  />
+                  {subCategoryData.image ? 'Replace Image' : 'Upload Image'}
+                </label>
+                <span className='text-[11px] text-slate-400 font-medium'>Max 2MB • JPG, PNG, WebP</span>
+              </div>
               {loading && <div className='w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />}
             </div>
           </div>
@@ -169,33 +181,32 @@ const EditSubCategory = ({ close, data, fetchData }) => {
           {/* Category Select */}
           <div className='flex flex-col gap-1'>
             <CategoryDropdown
-              label="Main Categories"
+              label="Main Category"
               placeholder="Add Category..."
               options={allCategory}
-              selectedOptions={subCategoryData.category}
+              selectedOptions={selectedCategoryDetails ? [selectedCategoryDetails] : []}
               onSelect={(categoryDetails) => {
-                if (!subCategoryData.category.some((cat) => cat._id === categoryDetails._id)) {
-                  setSubCategoryData((prev) => ({
-                    ...prev,
-                    category: [...prev.category, categoryDetails],
-                  }));
-                }
+                setSubCategoryData((prev) => ({
+                  ...prev,
+                  category: categoryDetails._id,
+                }));
+                setSelectedCategoryDetails(categoryDetails);
               }}
             />
             
             <div className='flex flex-wrap gap-2 mt-2'>
-              {subCategoryData.category.map((cat) => (
-                <div key={cat._id} className='bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full flex items-center gap-2 text-xs font-bold'>
-                  <span>{cat.name}</span>
+              {selectedCategoryDetails && (
+                <div className='bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full flex items-center gap-2 text-xs font-bold'>
+                  <span>{selectedCategoryDetails.name}</span>
                   <button 
                     type='button'
-                    onClick={() => handleRemoveCategorySelected(cat._id)}
+                    onClick={handleRemoveCategorySelected}
                     className='text-indigo-400 hover:text-red-500 transition-colors'
                   >
                     <IoClose size={14} />
                   </button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -211,7 +222,7 @@ const EditSubCategory = ({ close, data, fetchData }) => {
             </button>
             <button
               type='submit'
-              disabled={!subCategoryData.name || !subCategoryData.image || !subCategoryData.category.length || loading}
+              disabled={!subCategoryData.name || !subCategoryData.image || !subCategoryData.category || loading}
               className='flex-1 py-2.5 bg-indigo-500 text-white font-medium rounded hover:bg-indigo-600 transition-colors disabled:bg-indigo-300'
             >
               {loading ? "Updating..." : "Update"}

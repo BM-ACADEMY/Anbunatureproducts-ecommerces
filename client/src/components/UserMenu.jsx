@@ -6,7 +6,7 @@ import SummaryApi from "../common/SummaryApi";
 import { logout } from "../store/userSlice";
 import { toast } from "sonner";
 import isAdmin from "../utils/isAdmin";
-import { FiUser, FiLogOut, FiGrid, FiLayers, FiUpload, FiPackage, FiList, FiHome, FiShoppingCart, FiMessageSquare } from "react-icons/fi";
+import { FiUser, FiLogOut, FiGrid, FiLayers, FiUpload, FiPackage, FiList, FiHome, FiShoppingCart, FiMessageSquare, FiVolume2 } from "react-icons/fi";
 import { useGlobalContext } from "../provider/GlobalProvider";
 
 
@@ -78,6 +78,7 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
     { text: "All Orders", icon: <FiList size={20} />, path: "/dashboard/allorders" },
     { text: "Banners", icon: <FiLayers size={21} />, path: "/dashboard/banner" },
     { text: "Site Reviews", icon: <FiMessageSquare size={20} />, path: "/dashboard/site-reviews" },
+    { text: "Announcement", icon: <FiVolume2 size={20} />, path: "/dashboard/announcement" },
   ];
 
 

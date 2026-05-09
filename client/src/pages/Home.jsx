@@ -97,7 +97,7 @@ const Home = () => {
                         <img
                           src={cat.image}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          alt={cat.name}
+                          alt={cat.altText || cat.name}
                           loading="lazy"
                         />
                         {/* Full Circle Dark Hover Overlay */}

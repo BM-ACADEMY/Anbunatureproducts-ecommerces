@@ -20,6 +20,7 @@ import orderRouter from "./route/order.route.js";
 import emailRouter from "./route/email.route.js";
 import bannerRouter from "./route/banner.route.js";
 import siteReviewRouter from "./route/siteReview.route.js";
+import announcementRouter from "./route/announcement.route.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -92,6 +93,7 @@ app.use("/api/order", orderRouter);
 app.use("/api/email", emailRouter);
 app.use("/api/banner", bannerRouter);
 app.use("/api/site-review", siteReviewRouter);
+app.use("/api/announcement", announcementRouter);
 
 
 // Connect DB + Start server

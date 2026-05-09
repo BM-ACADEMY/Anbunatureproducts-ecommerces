@@ -21,7 +21,7 @@ const SubCategoryPage = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 10;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -71,13 +71,13 @@ const SubCategoryPage = () => {
   return (
     <section className=''>
       {/* Header */}
-      <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded'>
-          <h2 className='font-semibold text-lg sm:text-xl'>Sub Category</h2>
+      <div className='p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white shadow-sm rounded-lg'>
+          <h2 className='font-bold text-xl sm:text-2xl text-slate-800'>Sub Category</h2>
           <button 
             onClick={() => setOpenAddSubCategory(true)}
-            className='bg-[#279d68] hover:bg-[#279d68]/90  text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
+            className='w-full sm:w-auto bg-[#279d68] hover:bg-[#279d68]/90 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all font-bold text-sm sm:text-base shadow-sm active:scale-95'
           >
-            <IoAdd size={24} />
+            <IoAdd size={22} />
             <span>Add Sub Category</span>
           </button>
       </div>
@@ -99,11 +99,11 @@ const SubCategoryPage = () => {
             <div className='px-4 py-2 border-t flex-grow'>
               <h3 className='text-center font-medium truncate' title={item.name}>{item.name}</h3>
               <div className='flex flex-wrap justify-center gap-1 mt-1'>
-                {item.category.map((cat) => (
-                  <span key={cat._id} className='text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100'>
-                    {cat.name}
+                {item.category && (
+                  <span className='text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100'>
+                    {item.category.name}
                   </span>
-                ))}
+                )}
               </div>
             </div>
             <div className='p-2 grid grid-cols-2 gap-2 mt-auto'>
