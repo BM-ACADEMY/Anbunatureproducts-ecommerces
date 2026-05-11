@@ -597,8 +597,168 @@ export const getProductByCategory = async (request, response) => {
 
 
 /**
- * Other controller functions (unchanged)
+ * Deletes a review from a product.
  */
+export const deleteReviewController = async (request, response) => {
+  try {
+    const { productId, reviewId } = request.body;
+
+    if (!productId || !reviewId) {
+      return response.status(400).json({
+        message: "Please provide both productId and reviewId.",
+        error: true,
+        success: false
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return response.status(400).json({
+        message: "Invalid Product ID format.",
+        error: true,
+        success: false
+      });
+    }
+
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return response.status(404).json({
+        message: "Product not found.",
+        error: true,
+        success: false
+      });
+    }
+
+    // Filter out the review to be deleted
+    const initialReviewCount = product.reviews.length;
+    product.reviews = product.reviews.filter(review => review._id.toString() !== reviewId);
+
+    if (product.reviews.length === initialReviewCount) {
+      return response.status(404).json({
+        message: "Review not found in this product.",
+        error: true,
+        success: false
+      });
+    }
+
+    await product.save();
+
+    return response.json({
+      message: "Review deleted successfully.",
+      error: false,
+      success: true
+    });
+
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return response.status(500).json({
+      message: error.message || "An internal server error occurred.",
+      error: true,
+      success: false
+    });
+  }
+};
+
+/**
+ * Updates an existing review in a product.
+ */
+export const updateReviewController = async (request, response) => {
+  try {
+    const { productId, reviewId, name, stars, comment } = request.body;
+
+    if (!productId || !reviewId || !name || !stars || !comment) {
+      return response.status(400).json({
+        message: "Please provide all required fields: productId, reviewId, name, stars, and comment.",
+        error: true,
+        success: false
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return response.status(400).json({
+        message: "Invalid Product ID format.",
+        error: true,
+        success: false
+      });
+    }
+
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return response.status(404).json({
+        message: "Product not found.",
+        error: true,
+        success: false
+      });
+    }
+
+    const review = product.reviews.id(reviewId);
+    if (!review) {
+      return response.status(404).json({
+        message: "Review not found.",
+        error: true,
+        success: false
+      });
+    }
+
+    // Update review fields
+    review.name = name;
+    review.stars = stars;
+    review.comment = comment;
+
+    await product.save();
+
+    return response.json({
+      message: "Review updated successfully.",
+      data: review,
+      error: false,
+      success: true
+    });
+
+  } catch (error) {
+    console.error("Error updating review:", error);
+    return response.status(500).json({
+      message: error.message || "An internal server error occurred.",
+      error: true,
+      success: false
+    });
+  }
+};
+
+/**
+ * Fetches all reviews across all products (for admin).
+ */
+export const getAllProductReviewsController = async (request, response) => {
+  try {
+    const products = await ProductModel.find({ "reviews.0": { $exists: true } }, 'name reviews image');
+    
+    let allReviews = [];
+    products.forEach(product => {
+      const productReviews = product.reviews.map(review => ({
+        ...review.toObject(),
+        productId: product._id,
+        productName: product.name,
+        productImage: product.image[0]
+      }));
+      allReviews = [...allReviews, ...productReviews];
+    });
+
+    // Sort all reviews by date (newest first)
+    allReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    return response.json({
+      message: "All product reviews fetched successfully.",
+      data: allReviews,
+      error: false,
+      success: true
+    });
+  } catch (error) {
+    console.error("Error fetching all reviews:", error);
+    return response.status(500).json({
+      message: error.message || "An internal server error occurred.",
+      error: true,
+      success: false
+    });
+  }
+};
 export const getProductController = async (request, response) => {
   try {
     let { page = 1, limit = 10, search, minPrice, maxPrice, minRating } = request.body;

@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.2.2",
     "@canvasjs/react-charts": "^1.0.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -20,8 +21,10 @@
     "@stripe/stripe-js": "^4.6.0",
     "@tailwindcss/vite": "^4.0.12",
     "@tanstack/react-table": "^8.20.5",
+    "antd": "^6.3.7",
     "axios": "^1.7.4",
     "country-state-city": "^3.2.1",
+    "dayjs": "^1.11.20",
     "dompurify": "^3.2.5",
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",

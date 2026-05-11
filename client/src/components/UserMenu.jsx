@@ -76,8 +76,10 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
     { text: "Sub Category", icon: <FiLayers size={20} />, path: "/dashboard/subcategory" },
     { text: "Product", icon: <FiPackage size={20} />, path: "/dashboard/product" },
     { text: "All Orders", icon: <FiList size={20} />, path: "/dashboard/allorders" },
+    { text: "All Users", icon: <FiUser size={20} />, path: "/dashboard/users" },
     { text: "Banners", icon: <FiLayers size={21} />, path: "/dashboard/banner" },
     { text: "Site Reviews", icon: <FiMessageSquare size={20} />, path: "/dashboard/site-reviews" },
+    { text: "Product Reviews", icon: <FiMessageSquare size={20} />, path: "/dashboard/product-reviews" },
     { text: "Announcement", icon: <FiVolume2 size={20} />, path: "/dashboard/announcement" },
   ];
 

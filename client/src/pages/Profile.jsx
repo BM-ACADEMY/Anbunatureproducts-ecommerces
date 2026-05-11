@@ -83,12 +83,12 @@ const Profile = () => {
 
     return (
         <section className="min-h-screen bg-[#fdf5e6] py-6 lg:py-10">
-            <div className="container mx-auto px-4 max-w-6xl">
-                <Breadcrumbs />
+            <div className={`container px-4 ${user.role === 'ADMIN' ? 'max-w-5xl lg:ml-10' : 'mx-auto max-w-6xl'}`}>
+                {user.role !== "ADMIN" && <Breadcrumbs />}
 
                 <header className="my-8">
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">Profile Settings</h1>
-                    <p className="text-slate-500 font-medium">Manage your account information and saved addresses</p>
+                    <p className="text-slate-500 font-medium">Manage your account information{user.role !== "ADMIN" && " and saved addresses"}</p>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
@@ -110,15 +110,24 @@ const Profile = () => {
                                     <FaCamera size={14} />
                                 </button>
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 justify-center">
-                                {user.name} <MdVerifiedUser className="text-blue-500" size={18} />
-                            </h2>
-                            <p className="text-slate-400 font-bold text-[10px] mt-1 uppercase tracking-widest">{user.role}</p>
+                            <div className="flex flex-col items-center gap-1">
+                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 justify-center">
+                                    {user.name} 
+                                    {user.role === "ADMIN" && <MdVerifiedUser className="text-blue-500" title="Admin Verified" size={18} />}
+                                </h2>
+                                {user.role === "ADMIN" ? (
+                                    <span className="bg-red-50 text-[#BC2E2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-100 shadow-sm">
+                                        Admin
+                                    </span>
+                                ) : (
+                                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">{user.role}</p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
                     {/* TOP RIGHT: Personal Info Card */}
-                    <div className="lg:col-span-8">
+                    <div className={user.role === "ADMIN" ? "lg:col-span-7" : "lg:col-span-8"}>
                         <div className={`${cardStyle} h-full border-1 border-[#DBDBDB] !p-0 overflow-hidden`}>
                             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                                 <h3 className="font-bold text-slate-800">Personal Details</h3>
@@ -163,58 +172,60 @@ const Profile = () => {
                         </div>
                     </div>
 
-                    {/* BOTTOM: Address Details (Full Width) */}
-                    <div className="lg:col-span-12">
-                        <div className={`${cardStyle} border-1 border-[#DBDBDB] !p-0 overflow-hidden`}>
-                            <div className="px-6 py-5 lg:px-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                                <div className="flex items-center gap-2">
-                                    <FiMapPin className="text-[#BC2E2E]" size={20} />
-                                    <h3 className="font-bold text-slate-800">Saved Shipping Addresses</h3>
+                    {/* BOTTOM: Address Details (Full Width) - Only for non-admin users */}
+                    {user.role !== "ADMIN" && (
+                        <div className="lg:col-span-12">
+                            <div className={`${cardStyle} border-1 border-[#DBDBDB] !p-0 overflow-hidden`}>
+                                <div className="px-6 py-5 lg:px-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                    <div className="flex items-center gap-2">
+                                        <FiMapPin className="text-[#BC2E2E]" size={20} />
+                                        <h3 className="font-bold text-slate-800">Saved Shipping Addresses</h3>
+                                    </div>
+
+                                    {/* Limit logic updated to 2 addresses */}
+                                    <button
+                                        onClick={() => setOpenAddress(true)}
+                                        disabled={addressList.filter(a => a.status).length >= 2}
+                                        className={`p-2 rounded-xl transition-all flex items-center gap-2 px-4 shadow-sm ${addressList.filter(a => a.status).length >= 2
+                                                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                                : "bg-slate-900 text-white hover:bg-black"
+                                            }`}
+                                    >
+                                        <FiPlus size={18} />
+                                        <span className="text-xs font-bold uppercase hidden sm:inline">
+                                            {addressList.filter(a => a.status).length >= 2 ? "Limit Reached" : "Add New"}
+                                        </span>
+                                    </button>
                                 </div>
 
-                                {/* Limit logic updated to 2 addresses */}
-                                <button
-                                    onClick={() => setOpenAddress(true)}
-                                    disabled={addressList.filter(a => a.status).length >= 2}
-                                    className={`p-2 rounded-xl transition-all flex items-center gap-2 px-4 shadow-sm ${addressList.filter(a => a.status).length >= 2
-                                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                            : "bg-slate-900 text-white hover:bg-black"
-                                        }`}
-                                >
-                                    <FiPlus size={18} />
-                                    <span className="text-xs font-bold uppercase hidden sm:inline">
-                                        {addressList.filter(a => a.status).length >= 2 ? "Limit Reached" : "Add New"}
-                                    </span>
-                                </button>
-                            </div>
-
-                            <div className="p-6 lg:p-8">
-                                {addressList.filter(a => a.status).length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                                        {addressList.filter(a => a.status).map((address) => (
-                                            <AddressCard
-                                                key={address._id}
-                                                address={address}
-                                                showRadio={false}
-                                                onEdit={(addr) => { setEditData(addr); setOpenEditAddress(true); }}
-                                                onDelete={(id) => { setDeleteId(id); setOpenDeleteConfirm(true); }}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div
-                                        onClick={() => setOpenAddress(true)}
-                                        className="border-2 border-dashed border-slate-200 rounded-3xl py-12 flex flex-col items-center justify-center gap-3 group cursor-pointer hover:bg-slate-50 hover:border-[#BC2E2E]/30 transition-all"
-                                    >
-                                        <div className="p-4 bg-slate-50 rounded-full text-slate-300 group-hover:text-[#BC2E2E] transition-all">
-                                            <FiPlus size={32} />
+                                <div className="p-6 lg:p-8">
+                                    {addressList.filter(a => a.status).length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                                            {addressList.filter(a => a.status).map((address) => (
+                                                <AddressCard
+                                                    key={address._id}
+                                                    address={address}
+                                                    showRadio={false}
+                                                    onEdit={(addr) => { setEditData(addr); setOpenEditAddress(true); }}
+                                                    onDelete={(id) => { setDeleteId(id); setOpenDeleteConfirm(true); }}
+                                                />
+                                            ))}
                                         </div>
-                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No addresses found. Add up to 2 addresses.</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div
+                                            onClick={() => setOpenAddress(true)}
+                                            className="border-2 border-dashed border-slate-200 rounded-3xl py-12 flex flex-col items-center justify-center gap-3 group cursor-pointer hover:bg-slate-50 hover:border-[#BC2E2E]/30 transition-all"
+                                        >
+                                            <div className="p-4 bg-slate-50 rounded-full text-slate-300 group-hover:text-[#BC2E2E] transition-all">
+                                                <FiPlus size={32} />
+                                            </div>
+                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No addresses found. Add up to 2 addresses.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {openProfileAvatarEdit && <UserProfileAvatarEdit open={openProfileAvatarEdit} close={() => setProfileAvatarEdit(false)} />}

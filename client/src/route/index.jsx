@@ -34,7 +34,9 @@ import CartPage from "../pages/CartPage";
 import WriteReview from "../pages/WriteReview";
 import AdminSiteReviews from "../pages/AdminSiteReviews";
 import AnnouncementAdmin from "../pages/AnnouncementAdmin";
-// import Overview from "../pages/Overview";
+import AdminProductReviews from "../pages/AdminProductReviews";
+import AllUsers from "../pages/AllUsers";
+import UserHistory from "../pages/UserHistory";
 
 const router = createBrowserRouter([
 
@@ -189,6 +191,30 @@ const router = createBrowserRouter([
             element: (
               <AdminPermision>
                 <AnnouncementAdmin />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "product-reviews",
+            element: (
+              <AdminPermision>
+                <AdminProductReviews />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "users",
+            element: (
+              <AdminPermision>
+                <AllUsers />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "user-history/:userId",
+            element: (
+              <AdminPermision>
+                <UserHistory />
               </AdminPermision>
             ),
           },

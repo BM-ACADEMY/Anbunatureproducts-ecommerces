@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText } from "react-icons/fi";
 import { LayoutList, ArrowUpDown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { setOrder } from "../store/orderSlice";
@@ -26,7 +26,16 @@ const AllOrders = () => {
   const [sortBy, setSortBy] = useState("Newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(10);
+  const location = useLocation();
   const dropdownRef = useRef(null);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get("status");
+    if (status) {
+      setActiveTab(status);
+    }
+  }, [location.search]);
 
   const fetchAllOrders = async () => {
     try {

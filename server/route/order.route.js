@@ -11,6 +11,7 @@ import {
   deleteOrderController,
   updateTrackingStatusController,
   getOrderStatsController,
+  getUserPurchaseHistoryController,
 } from "../controllers/order.controller.js";
 import upload from "../middleware/multer.js"; // Import Multer middleware
 
@@ -27,5 +28,6 @@ orderRouter.post("/cancel-order", auth, cancelOrderController);
 orderRouter.delete("/delete-order/:orderId", auth, admin, deleteOrderController);
 orderRouter.put("/update-tracking", auth, admin, updateTrackingStatusController);
 orderRouter.get("/stats", auth, admin, getOrderStatsController);
+orderRouter.get("/user-history/:userId", auth, admin, getUserPurchaseHistoryController);
 
 export default orderRouter;

@@ -14,7 +14,10 @@ import {
   getComboOfferProducts,
   getMegaComboProducts,
   getTrendingProducts,
-  getRecentProducts
+  getRecentProducts,
+  deleteReviewController,
+  updateReviewController,
+  getAllProductReviewsController
 } from '../controllers/product.controller.js';
 import { admin } from '../middleware/Admin.js';
 
@@ -33,5 +36,10 @@ productRouter.post('/get-combo-offers', getComboOfferProducts);
 productRouter.post('/get-mega-combo-products', getMegaComboProducts);
 productRouter.post('/get-trending-products', getTrendingProducts);
 productRouter.post('/get-recent-products', getRecentProducts);
+
+// Product Review Admin Routes
+productRouter.get('/all-reviews', auth, admin, getAllProductReviewsController);
+productRouter.delete('/delete-review', auth, admin, deleteReviewController);
+productRouter.put('/update-review', auth, admin, updateReviewController);
 
 export default productRouter;

@@ -627,22 +627,37 @@ export async function deleteOrderController(request, response) {
 
 export async function getOrderStatsController(request, response) {
     try {
+        const { startDate, endDate } = request.query;
+        let dateFilter = { isDeleted: false };
+        
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            
+            dateFilter.createdAt = {
+                $gte: start,
+                $lte: end
+            };
+        }
+
         const totalUsers = await UserModel.countDocuments({ role: "USER" });
-        const totalOrders = await OrderModel.countDocuments({ isDeleted: false });
+        const totalOrders = await OrderModel.countDocuments(dateFilter);
         const canceledOrders = await OrderModel.countDocuments({
-            isDeleted: false,
+            ...dateFilter,
             isCancelled: true,
         });
         const deliveredOrders = await OrderModel.countDocuments({
-            isDeleted: false,
+            ...dateFilter,
             tracking_status: "Delivered",
         });
 
-        // Calculate total revenue from non-cancelled orders
+        // Calculate total revenue from non-cancelled orders with date filter
         const revenueData = await OrderModel.aggregate([
             {
                 $match: {
-                    isDeleted: false,
+                    ...dateFilter,
                     isCancelled: false,
                     payment_status: { $in: ["Online Payment", "paid", "COD", "Cash On Delivery"] }
                 }
@@ -660,95 +675,43 @@ export async function getOrderStatsController(request, response) {
         const totalCategories = await CategoryModel.countDocuments();
         const totalSubCategories = await SubCategoryModel.countDocuments();
 
-        // Time periods for trending products
-        const now = new Date();
-        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-        const startOfWeek = new Date(now.setDate(now.getDate() - 7));
-        const startOfMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
-        const startOfYear = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
-
-        const getTrendingProducts = async (startDate) => {
-            return await OrderModel.aggregate([
-                {
-                    $match: {
-                        isDeleted: false,
-                        isCancelled: false,
-                        createdAt: { $gte: startDate }
-                    }
-                },
-                {
-                    $group: {
-                        _id: "$productId",
-                        totalQuantity: { $sum: "$quantity" },
-                        totalSales: { $sum: "$totalAmt" }
-                    }
-                },
-                { $sort: { totalQuantity: -1 } },
-                { $limit: 10 },
-                {
-                    $lookup: {
-                        from: "products",
-                        localField: "_id",
-                        foreignField: "_id",
-                        as: "productDetails"
-                    }
-                },
-                { $unwind: "$productDetails" },
-                {
-                    $project: {
-                        _id: 1,
-                        totalQuantity: 1,
-                        totalSales: 1,
-                        name: "$productDetails.name",
-                        image: "$productDetails.image"
-                    }
-                }
-            ]);
-        };
-
-        const [trendingDay, trendingWeek, trendingMonth, trendingYear] = await Promise.all([
-            getTrendingProducts(startOfDay),
-            getTrendingProducts(startOfWeek),
-            getTrendingProducts(startOfMonth),
-            getTrendingProducts(startOfYear)
-        ]);
-
-        // Unsold Products
-        const soldProductIds = await OrderModel.distinct("productId", { isDeleted: false, isCancelled: false });
-        const unsoldProducts = await ProductModel.find({
-            _id: { $nin: soldProductIds },
-            publish: true
-        }).select("name image").limit(20);
-
-        // Cancellation stats for the last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const cancellationStats = await OrderModel.aggregate([
+        // Top Selling Products (Global or Date-filtered)
+        const topSellingProducts = await OrderModel.aggregate([
             {
                 $match: {
-                    isDeleted: false,
-                    isCancelled: true,
-                    cancellationDate: { $gte: thirtyDaysAgo }
+                    ...dateFilter,
+                    isCancelled: false
                 }
             },
             {
                 $group: {
-                    _id: {
-                        day: { $dayOfMonth: "$cancellationDate" },
-                        month: { $month: "$cancellationDate" },
-                        year: { $year: "$cancellationDate" }
-                    },
-                    count: { $sum: 1 }
+                    _id: "$productId",
+                    totalQuantity: { $sum: "$quantity" },
+                    totalSales: { $sum: "$totalAmt" }
                 }
             },
-            { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+            { $sort: { totalQuantity: -1 } },
+            { $limit: 15 },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+            {
+                $project: {
+                    _id: 1,
+                    totalQuantity: 1,
+                    totalSales: 1,
+                    name: "$productDetails.name",
+                    image: "$productDetails.image",
+                    price: "$productDetails.price"
+                }
+            }
         ]);
-
-        const formattedCancellationStats = cancellationStats.map(item => ({
-            label: `${item._id.day}/${item._id.month}`,
-            y: item.count
-        }));
 
         // Monthly sales data for the last 6 months
         const sixMonthsAgo = new Date();
@@ -779,9 +742,49 @@ export async function getOrderStatsController(request, response) {
         const formattedMonthlyStats = monthlySales.map(item => ({
             name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
             revenue: item.revenue,
-            orders: item.orders,
-            y: item.revenue // For CanvasJS
+            orders: item.orders
         }));
+
+        // Recent Orders
+        const recentOrders = await OrderModel.find(dateFilter)
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate("userId", "name email")
+            .populate("productId", "name image");
+
+        // Get daily sales trend for top products
+        const topProductIds = topSellingProducts.map(p => p._id);
+        const productTrends = await OrderModel.aggregate([
+            {
+                $match: {
+                    ...dateFilter,
+                    productId: { $in: topProductIds }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        productId: "$productId",
+                        date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
+                    },
+                    quantity: { $sum: 1 },
+                    revenue: { $sum: "$totalAmt" }
+                }
+            },
+            { $sort: { "_id.date": 1 } }
+        ]);
+
+        // Attach trends to topSellingProducts
+        const topSellingWithTrends = topSellingProducts.map(product => {
+            const history = productTrends
+                .filter(t => t._id.productId.toString() === product._id.toString())
+                .map(t => ({
+                    date: t._id.date,
+                    quantity: t.quantity,
+                    revenue: t.revenue
+                }));
+            return { ...product, history };
+        });
 
         return response.json({
             message: "Dashboard statistics",
@@ -796,12 +799,8 @@ export async function getOrderStatsController(request, response) {
                 totalCategories,
                 totalSubCategories,
                 monthlyStats: formattedMonthlyStats,
-                cancellationStats: formattedCancellationStats,
-                trendingDay,
-                trendingWeek,
-                trendingMonth,
-                trendingYear,
-                unsoldProducts
+                topSellingProducts: topSellingWithTrends,
+                recentOrders
             },
             error: false,
             success: true,
@@ -809,6 +808,76 @@ export async function getOrderStatsController(request, response) {
     } catch (error) {
         return response.status(500).json({
             message: error.message || "Failed to fetch dashboard statistics",
+            error: true,
+            success: false,
+        });
+    }
+}
+
+export async function getUserPurchaseHistoryController(request, response) {
+    try {
+        const { userId } = request.params;
+
+        if (!userId) {
+            return response.status(400).json({
+                message: "Provide userId",
+                error: true,
+                success: false,
+            });
+        }
+
+        const user = await UserModel.findById(userId).select("name email mobile avatar createdAt verify_email");
+        const orders = await OrderModel.find({ userId, isDeleted: false })
+            .sort({ createdAt: -1 })
+            .populate("productId", "name image price");
+
+        // Calculate summary stats
+        const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmt || 0), 0);
+        const totalItems = orders.reduce((sum, order) => sum + (order.quantity || 0), 0);
+
+        // Group by date for graph
+        const dailyTrends = await OrderModel.aggregate([
+            {
+                $match: {
+                    userId: new mongoose.Types.ObjectId(userId),
+                    isDeleted: false,
+                    isCancelled: false
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    totalAmt: { $sum: "$totalAmt" },
+                    count: { $sum: "$quantity" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        const formattedTrends = dailyTrends.map(item => ({
+            date: item._id,
+            amount: item.totalAmt,
+            quantity: item.count
+        }));
+
+        return response.json({
+            message: "User purchase history",
+            data: {
+                user,
+                orders,
+                summary: {
+                    totalSpent,
+                    totalItems,
+                    totalOrders: orders.length
+                },
+                trends: formattedTrends
+            },
+            error: false,
+            success: true,
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
             error: true,
             success: false,
         });
