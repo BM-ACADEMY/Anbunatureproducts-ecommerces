@@ -13,7 +13,7 @@ const orderConfirmationTemplate = ({
       
       <!-- Header with Logo -->
       <div style="background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 1px solid #f3f4f6;">
-        <img src="https://anbunaturalproducts.com/assets/common/logo.png" alt="Anbu Natural" style="height: 60px; width: auto; margin-bottom: 15px;">
+        <img src="https://anbunatural.com/assets/common/logo.png" alt="Anbu Natural" style="height: 60px; width: auto; margin-bottom: 15px;">
         <h2 style="color: #111827; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.025em;">🎉 Your Order Has Been Placed!</h2>
       </div>
 
@@ -37,12 +37,12 @@ const orderConfirmationTemplate = ({
               <tr>
                 <td style="padding: 15px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6;">
                   <div style="font-weight: 600;">${item.name}</div>
-                  ${item.attributes ? `<div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">${item.attributes}</div>` : ''}
+                  ${item.attributes ? `<div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">${item.attributes}</div>` : ""}
                 </td>
                 <td style="padding: 15px; text-align: center; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6;">${item.quantity}</td>
                 <td style="padding: 15px; text-align: right; font-size: 14px; font-weight: 600; color: #111827; border-bottom: 1px solid #f3f4f6;">₹${item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
-            `
+            `,
               )
               .join("")}
           </tbody>
