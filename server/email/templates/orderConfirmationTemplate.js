@@ -82,7 +82,7 @@ const orderConfirmationTemplate = ({
 
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f3f4f6; text-align: center;">
           <p style="font-size: 14px; color: #6b7280;">You'll receive another email when your items are shipped.</p>
-          <p style="font-size: 13px; color: #9ca3af; margin-top: 10px;">Questions? Contact us at <a href="mailto:support@yourapp.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">support@yourapp.com</a></p>
+          <p style="font-size: 13px; color: #9ca3af; margin-top: 10px;">Questions? Contact us at <a href="mailto:anbunaturalproducts@gmail.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">anbunaturalproducts@gmail.com</a></p>
         </div>
       </div>
 
