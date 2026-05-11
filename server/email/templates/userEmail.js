@@ -3,7 +3,7 @@ const userEmailTemplate = ({ fullName, message }) => `
     <div style="max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
       
       <div style="background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 1px solid #f3f4f6;">
-        <img src="https://anbunaturalproducts.com/assets/common/logo.png" alt="Anbu Natural" style="height: 50px; width: auto; margin-bottom: 10px;">
+        <img src="https://anbunatural.com/assets/common/logo.png" alt="Anbu Natural" style="height: 50px; width: auto; margin-bottom: 10px;">
         <h2 style="color: #111827; margin: 0; font-size: 20px; font-weight: 800;">✨ Thank You for Contacting Us!</h2>
       </div>
 

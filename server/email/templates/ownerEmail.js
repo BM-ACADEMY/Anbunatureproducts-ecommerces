@@ -3,7 +3,7 @@ const ownerEmailTemplate = ({ fullName, email, contactNumber, message }) => `
     <div style="max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
       
       <div style="background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 1px solid #f3f4f6;">
-        <img src="https://anbunaturalproducts.com/assets/common/logo.png" alt="Anbu Natural" style="height: 50px; width: auto; margin-bottom: 10px;">
+        <img src="https://anbunatural.com/assets/common/logo.png" alt="Anbu Natural" style="height: 50px; width: auto; margin-bottom: 10px;">
         <h2 style="color: #111827; margin: 0; font-size: 20px; font-weight: 800;">📩 New Inquiry Received</h2>
       </div>
 
@@ -12,7 +12,7 @@ const ownerEmailTemplate = ({ fullName, email, contactNumber, message }) => `
           <h4 style="margin: 0 0 15px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Sender Details</h4>
           <p style="margin: 0; font-size: 14px;"><strong style="color: #111827;">Name:</strong> ${fullName}</p>
           <p style="margin: 5px 0; font-size: 14px;"><strong style="color: #111827;">Email:</strong> <a href="mailto:${email}" style="color: #3b82f6; text-decoration: none;">${email}</a></p>
-          <p style="margin: 0; font-size: 14px;"><strong style="color: #111827;">Phone:</strong> ${contactNumber || 'Not provided'}</p>
+          <p style="margin: 0; font-size: 14px;"><strong style="color: #111827;">Phone:</strong> ${contactNumber || "Not provided"}</p>
         </div>
 
         <h4 style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Message:</h4>
