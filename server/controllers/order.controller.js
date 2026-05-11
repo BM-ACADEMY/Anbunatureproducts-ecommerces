@@ -206,7 +206,6 @@ export async function paymentController(request, response) {
         // Create Stripe line items
         const line_items = list_items.map((item) => {
             let productBasePrice = 0;
-            // Start of the fix: Extract price from the first option of the first attribute group
             if (item.productId.attributes && item.productId.attributes.length > 0) {
                 const firstAttributeGroup = item.productId.attributes[0];
                 if (firstAttributeGroup.options && firstAttributeGroup.options.length > 0) {
@@ -216,7 +215,6 @@ export async function paymentController(request, response) {
                     }
                 }
             }
-            // End of the fix: Extract price
 
             return {
                 price_data: {
@@ -319,9 +317,6 @@ export async function webhookStripe(request, response) {
 
                 const order = await OrderModel.insertMany(orderProduct);
 
-                // Start of the fix: Stock Reduction for Online orders
-                // This assumes stock needs to be reduced for the first option of the first attribute group.
-                // For precise stock reduction of selected variants, cart item needs to store selected attribute details.
                 if (order.length > 0) { // Check if orders were successfully created
                     for (const item of order) { // Iterate through the created orders
                         const productId = item.productId; // This is the ObjectId of the product
@@ -346,7 +341,6 @@ export async function webhookStripe(request, response) {
                         }
                     }
                 }
-                // End of the fix: Stock Reduction
 
                 if (order.length > 0) {
                     await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] });

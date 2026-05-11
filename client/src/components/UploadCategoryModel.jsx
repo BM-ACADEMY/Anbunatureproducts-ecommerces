@@ -100,22 +100,33 @@ const UploadCategoryModel = ({ close, fetchData }) => {
           {/* Image Upload */}
           <div>
             <p className='text-base font-medium mb-2'>Category Image</p>
-            <div className='flex flex-wrap items-center gap-3'>
-              <label htmlFor='uploadImg' className='cursor-pointer'>
-                <input
-                  type='file'
-                  id='uploadImg'
-                  className='hidden'
-                  accept='image/*'
-                  onChange={handleUploadCategoryImage}
-                  disabled={loading}
-                />
+            <div className='flex flex-wrap items-center gap-4'>
+              <div className='relative group'>
                 <img 
-                  className='max-w-24 w-24 h-24 object-cover rounded border border-gray-200' 
+                  className='w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm' 
                   src={data.image || "https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"} 
-                  alt="uploadArea" 
+                  alt={data.altText || data.name || "Category image upload"} 
                 />
-              </label>
+                {data.image && (
+                  <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center'>
+                    <span className='text-white text-xs font-bold'>Change</span>
+                  </div>
+                )}
+              </div>
+              <div className='flex flex-col gap-2'>
+                <label htmlFor='uploadImg' className='cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 font-medium text-sm rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100'>
+                  <input
+                    type='file'
+                    id='uploadImg'
+                    className='hidden'
+                    accept='image/*'
+                    onChange={handleUploadCategoryImage}
+                    disabled={loading}
+                  />
+                  {data.image ? 'Replace Image' : 'Upload Image'}
+                </label>
+                <span className='text-[11px] text-slate-400 font-medium'>Max 2MB • JPG, PNG, WebP</span>
+              </div>
               {loading && <div className='w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />}
             </div>
           </div>
@@ -137,16 +148,27 @@ const UploadCategoryModel = ({ close, fetchData }) => {
 
           {/* Alt Text */}
           <div className='flex flex-col gap-1'>
-            <label className='text-base font-medium' htmlFor='altText'>SEO Alt Text</label>
-            <input
-              type='text'
-              id='altText'
-              name='altText'
-              placeholder='Type here'
-              value={data.altText}
-              onChange={handleOnChange}
-              className='outline-none py-2 px-3 rounded border border-gray-500/40 focus:border-indigo-500 transition-colors'
-            />
+            <div className='flex items-center justify-between'>
+              <label className='text-base font-medium' htmlFor='altText'>SEO Alt Text</label>
+              <button 
+                type='button'
+                onClick={() => setData(prev => ({ ...prev, altText: prev.name }))}
+                className='text-[11px] font-bold text-indigo-600 hover:underline'
+              >
+                Auto-generate
+              </button>
+            </div>
+            <div className='relative'>
+              <input
+                type='text' id='altText' name='altText' value={data.altText} 
+                onChange={(e) => { if (e.target.value.length <= 125) handleOnChange(e); }}
+                placeholder='Type here'
+                className='w-full outline-none py-2 px-3 pr-12 rounded border border-gray-500/40 focus:border-indigo-500 transition-colors'
+              />
+              <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold ${data.altText.length > 110 ? 'text-amber-500' : 'text-gray-400'}`}>
+                {data.altText.length}/125
+              </span>
+            </div>
           </div>
 
           {/* Action Buttons */}

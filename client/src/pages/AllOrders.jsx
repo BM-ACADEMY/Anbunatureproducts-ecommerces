@@ -116,18 +116,16 @@ const AllOrders = () => {
 
   const getStatusClasses = (status) => {
     switch (status) {
-      case "Delivered":
-        return "bg-emerald-50 text-emerald-600 border-emerald-100";
-      case "Pending":
-        return "bg-amber-50 text-amber-600 border-amber-100";
       case "Processing":
-        return "bg-blue-50 text-blue-600 border-blue-100";
+        return "bg-amber-50 text-amber-600 border border-amber-100";
       case "Shipped":
-        return "bg-violet-50 text-violet-600 border-violet-100";
+        return "bg-blue-50 text-blue-600 border border-blue-100";
+      case "Delivered":
+        return "bg-emerald-50 text-emerald-600 border border-emerald-100";
       case "Cancelled":
-        return "bg-rose-50 text-rose-600 border-rose-100";
+        return "bg-rose-50 text-rose-600 border border-rose-100";
       default:
-        return "bg-slate-50 text-slate-600 border-slate-100";
+        return "bg-slate-50 text-slate-600 border border-slate-100";
     }
   };
 
@@ -158,6 +156,7 @@ const AllOrders = () => {
     All: groupedOrdersList.length,
     Processing: groupedOrdersList.filter(o => o.tracking_status === "Processing").length,
     Shipped: groupedOrdersList.filter(o => o.tracking_status === "Shipped").length,
+    Delivered: groupedOrdersList.filter(o => o.tracking_status === "Delivered").length,
     Cancelled: groupedOrdersList.filter(o => o.isCancelled || o.tracking_status === "Cancelled").length,
   };
 
@@ -165,6 +164,7 @@ const AllOrders = () => {
     .filter((group) => {
       if (activeTab === "Processing") return group.tracking_status === "Processing";
       if (activeTab === "Shipped") return group.tracking_status === "Shipped";
+      if (activeTab === "Delivered") return group.tracking_status === "Delivered";
       if (activeTab === "Cancelled") return group.isCancelled || group.tracking_status === "Cancelled";
       return true;
     })
@@ -203,25 +203,29 @@ const AllOrders = () => {
     // CSV Headers
     const headers = [
       "Order ID",
+      "Full ID",
       "Customer Name",
       "Product Name",
       "Quantity",
+      "Item Price",
       "Total Amount",
       "Payment Status",
       "Tracking Status",
       "Order Date"
     ];
 
-    // CSV Data rows
-    const csvData = filteredOrders.map(order => [
-      order.orderId,
-      order.userId?.name || "N/A",
-      `"${order.product_details?.name?.replace(/"/g, '""')}"` || "N/A", // Quote product name to handle commas
-      order.quantity,
-      order.totalAmt,
-      order.payment_status,
-      order.tracking_status,
-      new Date(order.createdAt).toLocaleDateString('en-GB')
+    // CSV Data rows - Consolidating each group into a single row
+    const csvData = filteredOrders.map(group => [
+      `"#${(group.groupId || "").toString().slice(-12).toUpperCase()}"`,
+      `"${group.groupId || ""}"`,
+      `"${(group.userId?.name || "N/A").replace(/"/g, '""')}"`,
+      `"${group.items.map(item => `${item.product_details?.name} (x${item.quantity})`).join(" | ").replace(/"/g, '""')}"`,
+      group.items.reduce((sum, item) => sum + item.quantity, 0),
+      `"${group.items.map(item => item.totalAmt).join(" + ")}"`,
+      group.totalAmt,
+      `"${group.payment_status || "N/A"}"`,
+      `"${group.tracking_status || "N/A"}"`,
+      `"${new Date(group.createdAt).toLocaleDateString('en-GB')}"`
     ]);
 
     // Construct CSV content
@@ -230,8 +234,9 @@ const AllOrders = () => {
       ...csvData.map(row => row.join(","))
     ].join("\n");
 
-    // Create and trigger download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    // Create and trigger download with BOM (Byte Order Mark) to fix encoding issues in Excel
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -244,248 +249,213 @@ const AllOrders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] p-4 sm:p-5 lg:p-6 space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 space-y-6">
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#1A1C21] tracking-tight">All Order</h1>
-          <p className="text-[#64748B] text-sm mt-1 font-medium">
-            Check all orders at single place. It's easy to manage.
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Orders</h1>
+          <p className="text-slate-500 text-sm mt-0.5 font-medium">
+            Manage and track all customer orders in one place.
           </p>
         </div>
         <button 
           onClick={exportToExcel}
-          className="flex items-center gap-2 bg-[#1D9963] hover:bg-[#168050] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 group"
+          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm active:scale-95 group"
         >
-          <FiDownload className="size-4" />
-          Export Order List
+          <FiDownload className="size-3.5" />
+          Export Excel
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-gray-200">
+      {/* Tabs - Responsive Grid/Pill Style */}
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1 p-1 bg-slate-200/60 rounded-xl w-full sm:w-fit">
         {[
-          { id: "All", label: "All order", count: statusCounts.All },
-          { id: "Processing", label: "Processing", count: statusCounts.Processing },
-          { id: "Shipped", label: "Shipped", count: statusCounts.Shipped },
-          { id: "Cancelled", label: "Canceled", count: statusCounts.Cancelled },
+          { id: "All", label: "All", count: statusCounts.All, icon: LayoutList },
+          { id: "Processing", label: "Processing", count: statusCounts.Processing, icon: FiClock },
+          { id: "Shipped", label: "Shipped", count: statusCounts.Shipped, icon: FiTruck },
+          { id: "Delivered", label: "Delivered", count: statusCounts.Delivered, icon: FiCheckCircle },
+          { id: "Cancelled", label: "Canceled", count: statusCounts.Cancelled, icon: FiX },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all relative ${
+            className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all ${
               activeTab === tab.id
-                ? "text-[#1D9963]"
-                : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
+                ? "bg-white text-emerald-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            } ${tab.id === "Cancelled" ? "col-span-2 sm:col-span-1" : ""}`}
           >
-            {tab.id === "All" && <LayoutList size={16} />}
-            {tab.id === "Processing" && <FiClock size={16} />}
-            {tab.id === "Shipped" && <FiTruck size={16} />}
-            {tab.id === "Cancelled" && <FiX size={16} />}
-            {tab.label} ({tab.count})
-            {activeTab === tab.id && (
-              <div className="absolute bottom-[-1px] left-0 right-0 h-[2.5px] bg-[#1D9963]" />
-            )}
+            <tab.icon size={14} className={activeTab === tab.id ? "text-emerald-500" : "text-slate-400"} />
+            <span className="truncate">{tab.label}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] ${
+              activeTab === tab.id ? "bg-emerald-50 text-emerald-600" : "bg-slate-200 text-slate-500"
+            }`}>
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>
 
       {/* Search and Sort bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative group flex-1 max-w-md">
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="relative group flex-1 max-w-lg">
+          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 size-3.5" />
           <input
             type="text"
-            placeholder="Search by ID, name, status"
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-50 transition-all text-sm font-medium placeholder:text-gray-400 shadow-sm"
+            placeholder="Search orders by ID, customer or product..."
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-red-300 transition-all text-xs font-medium placeholder:text-slate-400 shadow-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative group">
+        <div className="flex items-center gap-2">
+          <div className="relative">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none pl-4 pr-10 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-50 transition-all text-sm font-bold text-[#1A1C21] shadow-sm cursor-pointer min-w-[120px]"
+              className="appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none text-xs font-semibold text-slate-600 shadow-sm cursor-pointer min-w-[120px]"
             >
               <option>Newest</option>
               <option>Oldest</option>
             </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 flex items-center gap-1">
-                <span className="text-[10px] opacity-40">|</span>
-                <ArrowUpDown size={14} />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ArrowUpDown size={12} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Order List / Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* Table Header */}
-        <div className="grid grid-cols-11 gap-4 px-8 py-5 bg-[#F8FAFC] border-b border-gray-100 text-[11px] font-black text-[#64748B] uppercase tracking-wider">
-          <div className="col-span-5 px-2">PRODUCT</div>
-          <div className="col-span-1 text-center">PRICE</div>
-          <div className="col-span-2 text-center">PAYMENT</div>
-          <div className="col-span-2 text-center">STATUS</div>
-          <div className="col-span-1 text-right pr-6 uppercase">ACTION</div>
-        </div>
-
+      {/* Order List */}
+      <div className="space-y-4">
         {!filteredOrders?.length ? (
-          <div className="p-20 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <LayoutList size={40} className="text-gray-300" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900">No orders found</h3>
-            <p className="text-gray-500 mt-1">Try adjusting your search or filters</p>
+          <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-16 flex flex-col items-center justify-center text-center">
+            <LayoutList size={32} className="text-slate-200 mb-4" />
+            <h3 className="text-lg font-semibold text-slate-900">No results found</h3>
+            <p className="text-slate-500 text-xs mt-1">Try changing your search or filters.</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="grid gap-4">
             {currentOrders.map((group, index) => (
-              <div key={group.groupId + index} className="group hover:bg-slate-50/10 transition-colors">
-                {/* Metadata Header Bar */}
-                <div className="px-8 py-3.5 bg-[#F8FAFC] flex items-center justify-between border-y border-gray-50">
-                  <div className="flex items-center gap-8">
-                    <div className="flex items-center gap-2">
-                       <span className="text-[12px] font-medium text-gray-500">Customer:</span>
-                       <span className="text-[12px] font-bold text-[#1A1C21]">{group?.userId?.name || "N/A"}</span>
+              <div key={group.groupId + index} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Order Header */}
+                <div className="px-5 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-5">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">ID</span>
+                      <span className="text-xs font-bold text-slate-900">#{group.groupId.slice(-10).toUpperCase()}</span>
                     </div>
-                    <div className="flex items-center gap-3 border-l border-gray-200 pl-8">
-                       <span className="text-[12px] font-medium text-gray-500">Date:</span>
-                       <span className="text-[12px] font-bold text-[#1A1C21]">
-                          {new Date(group.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                       </span>
+                    <div className="flex flex-col border-l border-slate-200 pl-5">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Customer</span>
+                      <span className="text-xs font-semibold text-slate-600">{group?.userId?.name || "Customer"}</span>
+                    </div>
+                    <div className="flex flex-col border-l border-slate-200 pl-5">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Date</span>
+                      <span className="text-xs font-semibold text-slate-600">
+                        {new Date(group.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-[12px] font-medium text-gray-500 text-right">Group ID:</span>
-                        <span className="text-[12px] font-bold text-[#1A1C21]">#{group.groupId.slice(-12).toUpperCase()}</span>
-                    </div>
+                  
+                  <div className="flex items-center gap-2">
+                     <span className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md ${getStatusClasses(group.tracking_status)}`}>
+                        {group.tracking_status}
+                     </span>
+                     <div className="px-2 py-1 bg-slate-100 rounded-md text-[9px] font-bold text-slate-500 uppercase">
+                        {group.payment_status}
+                     </div>
                   </div>
                 </div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-11 gap-4 px-8 py-6 items-center">
-                  
-                    {/* Product Summary */}
-                    <div className="col-span-5 flex items-center gap-5">
-                      <div className="flex -space-x-3 overflow-hidden">
-                        {group.items.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white flex-shrink-0 shadow-sm bg-white z-[idx]">
-                            <img
-                              src={item.product_details.image[0]}
-                              className={`w-full h-full object-cover ${item.isCancelled ? "grayscale opacity-50" : ""}`}
-                              alt="product"
-                            />
-                            {idx === 2 && group.items.length > 3 && (
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[10px] text-white font-bold">
-                                    +{group.items.length - 2}
-                                </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="font-bold text-[#0F172A] text-[14px] leading-tight transition-colors line-clamp-1">
-                          {group.items[0].product_details.name}
-                          {group.items.length > 1 && <span className="text-gray-400 ml-2 font-medium">and {group.items.length - 1} more items</span>}
-                        </h4>
-                        <div className="flex items-center gap-3 text-[12px] font-medium text-gray-500">
-                          <span>Items: <span className="text-gray-900 font-bold">{group.items.length}</span></span>
-                          <span className="w-1 h-1 rounded-full bg-gray-300" />
-                          <Link 
-                            to={`/order-details/${group.groupId}`} 
-                            className="text-indigo-600 font-bold uppercase tracking-wider text-[10px] cursor-pointer hover:underline"
-                          >
-                            Full details
-                          </Link>
+                {/* Order Body */}
+                <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-5 flex-1">
+                    <div className="flex -space-x-3">
+                      {group.items.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm bg-slate-50 z-[idx]">
+                          <img src={item.product_details.image[0]} className="w-full h-full object-cover" alt="product" />
                         </div>
-                      </div>
+                      ))}
                     </div>
 
-                    {/* Total Price */}
-                    <div className="col-span-1 text-center font-bold text-[#0F172A] text-lg">
-                      ₹{group.totalAmt.toLocaleString()}
-                    </div>
-
-                    {/* Payment Status */}
-                    <div className="col-span-2 text-center text-[10px] font-black text-[#64748B] uppercase tracking-widest px-3 py-1 bg-gray-50 rounded-lg w-fit mx-auto border border-gray-100">
-                      {group.payment_status}
-                    </div>
-
-                    {/* Status Badge */}
-                    <div className="col-span-2 flex flex-col items-center gap-1.5">
-                      <span className={`px-4 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border-b-2 ${getStatusClasses(group.tracking_status)}`}>
-                        {group.tracking_status}
-                      </span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="col-span-1 flex flex-col gap-2 scale-95 origin-right">
-                      <Link
-                        to={`/order-details/${group.groupId}`}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-[11px] font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95"
-                      >
-                        <FiEye className="size-3.5" />
-                        Details
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-slate-900 text-sm leading-tight">
+                        {group.items[0].product_details.name}
+                        {group.items.length > 1 && (
+                          <span className="text-[10px] text-slate-400 ml-2">+{group.items.length - 1} more</span>
+                        )}
+                      </h4>
+                      <Link to={`/order-details/${group.groupId}`} className="text-[10px] text-emerald-600 font-bold hover:underline">
+                        View details
                       </Link>
-                      <button
-                        onClick={() => handleOpenTracking(group.items[0])}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-[#0F172A] rounded-lg text-[11px] font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
-                      >
-                        <FiActivity className="size-3.5" />
-                        Manage
-                      </button>
-                      {!group.isCancelled && group.tracking_status !== "Delivered" && (
-                        <button
-                          onClick={() => handleDeleteOrder(group.items[0])}
-                          className="text-[11px] text-rose-500 font-bold hover:text-rose-600 mt-1 transition-colors text-center w-full"
-                        >
-                          Delete Group
-                        </button>
-                      )}
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                      <span className="text-base font-bold text-slate-900">₹{group.totalAmt.toLocaleString()}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/order-details/${group.groupId}`}
+                          className="p-2 text-slate-500 hover:bg-slate-50 rounded-lg border border-slate-100 transition-all"
+                          title="View Details"
+                        >
+                          <FiEye size={16} />
+                        </Link>
+                        <button
+                          onClick={() => handleOpenInvoice(group)}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-50 transition-all"
+                          title="Invoice"
+                        >
+                          <FiFileText size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleOpenTracking(group.items[0])}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-50 transition-all"
+                          title="Track"
+                        >
+                          <FiActivity size={16} />
+                        </button>
+
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Pagination Controls */}
+        {/* Pagination - Clean & Minimal */}
         {totalPages > 1 && (
-          <div className="px-8 py-5 bg-[#F8FAFC] border-t border-gray-100 flex items-center justify-between">
-            <div className="text-[13px] font-medium text-gray-500">
-              Showing <span className="text-gray-900 font-bold">{indexOfFirstOrder + 1}</span> to <span className="text-gray-900 font-bold">{Math.min(indexOfLastOrder, filteredOrders.length)}</span> of <span className="text-gray-900 font-bold">{filteredOrders.length}</span> orders
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between pt-8">
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              Page <span className="text-slate-900">{currentPage}</span> of {totalPages}
+            </p>
+            <div className="flex items-center gap-1.5">
               <button
                 disabled={currentPage === 1}
                 onClick={() => {
                   setCurrentPage(prev => prev - 1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="px-4 py-2 text-[13px] font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
-                Previous
+                Prev
               </button>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 mx-2">
                 {[...Array(totalPages)].map((_, i) => (
-                  <button
+                   <button
                     key={i + 1}
                     onClick={() => {
                       setCurrentPage(i + 1);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className={`size-9 flex items-center justify-center text-[13px] font-bold rounded-lg transition-all ${
-                      currentPage === i + 1
-                        ? "bg-[#1D9963] text-white shadow-md shadow-green-100"
-                        : "bg-white text-gray-700 border border-gray-100 hover:border-green-200 hover:text-[#1D9963]"
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      currentPage === i + 1 ? "w-4 bg-emerald-500" : "bg-slate-300 hover:bg-slate-400"
                     }`}
-                  >
-                    {i + 1}
-                  </button>
+                  />
                 ))}
               </div>
               <button
@@ -494,7 +464,7 @@ const AllOrders = () => {
                   setCurrentPage(prev => prev + 1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="px-4 py-2 text-[13px] font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
                 Next
               </button>
@@ -551,7 +521,7 @@ const AllOrders = () => {
       )}
 
       {selectedOrder && openInvoice && (
-        <InvoiceModal open={openInvoice} handleClose={handleCloseInvoice} order={selectedOrder} />
+        <InvoiceModal open={openInvoice} handleClose={handleCloseInvoice} orderGroup={selectedOrder} />
       )}
       {selectedOrder && openTracking && (
         <TrackingModal

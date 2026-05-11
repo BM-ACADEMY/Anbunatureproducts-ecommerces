@@ -33,6 +33,7 @@ import AllProducts from "../pages/AllProducts";
 import CartPage from "../pages/CartPage";
 import WriteReview from "../pages/WriteReview";
 import AdminSiteReviews from "../pages/AdminSiteReviews";
+import AnnouncementAdmin from "../pages/AnnouncementAdmin";
 // import Overview from "../pages/Overview";
 
 const router = createBrowserRouter([
@@ -180,6 +181,14 @@ const router = createBrowserRouter([
             element: (
               <AdminPermision>
                 <AdminSiteReviews />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "announcement",
+            element: (
+              <AdminPermision>
+                <AnnouncementAdmin />
               </AdminPermision>
             ),
           },

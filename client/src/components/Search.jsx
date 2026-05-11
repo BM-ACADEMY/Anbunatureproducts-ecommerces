@@ -181,7 +181,7 @@ const Search = ({ isFullWidth = false, close }) => {
                                         <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 bg-white flex-shrink-0 group-hover:scale-105 transition-transform">
                                             <img
                                                 src={product.image?.[0]}
-                                                alt={product.name}
+                                                alt={product.altText || product.name}
                                                 className="w-full h-full object-contain p-1"
                                                 onError={(e) => e.target.style.display = 'none'}
                                             />
@@ -244,7 +244,7 @@ const Search = ({ isFullWidth = false, close }) => {
                                         className="flex flex-col items-center p-2 rounded-2xl hover:bg-green-50 transition-all group active:scale-95 animate-pop-in"
                                     >
                                         <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 bg-white group-hover:shadow-sm transition-all mb-1.5 p-1 flex items-center justify-center">
-                                            <img src={cat.image} alt={cat.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
+                                            <img src={cat.image} alt={cat.altText || cat.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
                                         </div>
                                         <span className="text-[10px] font-bold text-gray-600 truncate w-full group-hover:text-green-700">{cat.name}</span>
                                     </button>

@@ -5,9 +5,9 @@ export const AddSubCategoryController = async(request,response)=>{
     try {
         const { name, image, category } = request.body 
 
-        if(!name && !image && !category[0] ){
+        if(!name || !image || !category ){
             return response.status(400).json({
-                message : "Provide name, image, category",
+                message : "Provide name, image, and category",
                 error : true,
                 success : false
             })
@@ -80,7 +80,7 @@ export const updateSubCategoryController = async(request,response)=>{
             image,
             category,
             altText : request.body.altText
-        })
+        },{ new : true })
 
         return response.json({
             message : 'Updated Successfully',

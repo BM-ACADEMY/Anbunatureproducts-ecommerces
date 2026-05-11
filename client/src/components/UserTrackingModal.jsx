@@ -44,45 +44,39 @@ const UserTrackingModal = ({ open, handleClose, order }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-200" 
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" 
         onClick={handleClose} 
       />
       
       {/* Modal content */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300">
-        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/10">
+      <div className="relative bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
+        <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-start">
           <div>
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">Order Tracking</h2>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">#{order?.orderId}</p>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Order Tracking</h2>
+            <p className="text-[11px] font-medium text-slate-400 mt-1">#{order?.orderId}</p>
           </div>
           <button 
             onClick={handleClose}
-            className="p-2 hover:bg-rose-50 hover:text-rose-500 text-gray-400 rounded-full transition-all"
+            className="p-1.5 hover:bg-slate-50 text-slate-400 rounded-lg transition-all"
           >
-            <IoClose size={22} />
+            <IoClose size={24} />
           </button>
         </div>
 
         <div className="p-8">
-          <div className="mb-8 flex items-center justify-between p-4 bg-indigo-50/50 rounded-2xl border border-indigo-50">
-            <div>
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Current Status</p>
-                <p className="text-indigo-600 font-black text-sm mt-0.5">{order?.tracking_status}</p>
-            </div>
-            {order?.isCancelled && (
-              <span className="px-3 py-1 bg-rose-100 text-rose-600 text-[10px] font-black uppercase rounded-lg border border-rose-200">
-                Cancelled
-              </span>
-            )}
+          <div className="mb-10 p-6 bg-[#f5f8ff] rounded-2xl border border-[#e8efff]">
+            <p className="text-[10px] font-black text-[#5c7cfa] uppercase tracking-widest mb-1.5">Current Status</p>
+            <p className="text-[#3b5bdb] text-xl font-extrabold">{order?.tracking_status}</p>
           </div>
 
-          <div className="relative">
+          <div className="relative px-2">
             <TrackingStepper
                 activeStep={currentStep}
                 isCancelled={order?.isCancelled}
+                trackingStatus={order?.tracking_status}
             />
           </div>
 
@@ -101,10 +95,10 @@ const UserTrackingModal = ({ open, handleClose, order }) => {
           )}
         </div>
 
-        <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-100">
+        <div className="px-8 pb-8">
           <button 
             onClick={handleClose}
-            className="w-full py-3.5 bg-gray-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all active:scale-[0.98] shadow-lg shadow-gray-200"
+            className="w-full py-4 bg-[#1a1c21] text-white rounded-2xl text-base font-bold hover:bg-black transition-all active:scale-[0.98] shadow-xl shadow-gray-200"
           >
             Done
           </button>
@@ -114,4 +108,4 @@ const UserTrackingModal = ({ open, handleClose, order }) => {
   );
 };
 
-export default UserTrackingModal;
+export default UserTrackingModal;

@@ -83,7 +83,7 @@ export const createProductController = async (request, response) => {
 
     console.log("Received create product data:", { name, image, category, subCategory, description, more_details, publish, attributes, reviews, comboOffer });
 
-    if (!name || !image || image.length === 0 || !category || category.length === 0 || !description) {
+    if (!name || !image || image.length === 0 || !category || !description) {
       return response.status(400).json({
         message: "Please provide all required fields: name, image, category, and description.",
         error: true,
@@ -503,7 +503,7 @@ export const getProductByCategory = async (request, response) => {
     }
 
     const baseMatchQuery = { 
-      category: { $in: [new mongoose.Types.ObjectId(categoryId)] },
+      category: new mongoose.Types.ObjectId(categoryId),
       publish: true
     };
 
@@ -721,8 +721,8 @@ export const getProductByCategoryAndSubCategory = async (request, response) => {
     }
 
     const baseQuery = {
-      category: { $in: [categoryId] },
-      subCategory: { $in: [subCategoryId] },
+      category: new mongoose.Types.ObjectId(categoryId),
+      subCategory: new mongoose.Types.ObjectId(subCategoryId),
       publish: true
     };
 

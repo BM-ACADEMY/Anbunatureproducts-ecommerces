@@ -64,7 +64,7 @@ const ProductListPage = () => {
 
   useEffect(() => {
     const sub = AllSubCategory.filter((s) => {
-      const filterData = s.category?.some((el) => el._id === categoryId);
+      const filterData = s.category?._id === categoryId || s.category === categoryId;
       return filterData || null;
     });
     setDisplaySubCategory(sub);
@@ -81,7 +81,7 @@ const ProductListPage = () => {
         <h3 className="font-semibold text-lg mb-4">{subCategoryName}</h3>
         <div className="flex overflow-x-auto space-x-4 pb-4 scrollbarCustom">
           {DisplaySubCatory.map((s, index) => {
-            const link = `/${valideURLConvert(s?.category[0]?.name || 'category')}-${s?.category[0]?._id || ''}/${valideURLConvert(s.name || 'subcategory')}-${s._id || ''}`;
+            const link = `/${valideURLConvert(s?.category?.name || 'category')}-${s?.category?._id || ''}/${valideURLConvert(s.name || 'subcategory')}-${s._id || ''}`;
             return (
               <Link
                 key={index}
@@ -91,7 +91,7 @@ const ProductListPage = () => {
                 <div className="w-28 h-28 rounded-full overflow-hidden bg-white">
                   <img
                     src={s.image || '/placeholder.png'}
-                    alt={s.name || 'Subcategory'}
+                    alt={s.altText || s.name || 'Subcategory'}
                     className="w-full h-full object-scale-down p-1"
                   />
                 </div>

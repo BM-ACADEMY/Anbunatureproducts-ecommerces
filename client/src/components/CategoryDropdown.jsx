@@ -70,7 +70,7 @@ const CategoryDropdown = ({
                     <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100 bg-white">
                       <img 
                         src={option.image} 
-                        alt={option.name} 
+                        alt={option.altText || option.name} 
                         className="w-full h-full object-contain"
                         onError={(e) => e.target.src = 'https://via.placeholder.com/40'}
                       />

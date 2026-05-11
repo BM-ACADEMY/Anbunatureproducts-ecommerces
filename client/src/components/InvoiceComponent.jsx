@@ -18,28 +18,29 @@ import jsPDF from "jspdf";
 import DownloadIcon from "@mui/icons-material/Download";
 import CloseIcon from "@mui/icons-material/Close";
 
-const InvoiceModal = ({ open, handleClose, order }) => {
+const InvoiceModal = ({ open, handleClose, orderGroup }) => {
   const invoiceRef = useRef();
 
- const companyDetails = {
-  name: "Anbu Natural",
-  phone: "7338886850, 9944736850",
-  email: "anbunaturalproducts@gmail.com",
-};
-
-  // Mock invoice details
-  const invoiceDetails = {
-    invoiceNumber: order?.orderId || "INV-000007",
-    invoiceDate: new Date(order?.createdAt).toLocaleDateString() || "10-02-2023",
-    dueDate:
-      new Date(new Date(order?.createdAt).setDate(new Date(order?.createdAt).getDate() + 14)).toLocaleDateString() ||
-      "10-16-2023",
+  const companyDetails = {
+    name: "Anbu Natural",
+    address: "30, veerachi south Street, Vellakal, Manaparai tk, Trichy dt, pin. 621307",
+    phone: "9488549948, 7338886850",
+    email: "anbunaturalproducts@gmail.com",
   };
 
-  // Calculate totals
-  const subTotal = order?.totalAmt || 0;
-  const totalAmount = subTotal; // No tax
-  const unitPrice = order?.quantity ? (order.totalAmt / order.quantity).toFixed(2) : order?.totalAmt || 0;
+  // Use the first item for shared details
+  const firstItem = orderGroup?.items?.[0] || orderGroup;
+  
+  const invoiceDetails = {
+    invoiceNumber: orderGroup?.groupId || firstItem?.orderId || "INV-000007",
+    invoiceDate: new Date(firstItem?.createdAt).toLocaleDateString() || new Date().toLocaleDateString(),
+    dueDate: firstItem?.createdAt 
+      ? new Date(new Date(firstItem.createdAt).setDate(new Date(firstItem.createdAt).getDate() + 14)).toLocaleDateString()
+      : new Date(new Date().setDate(new Date().getDate() + 14)).toLocaleDateString(),
+  };
+
+  // Total amount from the group
+  const totalAmount = orderGroup?.totalAmt || firstItem?.totalAmt || 0;
 
   const downloadInvoice = async () => {
     const element = invoiceRef.current;
@@ -52,7 +53,7 @@ const InvoiceModal = ({ open, handleClose, order }) => {
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`Invoice_${order?.orderId}.pdf`);
+    pdf.save(`Invoice_${invoiceDetails.invoiceNumber}.pdf`);
   };
 
   return (
@@ -61,33 +62,14 @@ const InvoiceModal = ({ open, handleClose, order }) => {
         <Box
           ref={invoiceRef}
           sx={{
-            width: "595px", // A4 width in pixels (210mm at 96 DPI)
-            height: "842px", // A4 height in pixels (297mm at 96 DPI)
+            width: "595px",
+            height: "842px",
             bgcolor: "#fff",
             p: 3,
             boxSizing: "border-box",
             fontSize: "12px",
             position: "relative",
-            "@media (max-width: 600px)": {
-              transform: "scale(0.5)",
-              transformOrigin: "top left",
-              width: "595px",
-              height: "842px",
-              margin: "auto",
-            },
-            "@media (min-width: 601px) and (max-width: 960px)": {
-              transform: "scale(0.7)",
-              transformOrigin: "top left",
-              width: "595px",
-              height: "842px",
-              margin: "auto",
-            },
-            "@media (min-width: 961px)": {
-              transform: "scale(1)",
-              width: "595px",
-              height: "842px",
-              margin: "auto",
-            },
+            margin: "auto",
           }}
         >
           {/* Watermark */}
@@ -97,7 +79,7 @@ const InvoiceModal = ({ open, handleClose, order }) => {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%) rotate(-45deg)",
-              opacity: 0.1,
+              opacity: 0.05,
               pointerEvents: "none",
             }}
           >
@@ -132,7 +114,7 @@ const InvoiceModal = ({ open, handleClose, order }) => {
             </Box>
             <Box sx={{ textAlign: "right" }}>
               <img
-                src="/logo.png" // Replace with your logo path
+                src="/assets/common/logo.png"
                 alt="Company Logo"
                 style={{ width: 80, height: "auto" }}
               />
@@ -154,18 +136,17 @@ const InvoiceModal = ({ open, handleClose, order }) => {
                 Bill To
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-                Name: {order?.userId?.name}
+                Name: {firstItem?.userId?.name}
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-                Email: {order?.userId?.email}
-              </Typography>
-              {/* Corrected: Using delivery_address.mobile for the contact number at the delivery location */}
-              <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-                Phone: {order?.delivery_address?.mobile} {/* Changed from order?.userId?.mobile */}
+                Email: {firstItem?.userId?.email}
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-                Address: {order?.delivery_address?.address_line}, {order?.delivery_address?.city}{" "}
-                {order?.delivery_address?.state}, {order?.delivery_address?.pincode}
+                Phone: {firstItem?.delivery_address?.mobile}
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
+                Address: {firstItem?.delivery_address?.address_line}, {firstItem?.delivery_address?.city}{" "}
+                {firstItem?.delivery_address?.state}, {firstItem?.delivery_address?.pincode}
               </Typography>
             </Grid>
             <Grid item xs={6} sx={{ textAlign: "left" }}>
@@ -188,51 +169,51 @@ const InvoiceModal = ({ open, handleClose, order }) => {
                 <TableCell sx={{ color: "#fff", fontSize: "10px", py: 1 }}>
                   <strong>Description</strong>
                 </TableCell>
-                <TableCell sx={{ color: "#fff", fontSize: "10px", py: 1 }}>
+                <TableCell sx={{ color: "#fff", fontSize: "10px", py: 1, textAlign: "right" }}>
                   <strong>Unit Price</strong>
                 </TableCell>
-                <TableCell sx={{ color: "#fff", fontSize: "10px", py: 1 }}>
+                <TableCell sx={{ color: "#fff", fontSize: "10px", py: 1, textAlign: "right" }}>
                   <strong>Total</strong>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              <TableRow>
-                <TableCell sx={{ fontSize: "10px", py: 0.5 }}>{order?.quantity || 1}</TableCell>
-                <TableCell sx={{ fontSize: "10px", py: 0.5 }}>{order?.product_details?.name}</TableCell>
-                <TableCell sx={{ fontSize: "10px", py: 0.5 }}>₹{unitPrice}</TableCell>
-                <TableCell sx={{ fontSize: "10px", py: 0.5 }}>₹{order?.totalAmt}</TableCell>
-              </TableRow>
+              {(orderGroup?.items || [orderGroup]).map((item, index) => {
+                const unitPrice = item.quantity ? (item.totalAmt / item.quantity).toFixed(2) : item.totalAmt || 0;
+                return (
+                  <TableRow key={index}>
+                    <TableCell sx={{ fontSize: "10px", py: 0.5 }}>{item.quantity || 1}</TableCell>
+                    <TableCell sx={{ fontSize: "10px", py: 0.5 }}>{item.product_details?.name}</TableCell>
+                    <TableCell sx={{ fontSize: "10px", py: 0.5, textAlign: "right" }}>₹{unitPrice}</TableCell>
+                    <TableCell sx={{ fontSize: "10px", py: 0.5, textAlign: "right" }}>₹{item.totalAmt}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
 
           {/* Totals Section */}
           <Box sx={{ textAlign: "right", mb: 3 }}>
-            <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-              <strong>Subtotal:</strong> ₹{subTotal.toFixed(2)}
-            </Typography>
             <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "14px", color: "#1a3c34" }}>
-              <strong>Total:</strong> ₹{totalAmount.toFixed(2)}
+              <strong>Total:</strong> ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </Typography>
           </Box>
 
           {/* Payment and Tracking Status */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-              <strong>Payment Status:</strong> {order?.payment_status}
+              <strong>Payment Status:</strong> {firstItem?.payment_status}
             </Typography>
             <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
-              <strong>Tracking Status:</strong> {order?.tracking_status}
+              <strong>Tracking Status:</strong> {firstItem?.tracking_status}
             </Typography>
-            {order?.isCancelled && (
+            {firstItem?.isCancelled && (
               <Typography variant="body2" sx={{ fontSize: "10px", color: "#d32f2f" }}>
-                <strong>Cancelled:</strong> {order?.cancellationReason} (on{" "}
-                {new Date(order?.cancellationDate).toLocaleDateString()})
+                <strong>Cancelled:</strong> {firstItem?.cancellationReason} (on{" "}
+                {new Date(firstItem?.cancellationDate).toLocaleDateString()})
               </Typography>
             )}
           </Box>
-
-          
         </Box>
       </DialogContent>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaRegUser, FaEdit, FaSave, FaCamera, FaChevronDown } from "react-icons/fa";
-import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdHome, MdPinDrop, MdPublic, MdOutlinePushPin } from "react-icons/md";
+import { FaRegUser, FaEdit, FaSave, FaCamera, FaTimes } from "react-icons/fa";
+import { MdEmail, MdPhone, MdPerson, MdVerifiedUser } from "react-icons/md";
 import UserProfileAvatarEdit from '../components/UserProfileAvatarEdit';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
@@ -14,9 +14,8 @@ import AddressCard from '../components/AddressCard';
 import AddAddress from '../components/AddAddress';
 import EditAddressDetails from '../components/EditAddressDetails';
 import DeleteConfirmation from '../components/DeleteConfirmation';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiMapPin } from 'react-icons/fi';
 import Breadcrumbs from '../components/Breadcrumbs';
-// Removed problematic PhoneInput library
 
 const Profile = () => {
     const user = useSelector(state => state.user);
@@ -27,14 +26,14 @@ const Profile = () => {
     const [openProfileAvatarEdit, setProfileAvatarEdit] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isModified, setIsModified] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
-    // Address Management State
     const [openAddress, setOpenAddress] = useState(false);
     const [openEditAddress, setOpenEditAddress] = useState(false);
     const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const [editData, setEditData] = useState({});
-    
+
     const [formData, setFormData] = useState({
         name: user.name || "",
         email: user.email || "",
@@ -55,42 +54,11 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleDeleteAddress = (id) => {
-        setDeleteId(id);
-        setOpenDeleteConfirm(true);
-    };
-
-    const confirmDeleteAddress = async () => {
-        try {
-            const response = await Axios({
-                ...SummaryApi.disableAddress,
-                data: { _id: deleteId }
-            });
-            if (response.data.success) {
-                toast.success(response.data.message);
-                setOpenDeleteConfirm(false);
-                fetchAddress();
-            }
-        } catch (error) {
-            AxiosToastError(error);
-        }
-    };
-
-    const handleEditAddress = (address) => {
-        setEditData(address);
-        setOpenEditAddress(true);
-    };
-
-
     const handleOnChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => {
             const updated = { ...prev, [name]: value };
-            
-
-            const isAnyModified = Object.keys(updated).some(key => updated[key] !== initialFormData[key]);
-            setIsModified(isAnyModified);
-            
+            setIsModified(Object.keys(updated).some(key => updated[key] !== initialFormData[key]));
             return updated;
         });
     };
@@ -98,237 +66,176 @@ const Profile = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         try {
-            const userResponse = await Axios({
-                ...SummaryApi.updateUserDetails,
-                data: {
-                    name: formData.name,
-                    email: formData.email,
-                    mobile: formData.mobile
-                },
-            });
-
+            const userResponse = await Axios({ ...SummaryApi.updateUserDetails, data: formData });
             if (userResponse.data.success) {
                 toast.success("Profile updated successfully");
                 const updatedUserData = await fetchUserDetails();
                 dispatch(setUserDetails(updatedUserData.data));
+                setIsEditMode(false);
+                setIsModified(false);
             }
-        } catch (error) {
-            AxiosToastError(error);
-        } finally {
-            setLoading(false);
-            setIsModified(false);
-        }
+        } catch (error) { AxiosToastError(error); } finally { setLoading(false); }
     };
 
-    const handleCancel = () => {
-        setFormData(initialFormData);
-        setIsModified(false);
-    };
+    // Reusable styling for the cards
+    const cardStyle = "bg-white rounded-3xl p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 ring-1 ring-slate-100";
 
     return (
-        <section className="min-h-screen bg-[#fcf8ed] py-8">
-            <div className="container mx-auto px-6 lg:px-10">
+        <section className="min-h-screen bg-[#fdf5e6] py-6 lg:py-10">
+            <div className="container mx-auto px-4 max-w-6xl">
                 <Breadcrumbs />
-                
-                <div className="space-y-8 mt-8">
-                <h1 className="text-3xl font-extrabold text-[#232F3E] tracking-tight">Account Settings</h1>
 
-                {/* Profile Header Card */}
-                <div className="bg-white rounded-2xl p-8 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_4px_6px_-2px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex flex-col md:flex-row items-center gap-6">
-                        <div className="relative group">
-                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl ring-2 ring-gray-50 bg-slate-50">
-                                {user.avatar ? (
-                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                <header className="my-8">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Profile Settings</h1>
+                    <p className="text-slate-500 font-medium">Manage your account information and saved addresses</p>
+                </header>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+
+                    {/* TOP LEFT: Avatar Card */}
+                    <div className="lg:col-span-4">
+                        <div className={`${cardStyle} flex border-1 border-[#DBDBDB] flex-col items-center justify-center text-center h-full`}>
+                            <div className="relative mb-6">
+                                <div className="w-32 h-32 lg:w-36 lg:h-36 rounded-full p-1 bg-gradient-to-tr from-[#BC2E2E] to-orange-400">
+                                    <div className="w-full h-full rounded-full overflow-hidden border-4 border-white bg-slate-50">
+                                        {user.avatar ? (
+                                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-300"><FaRegUser size={40} /></div>
+                                        )}
+                                    </div>
+                                </div>
+                                <button onClick={() => setProfileAvatarEdit(true)} className="absolute bottom-1 right-1 bg-slate-900 text-white p-2.5 rounded-full hover:scale-110 transition-transform shadow-lg border-2 border-white">
+                                    <FaCamera size={14} />
+                                </button>
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 justify-center">
+                                {user.name} <MdVerifiedUser className="text-blue-500" size={18} />
+                            </h2>
+                            <p className="text-slate-400 font-bold text-[10px] mt-1 uppercase tracking-widest">{user.role}</p>
+                        </div>
+                    </div>
+
+                    {/* TOP RIGHT: Personal Info Card */}
+                    <div className="lg:col-span-8">
+                        <div className={`${cardStyle} h-full border-1 border-[#DBDBDB] !p-0 overflow-hidden`}>
+                            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                <h3 className="font-bold text-slate-800">Personal Details</h3>
+                                <button
+                                    onClick={() => isEditMode ? setIsEditMode(false) : setIsEditMode(true)}
+                                    className={`text-sm font-bold flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${isEditMode ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-blue-600'}`}
+                                >
+                                    {isEditMode ? <><FaTimes /> Cancel</> : <><FaEdit /> Edit</>}
+                                </button>
+                            </div>
+                            <form onSubmit={handleSubmit} className="p-6 lg:p-8 space-y-4 lg:space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                                        <div className="relative">
+                                            <MdPerson className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <input type="text" name="name" disabled={!isEditMode} value={formData.name} onChange={handleOnChange} className={`w-full pl-11 pr-4 py-3 rounded-2xl border transition-all font-semibold outline-none ${isEditMode ? 'bg-white border-slate-300 focus:border-[#BC2E2E] ring-1 ring-transparent focus:ring-red-100' : 'bg-slate-50/50 border-transparent text-slate-600'}`} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Phone</label>
+                                        <div className={`flex items-center px-4 py-3 rounded-2xl border transition-all ${isEditMode ? 'bg-white border-slate-300 focus-within:ring-1 focus-within:ring-red-100 focus-within:border-[#BC2E2E]' : 'bg-slate-50/50 border-transparent text-slate-600'}`}>
+                                            <MdPhone className="text-slate-400 mr-3" />
+                                            <span className="text-slate-400 font-bold mr-1">+91</span>
+                                            <input type="text" name="mobile" disabled={!isEditMode} value={formData.mobile} onChange={(e) => handleOnChange({ target: { name: 'mobile', value: e.target.value.replace(/\D/g, '').slice(0, 10) } })} className="w-full bg-transparent outline-none font-semibold" />
+                                        </div>
+                                    </div>
+                                    <div className="md:col-span-2 space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Email</label>
+                                        <div className="relative">
+                                            <MdEmail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <input type="email" name="email" disabled={!isEditMode} value={formData.email} onChange={handleOnChange} className={`w-full pl-11 pr-4 py-3 rounded-2xl border transition-all font-semibold outline-none ${isEditMode ? 'bg-white border-slate-300 focus:border-[#BC2E2E] ring-1 ring-transparent focus:ring-red-100' : 'bg-slate-50/50 border-transparent text-slate-600'}`} />
+                                        </div>
+                                    </div>
+                                </div>
+                                {isEditMode && (
+                                    <button type="submit" disabled={!isModified || loading} className={`w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all ${!isModified || loading ? 'bg-slate-100 text-slate-400' : 'bg-[#BC2E2E] text-white shadow-lg shadow-red-100 hover:bg-red-700'}`}>
+                                        <FaSave /> {loading ? "Saving..." : "Save Changes"}
+                                    </button>
+                                )}
+                            </form>
+                        </div>
+                    </div>
+
+                    {/* BOTTOM: Address Details (Full Width) */}
+                    <div className="lg:col-span-12">
+                        <div className={`${cardStyle} border-1 border-[#DBDBDB] !p-0 overflow-hidden`}>
+                            <div className="px-6 py-5 lg:px-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                <div className="flex items-center gap-2">
+                                    <FiMapPin className="text-[#BC2E2E]" size={20} />
+                                    <h3 className="font-bold text-slate-800">Saved Shipping Addresses</h3>
+                                </div>
+
+                                {/* Limit logic updated to 2 addresses */}
+                                <button
+                                    onClick={() => setOpenAddress(true)}
+                                    disabled={addressList.filter(a => a.status).length >= 2}
+                                    className={`p-2 rounded-xl transition-all flex items-center gap-2 px-4 shadow-sm ${addressList.filter(a => a.status).length >= 2
+                                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                            : "bg-slate-900 text-white hover:bg-black"
+                                        }`}
+                                >
+                                    <FiPlus size={18} />
+                                    <span className="text-xs font-bold uppercase hidden sm:inline">
+                                        {addressList.filter(a => a.status).length >= 2 ? "Limit Reached" : "Add New"}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div className="p-6 lg:p-8">
+                                {addressList.filter(a => a.status).length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                                        {addressList.filter(a => a.status).map((address) => (
+                                            <AddressCard
+                                                key={address._id}
+                                                address={address}
+                                                showRadio={false}
+                                                onEdit={(addr) => { setEditData(addr); setOpenEditAddress(true); }}
+                                                onDelete={(id) => { setDeleteId(id); setOpenDeleteConfirm(true); }}
+                                            />
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                        <FaRegUser size={48} />
+                                    <div
+                                        onClick={() => setOpenAddress(true)}
+                                        className="border-2 border-dashed border-slate-200 rounded-3xl py-12 flex flex-col items-center justify-center gap-3 group cursor-pointer hover:bg-slate-50 hover:border-[#BC2E2E]/30 transition-all"
+                                    >
+                                        <div className="p-4 bg-slate-50 rounded-full text-slate-300 group-hover:text-[#BC2E2E] transition-all">
+                                            <FiPlus size={32} />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No addresses found. Add up to 2 addresses.</p>
                                     </div>
                                 )}
-                                <div 
-                                    onClick={() => setProfileAvatarEdit(true)}
-                                    className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                                >
-                                    <FaCamera className="text-white" size={24} />
-                                </div>
-                            </div>
-                            <div 
-                                className="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-md border border-gray-100 cursor-pointer text-blue-500 hover:text-blue-600 transition-colors"
-                                onClick={() => setProfileAvatarEdit(true)}
-                            >
-                                <div className="bg-blue-50 p-1.5 rounded-full">
-                                    <FaEdit size={12} />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="text-center md:text-left">
-                            <h2 className="text-2xl font-bold text-slate-800 tracking-tight leading-none">{user.name}</h2>
-                            <div className="mt-2.5 inline-flex px-3 py-1 rounded-md bg-[#EDEFF2] text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                {user.role}
                             </div>
                         </div>
                     </div>
-                    <button 
-                        onClick={() => setProfileAvatarEdit(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-slate-700 font-bold text-sm shadow-sm hover:bg-gray-50 transition-all hover:border-gray-300 active:scale-95"
-                    >
-                        <FaEdit size={16} className="text-slate-400" />
-                        <span>Change Photo</span>
-                    </button>
                 </div>
 
-                {openProfileAvatarEdit && (
-                    <UserProfileAvatarEdit open={openProfileAvatarEdit} close={() => setProfileAvatarEdit(false)} />
-                )}
-
-                <form className="space-y-10" onSubmit={handleSubmit}>
-                    {/* Personal Info Card */}
-                    <div className="bg-white rounded-2xl p-8 md:p-10 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_4px_6px_-2px_rgba(0,0,0,0.05)] border border-gray-100 space-y-8">
-                        <h3 className="text-xl font-bold text-slate-800">Personal Info</h3>
-                        
-                        <div className="space-y-6">
-                            {/* Full Name */}
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                                    <MdPerson size={22} />
-                                </div>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Enter your name"
-                                    value={formData.name}
-                                    onChange={handleOnChange}
-                                    className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-xl text-slate-700 font-bold placeholder:text-slate-400 placeholder:font-medium outline-none transition-all focus:border-blue-100 focus:ring-4 focus:ring-blue-50/30"
-                                    required
-                                />
-                            </div>
-
-                            {/* Email Address */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500 tracking-wide ml-1">Email Address</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                                        <MdEmail size={22} />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        placeholder="Enter your email"
-                                        value={formData.email}
-                                        onChange={handleOnChange}
-                                        className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-xl text-slate-700 font-bold placeholder:text-slate-400 placeholder:font-medium outline-none transition-all focus:border-blue-100 focus:ring-4 focus:ring-blue-50/30"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Mobile Number */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500 tracking-wide ml-1">Mobile Number</label>
-                                <div className="relative group/phone">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none border-r border-slate-200 pr-3">
-                                        <span className="text-xl">🇮🇳</span>
-                                        <span className="text-sm font-bold text-slate-400">+91</span>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        name="mobile"
-                                        value={formData.mobile}
-                                        onChange={(e) => {
-                                            const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                            setFormData(prev => {
-                                                const updated = { ...prev, mobile: value };
-                                                const isAnyModified = Object.keys(updated).some(key => updated[key] !== initialFormData[key]);
-                                                setIsModified(isAnyModified);
-                                                return updated;
-                                            });
-                                        }}
-                                        placeholder="Enter 10-digit mobile number"
-                                        className="w-full pl-24 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none transition-all focus:ring-4 focus:ring-slate-50 focus:border-slate-400"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                        {/* Buttons */}
-                        <div className="flex justify-end gap-3 pt-4">
-                            <button
-                                type="button"
-                                onClick={handleCancel}
-                                className="py-3 px-10 rounded-xl bg-white text-slate-600 font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-all active:scale-[0.98]"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={!isModified || loading}
-                                className={`py-3 px-10 rounded-xl font-bold text-sm shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-3 ${
-                                    !isModified || loading
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200"
-                                    : "bg-[#BC2E2E] text-white hover:bg-[#A32626] shadow-[#BC2E2E]/20"
-                                }`}
-                            >
-                                <span>{loading ? "Saving..." : "Update Profile"}</span>
-                            </button>
-                        </div>
-
-                    {/* Address Details Card */}
-                    <div className="bg-white rounded-2xl p-8 md:p-10 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_4px_6px_-2px_rgba(0,0,0,0.05)] border border-gray-100 space-y-8">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-xl font-bold text-slate-800">Saved Addresses</h3>
-                            <button
-                                type="button"
-                                onClick={() => setOpenAddress(true)}
-                                disabled={addressList.filter(a => a.status).length >= 2}
-                                className={`flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm border ${
-                                    addressList.filter(a => a.status).length >= 2
-                                    ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
-                                    : "text-blue-600 hover:text-blue-700 bg-blue-50 border-blue-100"
-                                }`}
-                            >
-                                <FiPlus size={14} />
-                                <span>{addressList.filter(a => a.status).length >= 2 ? "LIMIT REACHED" : "ADD NEW"}</span>
-                            </button>
-                        </div>
-
-                        {addressList.filter(a => a.status).length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
-                                {addressList.filter(a => a.status).map((address) => (
-                                    <AddressCard
-                                        key={address._id}
-                                        address={address}
-                                        showRadio={false} // No radio needed in profile management
-                                        onEdit={handleEditAddress}
-                                        onDelete={handleDeleteAddress}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <div 
-                                onClick={() => setOpenAddress(true)}
-                                className="border-2 border-dashed border-slate-100 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-slate-600"
-                            >
-                                <FiPlus size={32} />
-                                <p className="text-sm font-bold uppercase tracking-widest">Add your first address</p>
-                            </div>
-                        )}
-                    </div>
-                </form>
-
-                {/* Modals */}
+                {openProfileAvatarEdit && <UserProfileAvatarEdit open={openProfileAvatarEdit} close={() => setProfileAvatarEdit(false)} />}
                 {openAddress && <AddAddress close={() => setOpenAddress(false)} />}
                 {openEditAddress && <EditAddressDetails data={editData} close={() => setOpenEditAddress(false)} />}
                 <DeleteConfirmation
                     open={openDeleteConfirm}
                     close={() => setOpenDeleteConfirm(false)}
-                    confirm={confirmDeleteAddress}
-                    title="Delete Address"
-                    message="Are you sure you want to remove this address? This action cannot be undone."
+                    confirm={async () => {
+                        try {
+                            const response = await Axios({ ...SummaryApi.disableAddress, data: { _id: deleteId } });
+                            if (response.data.success) {
+                                toast.success(response.data.message);
+                                setOpenDeleteConfirm(false);
+                                fetchAddress();
+                            }
+                        } catch (error) { AxiosToastError(error); }
+                    }}
+                    title="Remove Address"
+                    message="Are you sure you want to delete this address?"
                 />
-            </div>
             </div>
         </section>
     );

@@ -98,22 +98,33 @@ const EditCategory = ({ close, fetchData, data: CategoryData }) => {
           {/* Image Upload */}
           <div>
             <p className='text-base font-medium mb-2'>Category Image</p>
-            <div className='flex flex-wrap items-center gap-3'>
-              <label htmlFor='uploadImgEdit' className='cursor-pointer'>
-                <input
-                  type='file'
-                  id='uploadImgEdit'
-                  className='hidden'
-                  accept='image/*'
-                  onChange={handleUploadCategoryImage}
-                  disabled={loading}
-                />
+            <div className='flex flex-wrap items-center gap-4'>
+              <div className='relative group'>
                 <img 
-                  className='max-w-24 w-24 h-24 object-cover rounded border border-gray-200' 
+                  className='w-24 h-24 object-cover rounded-lg border border-gray-200 shadow-sm' 
                   src={data.image || "https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/e-commerce/uploadArea.png"} 
-                  alt="uploadArea" 
+                  alt={data.altText || data.name || "Category image"} 
                 />
-              </label>
+                {data.image && (
+                  <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center'>
+                    <span className='text-white text-xs font-bold'>Change</span>
+                  </div>
+                )}
+              </div>
+              <div className='flex flex-col gap-2'>
+                <label htmlFor='uploadImgEdit' className='cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 font-medium text-sm rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100'>
+                  <input
+                    type='file'
+                    id='uploadImgEdit'
+                    className='hidden'
+                    accept='image/*'
+                    onChange={handleUploadCategoryImage}
+                    disabled={loading}
+                  />
+                  {data.image ? 'Replace Image' : 'Upload Image'}
+                </label>
+                <span className='text-[11px] text-slate-400 font-medium'>Max 2MB • JPG, PNG, WebP</span>
+              </div>
               {loading && <div className='w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />}
             </div>
           </div>
