@@ -196,7 +196,7 @@ const TotalOrders = () => {
       )}
 
       {selectedOrder && openInvoice && (
-        <InvoiceModal open={openInvoice} handleClose={() => setOpenInvoice(false)} order={selectedOrder} />
+        <InvoiceModal open={openInvoice} handleClose={() => setOpenInvoice(false)} orderGroup={selectedOrder} />
       )}
       {selectedOrder && openTracking && (
         <TrackingModal

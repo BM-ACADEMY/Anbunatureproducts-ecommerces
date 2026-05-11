@@ -59,7 +59,7 @@ const Footer = () => {
             </p>
             <p className="mb-2 flex items-center">
               <Phone className="w-4 h-4 mr-2 text-white" />
-              <span className="text-white">7338886850, 9944736850</span>
+              <span className="text-white">9488549948, 7338886850</span>
             </p>
             <p className="flex items-center">
               <Instagram className="w-4 h-4 mr-2 text-white" />

@@ -121,13 +121,13 @@ const BannerAdmin = () => {
 
                         {/* Content & Actions */}
                         <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-white border-t border-gray-100">
-                            <div className="space-y-3 flex-1">
+                            <div className="space-y-3 flex-1 min-w-0">
                                 <div className="flex items-center gap-3">
                                     <div className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-[11px] font-bold uppercase tracking-wider">
                                         Order #{banner.order}
                                     </div>
                                     {banner.link && (
-                                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[11px] font-bold uppercase tracking-wider">
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[11px] font-bold uppercase tracking-wider flex-shrink-0">
                                             <FiLink size={10} />
                                             <span>Clickable</span>
                                         </div>
@@ -137,12 +137,12 @@ const BannerAdmin = () => {
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2 text-gray-400 group/link overflow-hidden">
                                         <FiLink size={13} className="flex-shrink-0 text-gray-300" />
-                                        <span className="text-[14px] font-medium text-gray-600 truncate">
+                                        <span className="text-[14px] font-medium text-gray-600 truncate block">
                                             {banner.link || "Internal Slide (No Link)"}
                                         </span>
                                     </div>
-                                    <p className="text-[12px] text-gray-400 font-medium pl-5 truncate">
-                                        <span className="uppercase text-[10px] font-bold text-gray-300 mr-2 tracking-tighter">SEO:</span> 
+                                    <p className="text-[12px] text-gray-400 font-medium pl-5 truncate block">
+                                        <span className="uppercase text-[10px] font-bold text-gray-300 mr-2 tracking-tighter flex-shrink-0">SEO:</span> 
                                         {banner.altText || "Default Banner"}
                                     </p>
                                 </div>

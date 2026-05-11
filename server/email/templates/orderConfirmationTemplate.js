@@ -8,82 +8,88 @@ const orderConfirmationTemplate = ({
   deliveryAddress, // Object with address details (now includes fullName & mobile)
   customImageUrl, // URL of the uploaded custom image
 }) => `
-  <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-    <div style="max-width: 600px; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-      <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #28a745;">
-        <h2 style="color: #007bff;">🎉 Your Order Has Been Placed!</h2>
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
+    <div style="max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+      
+      <!-- Header with Logo -->
+      <div style="background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 1px solid #f3f4f6;">
+        <img src="https://anbunaturalproducts.com/assets/common/logo.png" alt="Anbu Natural" style="height: 60px; width: auto; margin-bottom: 15px;">
+        <h2 style="color: #111827; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.025em;">🎉 Your Order Has Been Placed!</h2>
       </div>
-      <p>Dear <strong>${fullName}</strong>,</p>
-      <p>Thank you for your order! We're excited to confirm that your order <strong>#${orderId}</strong> placed on <strong>${orderDate}</strong> has been successfully received.</p>
 
-      <h3 style="color: #333;">Order Summary:</h3>
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <thead>
-          <tr style="background-color: #f2f2f2;">
-            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Product</th>
-            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Quantity</th>
-            <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items
-            .map(
-              (item) => `
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd;">
-                ${item.name}
-                ${item.attributes ? `<br><small style="color: #666;">(${item.attributes})</small>` : ''} </td>
-              <td style="padding: 8px; border: 1px solid #ddd;">${
-                item.quantity
-              }</td>
-              <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${item.price.toFixed(
-                2
-              )}</td>
+      <div style="padding: 30px;">
+        <p style="margin-top: 0;">Dear <strong>${fullName}</strong>,</p>
+        <p style="color: #4b5563; line-height: 1.6;">Thank you for your order! We're excited to confirm that your order <strong style="color: #111827;">#${orderId}</strong> placed on <strong>${orderDate}</strong> has been successfully received.</p>
+
+        <h3 style="color: #111827; font-size: 16px; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 0.05em;">Order Summary</h3>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 25px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+          <thead>
+            <tr style="background-color: #f9fafb;">
+              <th style="padding: 12px 15px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Product</th>
+              <th style="padding: 12px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Qty</th>
+              <th style="padding: 12px 15px; text-align: right; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Price</th>
             </tr>
-          `
-            )
-            .join("")}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">Total:</td>
-            <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹${totalAmount.toFixed(
-              2
-            )}</td>
-          </tr>
-        </tfoot>
-      </table>
+          </thead>
+          <tbody>
+            ${items
+              .map(
+                (item, index) => `
+              <tr>
+                <td style="padding: 15px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6;">
+                  <div style="font-weight: 600;">${item.name}</div>
+                  ${item.attributes ? `<div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">${item.attributes}</div>` : ''}
+                </td>
+                <td style="padding: 15px; text-align: center; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6;">${item.quantity}</td>
+                <td style="padding: 15px; text-align: right; font-size: 14px; font-weight: 600; color: #111827; border-bottom: 1px solid #f3f4f6;">₹${item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f9fafb;">
+              <td colspan="2" style="padding: 15px; text-align: right; font-size: 14px; font-weight: 700; color: #374151;">Total Amount</td>
+              <td style="padding: 15px; text-align: right; font-size: 18px; font-weight: 800; color: #10b981;">₹${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            </tr>
+          </tfoot>
+        </table>
 
-      <h3 style="color: #333;">Delivery Address:</h3>
-      <p style="margin: 0;"><strong>Recipient:</strong> ${deliveryAddress.fullName}</p>
-      <p style="margin: 0;"><strong>Mobile:</strong> ${deliveryAddress.mobile}</p>
-      <p style="margin: 0;">${deliveryAddress.address_line}</p>
-      <p style="margin: 0;">${deliveryAddress.city}, ${
-        deliveryAddress.state
-      } - ${deliveryAddress.pincode}</p>
-      <p style="margin: 0;">${deliveryAddress.country}</p>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 30px;">
+          <div style="background-color: #f9fafb; padding: 20px; border-radius: 12px; border: 1px solid #f3f4f6;">
+            <h4 style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Delivery Address</h4>
+            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">${deliveryAddress.fullName}</p>
+            <p style="margin: 4px 0; font-size: 13px; color: #4b5563;">${deliveryAddress.mobile}</p>
+            <p style="margin: 0; font-size: 13px; color: #6b7280; line-height: 1.5;">
+              ${deliveryAddress.address_line}<br>
+              ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}<br>
+              ${deliveryAddress.country}
+            </p>
+          </div>
+        </div>
 
-      ${
-        customImageUrl
-          ? `
-      <h3 style="color: #333; margin-top: 20px;">Your Custom Image:</h3>
-      <div style="text-align: center; margin-bottom: 20px;">
-        <img src="${customImageUrl}" alt="Custom Order Image" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd;">
-        <p style="font-size: 12px; color: #777;">
-          (This image was uploaded with your custom order)
-          <br />
-          <a href="${customImageUrl}" target="_blank" style="color: #007bff;">View Image in Browser</a>
-        </p>
+        ${
+          customImageUrl
+            ? `
+        <div style="margin-top: 30px; padding: 20px; border: 2px dashed #e5e7eb; border-radius: 16px; text-align: center;">
+          <h4 style="margin: 0 0 15px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Your Custom Design</h4>
+          <img src="${customImageUrl}" alt="Custom Design" style="max-width: 200px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+          <p style="margin-top: 15px; font-size: 12px; color: #9ca3af;">(Uploaded with your custom order)</p>
+          <a href="${customImageUrl}" target="_blank" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: #f3f4f6; color: #374151; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600;">View Full Size</a>
+        </div>
+        `
+            : ""
+        }
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f3f4f6; text-align: center;">
+          <p style="font-size: 14px; color: #6b7280;">You'll receive another email when your items are shipped.</p>
+          <p style="font-size: 13px; color: #9ca3af; margin-top: 10px;">Questions? Contact us at <a href="mailto:support@yourapp.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">support@yourapp.com</a></p>
+        </div>
       </div>
-      `
-          : ""
-      }
 
-
-      <p>You will receive another email notification when your order is shipped.</p>
-      <p>If you have any questions, please reply to this email or contact us at <a href="mailto:support@yourapp.com" style="color: #007bff;">support@yourapp.com</a>.</p>
-      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-      <p style="text-align: center; font-size: 14px; color: #777;">Thank you for shopping with us!</p>
+      <div style="background-color: #f9fafb; padding: 30px; text-align: center;">
+        <p style="margin: 0; font-size: 14px; font-weight: 700; color: #374151;">Thank you for shopping with us!</p>
+        <p style="margin: 5px 0 0; font-size: 12px; color: #9ca3af;">&copy; ${new Date().getFullYear()} Anbu Natural Products. All rights reserved.</p>
+      </div>
     </div>
   </div>
 `;
