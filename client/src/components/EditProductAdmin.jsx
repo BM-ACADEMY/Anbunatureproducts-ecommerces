@@ -36,6 +36,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     storage_image: propsData.storage_image || '',
     megaCombo: propsData.megaCombo || false,
     trending: propsData.trending || false,
+    publish: propsData.publish !== undefined ? propsData.publish : true,
     demoVideoLink: propsData.demoVideoLink || ''
   });
 
@@ -258,7 +259,9 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
       toast.error('Please enter a valid original price.');
       return;
     }
-    if (newOptionOfferPrice === '' || isNaN(Number(newOptionOfferPrice)) || Number(newOptionOfferPrice) < 0) {
+    // Offer price is now optional
+    const offerPrice = newOptionOfferPrice === '' ? Number(newOptionOriginalPrice) : Number(newOptionOfferPrice);
+    if (isNaN(offerPrice) || offerPrice < 0) {
       toast.error('Please enter a valid offer price.');
       return;
     }
@@ -284,8 +287,8 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
               {
                 name: newOptionValue.trim(),
                 originalPrice: Number(newOptionOriginalPrice),
-                offerPrice: Number(newOptionOfferPrice),
-                price: Number(newOptionOfferPrice), // Sync for compatibility
+                offerPrice: offerPrice,
+                price: offerPrice, // Sync for compatibility
                 stock: newOptionStock !== null ? Number(newOptionStock) : null,
                 unit: "", // Removed unit
               },
@@ -405,6 +408,17 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         return;
       }
 
+      // Check if price exists if trying to publish
+      const hasPrice = data.attributes.some(attr => 
+        attr.options && attr.options.some(opt => (opt.offerPrice > 0 || opt.originalPrice > 0))
+      );
+
+      if (data.publish && !hasPrice) {
+        toast.error("Cannot publish a product without a price. Please add a pricing option first.");
+        setSubmitLoading(false);
+        return;
+      }
+
       const imageUrls = await Promise.all(
         data.image.map(async (url) => {
           if (imageFileMap[url]) {
@@ -434,6 +448,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         comboOffer: data.comboOffer,
         megaCombo: data.megaCombo,
         trending: data.trending,
+        publish: data.publish,
         altText: data.altText,
         storage_instructions: data.storage_instructions,
         storage_image: storageImageUrl,
@@ -464,7 +479,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
+      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b bg-white'>
           <h3 className='text-lg font-bold text-gray-800'>Edit Product</h3>
@@ -489,13 +504,6 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
               <div className='flex flex-col gap-1.5'>
                 <div className='flex items-center justify-between'>
                   <label className='text-[15px] font-bold text-gray-700' htmlFor='altText'>SEO Alt Text</label>
-                  <button 
-                    type='button'
-                    onClick={() => setData(prev => ({ ...prev, altText: prev.name }))}
-                    className='text-[11px] font-bold text-[#279d68] hover:underline'
-                  >
-                    Auto-generate
-                  </button>
                 </div>
                 <div className='relative'>
                   <input
@@ -516,7 +524,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
             <div className='flex flex-col gap-1.5'>
               <label className='text-[15px] font-bold text-gray-700' htmlFor='description'>Description</label>
               <textarea
-                id='description' name='description' value={data.description} onChange={handleChange} required rows={3}
+                id='description' name='description' value={data.description} onChange={handleChange} required rows={6}
                 placeholder='Enter product description'
                 className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium resize-none'
               />
@@ -531,7 +539,6 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                 />
             </div>
 
-            <div className='flex items-center gap-2.5 bg-white p-3 rounded-xl border border-gray-100 shadow-sm w-fit'>
             <div className='flex flex-wrap items-center gap-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm'>
                 <div className='flex items-center gap-2'>
                   <input
@@ -541,14 +548,21 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                   <label htmlFor='editMegaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo Offer</label>
                 </div>
 
-                <div className='flex items-center gap-2 ml-auto'>
+                <div className='flex items-center gap-2'>
                   <input
                     type='checkbox' id='editTrending' checked={data.trending} onChange={handleTrendingToggle}
                     className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
                   />
                   <label htmlFor='editTrending' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Trending</label>
                 </div>
-              </div>
+
+                <div className='flex items-center gap-2 ml-auto'>
+                  <input
+                    type='checkbox' id='publish' checked={data.publish} onChange={(e) => setData(prev => ({ ...prev, publish: e.target.checked }))}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='publish' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Published</label>
+                </div>
             </div>
 
             {/* Images */}
@@ -684,7 +698,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
             {/* Custom Fields (More Details) */}
             <div className='space-y-4'>
                <div className='flex items-center justify-between'>
-                  <h4 className='text-[15px] font-bold text-gray-800'>Additional Specs</h4>
+                  <h4 className='text-[15px] font-bold text-gray-800'>Additional Specification</h4>
                   <button
                     type='button' onClick={() => setOpenAddField(true)}
                     className='text-[#279d68] hover:text-white hover:bg-[#279d68] font-bold text-[13px] flex items-center gap-1 bg-green-50 px-3 py-1.5 rounded-lg border border-[#279d68]/30 transition-all'
@@ -774,7 +788,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                         <div className='flex flex-wrap gap-2'>
                            {attr.options.map((opt, ix) => (
                              <span key={ix} className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2'>
-                                {opt.name} · ₹{opt.offerPrice} <span className='line-through text-slate-400 font-medium'>₹{opt.originalPrice}</span>
+                                {opt.name} · ₹{opt.offerPrice} {opt.originalPrice > opt.offerPrice && <span className='line-through text-slate-400 font-medium ml-1'>₹{opt.originalPrice}</span>}
                                 <IoClose className='cursor-pointer hover:text-rose-500' onClick={() => handleDeleteAttributeOption(attr.name, opt.name)} />
                              </span>
                            ))}

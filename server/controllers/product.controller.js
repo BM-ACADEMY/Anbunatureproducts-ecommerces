@@ -23,14 +23,22 @@ const validateAttributes = (attributes) => {
     }
     for (const option of attrGroup.options) {
       if (typeof option !== 'object' || option === null || !option.name || 
-          typeof option.originalPrice !== 'number' || isNaN(option.originalPrice) || option.originalPrice < 0 ||
-          typeof option.offerPrice !== 'number' || isNaN(option.offerPrice) || option.offerPrice < 0) {
-        return `Option in '${attrGroup.name}' must have a 'name', 'originalPrice' and 'offerPrice'.`;
+          typeof option.originalPrice !== 'number' || isNaN(option.originalPrice) || option.originalPrice < 0) {
+        return `Option in '${attrGroup.name}' must have a 'name' and 'originalPrice'.`;
       }
-      // Sync price with offerPrice for backward compatibility if price is not provided
-      if (option.price === undefined) {
-        option.price = option.offerPrice;
+      
+      // Handle optional offerPrice
+      if (option.offerPrice === undefined || option.offerPrice === null || option.offerPrice === 0) {
+        option.offerPrice = option.originalPrice;
       }
+
+      if (typeof option.offerPrice !== 'number' || isNaN(option.offerPrice) || option.offerPrice < 0) {
+        return `Option in '${attrGroup.name}' must have a valid 'offerPrice' if provided.`;
+      }
+
+      // Sync price with offerPrice for backward compatibility
+      option.price = option.offerPrice;
+
       if (option.stock !== undefined && option.stock !== null && (typeof option.stock !== 'number' || isNaN(option.stock) || option.stock < 0)) {
         return `Stock in option '${option.name}' for '${attrGroup.name}' must be a valid number or null.`;
       }
@@ -100,17 +108,19 @@ export const createProductController = async (request, response) => {
       });
     }
 
-    if (attributes && attributes.length > 0) {
-      let hasPriceInAttributes = false;
-      for (const attrGroup of attributes) {
-        if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice))) {
-          hasPriceInAttributes = true;
-          break;
+    if (publish) {
+      let hasPrice = false;
+      if (attributes && Array.isArray(attributes)) {
+        for (const attrGroup of attributes) {
+          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice) && option.offerPrice > 0)) {
+            hasPrice = true;
+            break;
+          }
         }
       }
-      if (!hasPriceInAttributes) {
+      if (!hasPrice) {
         return response.status(400).json({
-          message: "If attributes are provided, at least one attribute option must have a valid offer price.",
+          message: "Cannot publish a product without a valid price. Please add at least one pricing option.",
           error: true,
           success: false
         });
@@ -267,22 +277,28 @@ export const updateProductDetails = async (request, response) => {
         });
       }
 
-      if (attributes && attributes.length > 0) {
-        let hasPriceInAttributes = false;
-        for (const attrGroup of attributes) {
-          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice))) {
-            hasPriceInAttributes = true;
+    if (publish) {
+      let hasPrice = false;
+      // Check provided attributes or existing attributes if not provided
+      const attrsToCheck = attributes !== undefined ? attributes : (await ProductModel.findById(_id))?.attributes;
+      
+      if (attrsToCheck && Array.isArray(attrsToCheck)) {
+        for (const attrGroup of attrsToCheck) {
+          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice) && option.offerPrice > 0)) {
+            hasPrice = true;
             break;
           }
         }
-        if (!hasPriceInAttributes) {
-          return response.status(400).json({
-            message: "If attributes are updated and provided, at least one attribute option must have a valid offer price.",
-            error: true,
-            success: false
-          });
-        }
       }
+      
+      if (!hasPrice) {
+        return response.status(400).json({
+          message: "Cannot publish a product without a valid price. Please add at least one pricing option.",
+          error: true,
+          success: false
+        });
+      }
+    }
     }
 
     if (reviews !== undefined && reviews !== null) {

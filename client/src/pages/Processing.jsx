@@ -30,9 +30,11 @@ const Processing = () => {
     ? singleItem.quantity 
     : totalQty;
     
-  const displayTotalPrice = singleItem 
+  const displayTotalPrice = (singleItem 
     ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.price || 0), 0) * singleItem.quantity
-    : totalPrice;
+    : totalPrice) + (location.state?.donationAmount || 0);
+
+  const donationAmount = location.state?.donationAmount || 0;
 
   const [step, setStep] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(0);
@@ -97,6 +99,7 @@ const Processing = () => {
       const payload = {
         list_items: displayCartItems,
         addressId: addressList[selectedAddress]?._id,
+        donationAmount: donationAmount,
       };
 
       if (customImageUrl) {
@@ -202,6 +205,12 @@ const Processing = () => {
                     <span>Total Quantity</span>
                     <span className="font-semibold">{displayTotalQty} items</span>
                   </div>
+                  {donationAmount > 0 && (
+                    <div className="flex justify-between items-center mb-2 text-blue-600">
+                      <span>Foundation Donation</span>
+                      <span className="font-semibold">{DisplayPriceInRupees(donationAmount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-xl font-extrabold text-gray-900 border-t border-dashed border-gray-300 pt-4">
                     <span>Grand Total</span>
                     <span className="text-[#196806]">{DisplayPriceInRupees(displayTotalPrice)}</span>
@@ -402,6 +411,12 @@ const Processing = () => {
                       <span>Shipping Fee</span>
                       <span className="font-bold text-green-500 uppercase tracking-tighter">Free</span>
                    </div>
+                   {donationAmount > 0 && (
+                      <div className="flex justify-between text-sm text-blue-600">
+                        <span>Foundation Donation</span>
+                        <span className="font-bold">{DisplayPriceInRupees(donationAmount)}</span>
+                      </div>
+                   )}
                    <div className="pt-4 mt-4 border-t border-dashed border-gray-200 flex justify-between items-center text-xl font-black text-gray-900">
                       <span>Total</span>
                       <span className="text-[#196806]">{DisplayPriceInRupees(displayTotalPrice)}</span>

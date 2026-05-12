@@ -6,7 +6,7 @@ import SummaryApi from "../common/SummaryApi";
 import { logout } from "../store/userSlice";
 import { toast } from "sonner";
 import isAdmin from "../utils/isAdmin";
-import { FiUser, FiLogOut, FiGrid, FiLayers, FiUpload, FiPackage, FiList, FiHome, FiShoppingCart, FiMessageSquare, FiVolume2 } from "react-icons/fi";
+import { FiUser, FiLogOut, FiGrid, FiLayers, FiUpload, FiPackage, FiList, FiHome, FiShoppingCart, FiMessageSquare, FiVolume2, FiUsers, FiImage, FiStar, FiMessageCircle, FiTag, FiHeart, FiSettings } from "react-icons/fi";
 import { useGlobalContext } from "../provider/GlobalProvider";
 
 
@@ -73,14 +73,16 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
   const adminItems = [
     { text: "Dashboard", icon: <FiGrid size={20} />, path: "/dashboard" },
     { text: "Category", icon: <FiLayers size={20} />, path: "/dashboard/category" },
-    { text: "Sub Category", icon: <FiLayers size={20} />, path: "/dashboard/subcategory" },
+    { text: "Sub Category", icon: <FiTag size={20} />, path: "/dashboard/subcategory" },
     { text: "Product", icon: <FiPackage size={20} />, path: "/dashboard/product" },
-    { text: "All Orders", icon: <FiList size={20} />, path: "/dashboard/allorders" },
-    { text: "All Users", icon: <FiUser size={20} />, path: "/dashboard/users" },
-    { text: "Banners", icon: <FiLayers size={21} />, path: "/dashboard/banner" },
-    { text: "Site Reviews", icon: <FiMessageSquare size={20} />, path: "/dashboard/site-reviews" },
-    { text: "Product Reviews", icon: <FiMessageSquare size={20} />, path: "/dashboard/product-reviews" },
+    { text: "All Orders", icon: <FiShoppingCart size={20} />, path: "/dashboard/allorders" },
+    { text: "All Users", icon: <FiUsers size={20} />, path: "/dashboard/users" },
+    { text: "Banners", icon: <FiImage size={20} />, path: "/dashboard/banner" },
+    { text: "Site Reviews", icon: <FiMessageCircle size={20} />, path: "/dashboard/site-reviews" },
+    { text: "Product Reviews", icon: <FiStar size={20} />, path: "/dashboard/product-reviews" },
     { text: "Announcement", icon: <FiVolume2 size={20} />, path: "/dashboard/announcement" },
+    { text: "Foundation", icon: <FiHeart size={20} />, path: "/dashboard/foundation" },
+    { text: "General Settings", icon: <FiSettings size={20} />, path: "/dashboard/settings" },
   ];
 
 
@@ -134,22 +136,22 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
               title="Logout and Go Home"
             >
               {!isCollapsed ? (
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-indigo-600 shadow-md flex items-center justify-center text-white font-bold text-lg border border-white/10 group-hover/footer:ring-2 group-hover/footer:ring-white/20 transition-all">
+                <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-md flex items-center justify-center text-white font-bold text-lg border border-white/10 transition-all">
                     {user?.avatar ? <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" /> : userInitial}
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[13.5px] font-bold text-slate-100 truncate leading-tight group-hover/footer:text-white">{user?.name || "User"}</span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5 group-hover/footer:text-slate-400">Admin Account</span>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-[13.5px] font-bold text-slate-100 block truncate leading-tight group-hover/footer:text-white">{user?.name || "User"}</span>
+                    <span className="text-[10px] text-slate-500 font-bold capitalize tracking-wider mt-0.5 group-hover/footer:text-slate-400">Admin Account</span>
                   </div>
                 </div>
               ) : (
-                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-600 shadow-md flex items-center justify-center text-white font-bold text-lg border border-white/10 group-hover/footer:ring-2 group-hover/footer:ring-white/20 transition-all">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md flex items-center justify-center text-white font-bold text-lg border border-white/10 transition-all">
                       {user?.avatar ? <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" /> : userInitial}
                   </div>
               )}
               
-              <div className={`p-2.5 rounded-xl transition-all duration-200 ${
+              <div className={`p-2.5 rounded-xl transition-all duration-200 flex-shrink-0 ${
                   isCollapsed 
                   ? 'bg-slate-800/50 text-slate-400 group-hover/footer:text-rose-400 group-hover/footer:bg-rose-500/10' 
                   : 'text-slate-500 group-hover/footer:text-rose-400 group-hover/footer:bg-rose-500/10'

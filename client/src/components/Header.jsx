@@ -26,6 +26,9 @@ const Header = () => {
 
   const userMenuRef = useRef(null);
   const mobileUserMenuRef = useRef(null);
+  const searchRef = useRef(null);
+  const searchButtonRef = useRef(null);
+  const mobileSearchButtonRef = useRef(null);
 
   const cartItem = useSelector((state) => state.cartItem.cart);
   const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
@@ -68,6 +71,7 @@ const Header = () => {
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // User Menu closure
       if (
         userMenuRef.current &&
         !userMenuRef.current.contains(event.target) &&
@@ -76,12 +80,25 @@ const Header = () => {
       ) {
         setOpenUserMenu(false);
       }
+
+      // Search Bar closure
+      if (
+        showSearch &&
+        searchRef.current &&
+        !searchRef.current.contains(event.target) &&
+        searchButtonRef.current &&
+        !searchButtonRef.current.contains(event.target) &&
+        mobileSearchButtonRef.current &&
+        !mobileSearchButtonRef.current.contains(event.target)
+      ) {
+        setShowSearch(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [showSearch]);
 
   const handleMouseEnter = () => {
     if (closeTimeout) {
@@ -153,6 +170,7 @@ const Header = () => {
           {/* Right Icons (Desktop) */}
           <div className="hidden lg:flex items-center space-x-6">
             <button
+              ref={searchButtonRef}
               onClick={() => setShowSearch(!showSearch)}
               className={`transition-colors ${showSearch ? "text-green-700" : "text-gray-700 hover:text-green-700"}`}
               title="Search"
@@ -225,6 +243,7 @@ const Header = () => {
           {/* Mobile Icons + Menu Toggle */}
           <div className="flex lg:hidden items-center space-x-4">
             <button
+              ref={mobileSearchButtonRef}
               onClick={() => setShowSearch(!showSearch)}
               className={`transition-colors ${showSearch ? "text-green-700" : "text-gray-700"}`}
               title="Search"
@@ -354,7 +373,10 @@ const Header = () => {
 
         {/* Search Bar Overlay */}
         {showSearch && (
-          <div className="absolute top-full left-0 w-full bg-transparent py-6 px-4  animate-in fade-in slide-in-from-top-4 duration-300 z-40">
+          <div 
+            ref={searchRef}
+            className="absolute top-full left-0 w-full bg-transparent py-6 px-4  animate-in fade-in slide-in-from-top-4 duration-300 z-40"
+          >
             <div className="container mx-auto max-w-3xl">
               <Search isFullWidth={true} close={() => setShowSearch(false)} />
             </div>

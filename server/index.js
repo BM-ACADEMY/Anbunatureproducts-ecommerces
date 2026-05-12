@@ -21,6 +21,8 @@ import emailRouter from "./route/email.route.js";
 import bannerRouter from "./route/banner.route.js";
 import siteReviewRouter from "./route/siteReview.route.js";
 import announcementRouter from "./route/announcement.route.js";
+import foundationRouter from "./route/foundation.route.js";
+import settingsRouter from "./route/settings.route.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -94,6 +96,8 @@ app.use("/api/email", emailRouter);
 app.use("/api/banner", bannerRouter);
 app.use("/api/site-review", siteReviewRouter);
 app.use("/api/announcement", announcementRouter);
+app.use("/api/foundation", foundationRouter);
+app.use("/api/settings", settingsRouter);
 
 
 // Connect DB + Start server

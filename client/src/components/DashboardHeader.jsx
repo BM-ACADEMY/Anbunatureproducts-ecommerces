@@ -19,6 +19,7 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileSearchExpanded, setIsMobileSearchExpanded] = useState(false);
+  const mobileSearchRef = React.useRef(null);
   
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || "");
 
@@ -59,6 +60,17 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
       navigate("/");
     }
   };
+
+  // Close mobile search when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobileSearchExpanded && mobileSearchRef.current && !mobileSearchRef.current.contains(event.target)) {
+        setIsMobileSearchExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileSearchExpanded]);
 
   return (
     <header className="dashboard-top-header relative">
@@ -118,7 +130,7 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
 
       {/* Expanded Mobile Search Overlay */}
       {isMobileSearchExpanded && isProductPage && (
-        <div className="absolute inset-0 bg-white z-[60] flex items-center px-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div ref={mobileSearchRef} className="absolute inset-0 bg-white z-[60] flex items-center px-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
           <button 
             onClick={() => setIsMobileSearchExpanded(false)}
             className="p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
@@ -169,7 +181,7 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
               {user?.avatar ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" /> : userInitial.toUpperCase()}
             </div>
             <div className="hidden sm:flex flex-col">
-              <span className="text-[13px] font-bold text-slate-700 leading-tight group-hover:text-indigo-600 transition-colors">{user?.name || "User"}</span>
+              <span className="text-[13px] font-bold text-slate-700 leading-tight transition-colors">{user?.name || "User"}</span>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Admin</span>
             </div>
           </div>

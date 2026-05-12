@@ -51,10 +51,12 @@ const MyOrders = () => {
         address: order.delivery_address,
         payment_status: order.payment_status,
         orderId: order.orderId, // Keep one for display if needed
+        donationAmount: 0,
       };
     }
     acc[gid].items.push(order);
     acc[gid].totalAmt += order.totalAmt;
+    acc[gid].donationAmount += (order.donationAmount || 0);
     // Use the most "advanced" status if multiple items have different statuses? 
     // Usually they'd be the same for a group initially.
     return acc;
@@ -417,6 +419,12 @@ const MyOrders = () => {
                         <span>Shipping</span>
                         <span>FREE</span>
                       </div>
+                      {selectedOrder.donationAmount > 0 && (
+                        <div className="flex justify-between text-sm text-blue-600 font-bold">
+                          <span>Foundation Donation</span>
+                          <span>₹{selectedOrder.donationAmount?.toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="pt-3 border-t border-gray-100 flex justify-between">
                         <span className="text-gray-900 font-extrabold">Total Amount</span>
                         <span className="text-lg font-black text-indigo-600 font-mono tracking-tight">₹{selectedOrder.totalAmt?.toLocaleString()}</span>

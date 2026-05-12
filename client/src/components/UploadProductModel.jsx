@@ -27,6 +27,7 @@ const UploadProductModel = ({ close, fetchData }) => {
     comboOffer: false,
     megaCombo: false,
     trending: false,
+    publish: true,
     altText: '',
     storage_instructions: '',
     storage_image: '',
@@ -206,7 +207,9 @@ const UploadProductModel = ({ close, fetchData }) => {
     if (newOptionOriginalPrice === '' || isNaN(Number(newOptionOriginalPrice)) || Number(newOptionOriginalPrice) < 0) {
       toast.error('Please enter a valid original price.'); return;
     }
-    if (newOptionOfferPrice === '' || isNaN(Number(newOptionOfferPrice)) || Number(newOptionOfferPrice) < 0) {
+    // Offer price is now optional
+    const offerPrice = newOptionOfferPrice === '' ? Number(newOptionOriginalPrice) : Number(newOptionOfferPrice);
+    if (isNaN(offerPrice) || offerPrice < 0) {
       toast.error('Please enter a valid offer price.'); return;
     }
 
@@ -221,8 +224,8 @@ const UploadProductModel = ({ close, fetchData }) => {
             options: [...attrGroup.options, {
               name: newOptionValue.trim(),
               originalPrice: Number(newOptionOriginalPrice),
-              offerPrice: Number(newOptionOfferPrice),
-              price: Number(newOptionOfferPrice), // Sync for compatibility
+              offerPrice: offerPrice,
+              price: offerPrice, // Sync for compatibility
               stock: newOptionStock !== null ? Number(newOptionStock) : null,
               unit: "", // Removed unit
             }]
@@ -268,6 +271,17 @@ const UploadProductModel = ({ close, fetchData }) => {
       if (!data.category) { toast.error('Please select a main category.'); setSubmitLoading(false); return; }
       if (!data.name.trim() || !data.description.trim()) { toast.error('Fill Name and Description.'); setSubmitLoading(false); return; }
 
+      // Check if price exists if trying to publish
+      const hasPrice = data.attributes.some(attr => 
+        attr.options && attr.options.some(opt => (opt.offerPrice > 0 || opt.originalPrice > 0))
+      );
+
+      if (data.publish && !hasPrice) {
+        toast.error("Cannot publish a product without a price. Please add a pricing option first.");
+        setSubmitLoading(false);
+        return;
+      }
+
       const imageUrls = await Promise.all(
         data.image.map(async (url) => {
           if (imageFileMap[url]) {
@@ -306,7 +320,7 @@ const UploadProductModel = ({ close, fetchData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
+      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b bg-white'>
           <h3 className='text-lg font-bold text-gray-800'>Add New Product</h3>
@@ -331,13 +345,6 @@ const UploadProductModel = ({ close, fetchData }) => {
               <div className='flex flex-col gap-1.5'>
                 <div className='flex items-center justify-between'>
                   <label className='text-[15px] font-bold text-gray-700' htmlFor='altText'>SEO Alt Text</label>
-                  <button 
-                    type='button'
-                    onClick={() => setData(prev => ({ ...prev, altText: prev.name }))}
-                    className='text-[11px] font-bold text-indigo-600 hover:underline'
-                  >
-                    Auto-generate
-                  </button>
                 </div>
                 <div className='relative'>
                   <input
@@ -358,7 +365,7 @@ const UploadProductModel = ({ close, fetchData }) => {
             <div className='flex flex-col gap-1.5'>
               <label className='text-[15px] font-bold text-gray-700' htmlFor='description'>Description</label>
               <textarea
-                id='description' name='description' value={data.description} onChange={handleChange} required rows={3}
+                id='description' name='description' value={data.description} onChange={handleChange} required rows={6}
                 placeholder='Enter product description'
                 className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium resize-none'
               />
@@ -382,12 +389,20 @@ const UploadProductModel = ({ close, fetchData }) => {
                   <label htmlFor='megaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo Offer</label>
                 </div>
 
-                <div className='flex items-center gap-2 ml-auto'>
+                <div className='flex items-center gap-2'>
                   <input
                     type='checkbox' id='trending' checked={data.trending} onChange={handleTrendingToggle}
                     className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
                   />
                   <label htmlFor='trending' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Trending</label>
+                </div>
+
+                <div className='flex items-center gap-2 ml-auto'>
+                  <input
+                    type='checkbox' id='publish' checked={data.publish} onChange={(e) => setData(prev => ({ ...prev, publish: e.target.checked }))}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='publish' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Published</label>
                 </div>
             </div>
 
@@ -472,7 +487,7 @@ const UploadProductModel = ({ close, fetchData }) => {
             {/* Custom Fields */}
             <div className='space-y-4'>
                <div className='flex items-center justify-between'>
-                  <h4 className='text-[15px] font-bold text-gray-800'>Additional Specs</h4>
+                  <h4 className='text-[15px] font-bold text-gray-800'>Additional Specification</h4>
                   <button
                     type='button' onClick={() => setOpenAddField(true)}
                     className='text-indigo-600 hover:text-indigo-700 font-bold text-[13px] flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100'
@@ -601,7 +616,7 @@ const UploadProductModel = ({ close, fetchData }) => {
                         <div className='flex flex-wrap gap-2'>
                            {attr.options.map((opt, ix) => (
                              <span key={ix} className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2'>
-                                {opt.name} · ₹{opt.offerPrice} <span className='line-through text-slate-400 font-medium'>₹{opt.originalPrice}</span>
+                                {opt.name} · ₹{opt.offerPrice} {opt.originalPrice > opt.offerPrice && <span className='line-through text-slate-400 font-medium ml-1'>₹{opt.originalPrice}</span>}
                                 <IoClose className='cursor-pointer hover:text-rose-500' onClick={() => setData(prev => ({ ...prev, attributes: prev.attributes.map(a => a.name === attr.name ? { ...a, options: a.options.filter((_, idx) => idx !== ix) } : a) }))} />
                              </span>
                            ))}
@@ -663,11 +678,11 @@ const UploadProductModel = ({ close, fetchData }) => {
                <p className='text-xs text-slate-500 mb-6 font-medium'>e.g. Material, Purity, Usage</p>
                <input
                  autoFocus type='text' placeholder='Field Name' value={fieldName} onChange={e => setFieldName(e.target.value)}
-                 className='w-full bg-slate-50 px-4 py-3 outline-none border border-slate-100 rounded-xl mb-6 text-sm font-bold focus:border-indigo-400'
+                 className='w-full bg-slate-50 px-4 py-3 outline-none border border-slate-100 rounded-xl mb-6 text-sm font-bold focus:border-[#279d68]'
                />
                <div className='flex gap-3'>
                  <button onClick={() => setOpenAddField(false)} className='flex-1 py-2.5 text-xs font-bold text-slate-500'>Cancel</button>
-                 <button onClick={handleAddMoreDetailField} className='flex-1 py-2.5 text-xs font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100'>Add</button>
+                 <button onClick={handleAddMoreDetailField} className='flex-1 py-2.5 text-xs font-bold text-white bg-[#279d68] rounded-xl shadow-lg shadow-green-100'>Add</button>
                </div>
             </div>
           </div>
@@ -680,11 +695,11 @@ const UploadProductModel = ({ close, fetchData }) => {
                <p className='text-xs text-slate-500 mb-6 font-medium'>e.g. Weight Options, Size Options</p>
                <input
                  autoFocus type='text' placeholder='Group Name' value={newAttributeTypeName} onChange={e => setNewAttributeTypeName(e.target.value)}
-                 className='w-full bg-slate-50 px-4 py-3 outline-none border border-slate-100 rounded-xl mb-6 text-sm font-bold focus:border-indigo-400'
+                 className='w-full bg-slate-50 px-4 py-3 outline-none border border-slate-100 rounded-xl mb-6 text-sm font-bold focus:border-[#279d68]'
                />
                <div className='flex gap-3'>
                  <button onClick={() => { setOpenAddAttribute(false); setNewAttributeTypeName(''); }} className='flex-1 py-2.5 text-xs font-bold text-slate-500'>Cancel</button>
-                 <button onClick={handleAddAttributeType} className='flex-1 py-2.5 text-xs font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100'>Add</button>
+                 <button onClick={handleAddAttributeType} className='flex-1 py-2.5 text-xs font-bold text-white bg-[#279d68] rounded-xl shadow-lg shadow-green-100'>Add</button>
                </div>
             </div>
           </div>

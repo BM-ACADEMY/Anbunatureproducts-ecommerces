@@ -37,6 +37,8 @@ import AnnouncementAdmin from "../pages/AnnouncementAdmin";
 import AdminProductReviews from "../pages/AdminProductReviews";
 import AllUsers from "../pages/AllUsers";
 import UserHistory from "../pages/UserHistory";
+import FoundationAdmin from "../pages/FoundationAdmin";
+import GeneralSettingsAdmin from "../pages/GeneralSettingsAdmin";
 
 const router = createBrowserRouter([
 
@@ -215,6 +217,22 @@ const router = createBrowserRouter([
             element: (
               <AdminPermision>
                 <UserHistory />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "foundation",
+            element: (
+              <AdminPermision>
+                <FoundationAdmin />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "settings",
+            element: (
+              <AdminPermision>
+                <GeneralSettingsAdmin />
               </AdminPermision>
             ),
           },

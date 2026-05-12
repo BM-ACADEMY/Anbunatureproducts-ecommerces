@@ -9,7 +9,7 @@ import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
-import { FiEdit2, FiTrash2, FiPlus, FiTruck } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiPlus, FiTruck, FiHeart } from "react-icons/fi";
 import { MdPayment } from "react-icons/md";
 import EditAddressDetails from "../components/EditAddressDetails";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -18,7 +18,7 @@ import AddressCard from "../components/AddressCard";
 
 
 const CheckoutPage = () => {
-  const { notDiscountTotalPrice, totalPrice, totalQty, fetchCartItem, fetchOrder } =
+  const { notDiscountTotalPrice, fetchCartItem, fetchOrder, totalQty, totalPrice, settings } =
     useGlobalContext();
 
   const [openAddress, setOpenAddress] = useState(false);
@@ -30,6 +30,8 @@ const CheckoutPage = () => {
 
   const addressList = useSelector((state) => state.addresses.addressList);
   const [selectAddress, setSelectAddress] = useState("");
+  const [foundationSettings, setFoundationSettings] = useState(null);
+  const [donationAmount, setDonationAmount] = useState(0);
 
   const cartItemsList = useSelector((state) => state.cartItem.cart);
   const navigate = useNavigate();
@@ -45,6 +47,20 @@ const CheckoutPage = () => {
     }
   }, [addressList, selectAddress]);
 
+  React.useEffect(() => {
+    const fetchFoundation = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getFoundation });
+        if (response.data.success) {
+          setFoundationSettings(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching foundation", error);
+      }
+    };
+    fetchFoundation();
+  }, []);
+
   // Single item override from Buy Now
   const singleItem = location.state?.singleItem;
 
@@ -54,9 +70,22 @@ const CheckoutPage = () => {
     ? singleItem.quantity
     : totalQty;
 
-  const displayTotalPrice = singleItem
+  const displayTotalOriginalPrice = singleItem
+    ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.originalPrice || attr.price || 0), 0) * singleItem.quantity
+    : notDiscountTotalPrice;
+
+  const displayTotalOfferPrice = singleItem
     ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.price || 0), 0) * singleItem.quantity
     : totalPrice;
+
+  const totalDiscount = displayTotalOriginalPrice - displayTotalOfferPrice;
+  const discountPercentage = displayTotalOriginalPrice > 0 
+    ? Math.round((totalDiscount / displayTotalOriginalPrice) * 100) 
+    : 0;
+
+  const displayGrandTotal = displayTotalOfferPrice + donationAmount + (displayTotalOfferPrice >= (settings?.freeShippingThreshold || 0) && settings?.freeShippingThreshold > 0 ? 0 : (settings?.shippingCharge || 0));
+
+  const shippingCharge = (displayTotalOfferPrice >= (settings?.freeShippingThreshold || 0) && settings?.freeShippingThreshold > 0) ? 0 : (settings?.shippingCharge || 0);
 
   // Helper function to check if an address is currently selected
   const isAddressSelected = () => {
@@ -105,6 +134,7 @@ const CheckoutPage = () => {
         data: {
           list_items: displayCartItems,
           addressId: selectAddress,
+          donationAmount: donationAmount,
         },
       });
 
@@ -125,8 +155,6 @@ const CheckoutPage = () => {
   };
 
   const handleOnlinePayment = async () => {
-    // This function is intended to be called when the actual payment initiation occurs,
-    // potentially from the /processing page, or if you re-introduce direct online payment.
     if (!isAddressSelected()) {
       toast.error("Please select a delivery address first.");
       return;
@@ -157,15 +185,12 @@ const CheckoutPage = () => {
     }
   };
 
-  // This function is triggered by the "Online Payment" button on this page.
-  // It checks for address selection and then navigates to the /processing page.
   const handleProceedToPayment = () => {
     if (!isAddressSelected()) {
       toast.error("Please select a delivery address first.");
       return;
     }
-    // If an address is selected, navigate to the processing page.
-    navigate("/processing", { state: { singleItem } });
+    navigate("/processing", { state: { singleItem, donationAmount } });
   };
 
   return (
@@ -175,14 +200,15 @@ const CheckoutPage = () => {
             <Breadcrumbs />
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
 
-        {/* Left Side: Address Section */}
-        <div className="w-full lg:w-[65%]">
-          <div className="mb-6">
+        {/* Left Side: Address & Foundation */}
+        <div className="w-full lg:w-[65%] space-y-6">
+          <div className="mb-2">
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Checkout</h2>
           </div>
 
+          {/* Address Section */}
           <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-slate-700 uppercase text-xs tracking-widest">Select Shipping Address</h3>
@@ -224,11 +250,43 @@ const CheckoutPage = () => {
               )}
             </div>
           </div>
+
+          {/* Foundation Section */}
+          {foundationSettings?.isActive && (
+            <div className="mt-8 bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom duration-500">
+              <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-slate-800">{foundationSettings.title}</h3>
+                  <p className="text-sm text-slate-500 font-medium">{foundationSettings.description}</p>
+                </div>
+                <div className="flex-shrink-0">
+                  <img src="/assets/payment/foundation.png" alt="Foundation" className="h-16 w-auto opacity-80" onError={(e) => e.target.style.display='none'} />
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-3">
+                {foundationSettings.amounts.map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => setDonationAmount(donationAmount === amount ? 0 : amount)}
+                    className={`px-6 py-3 rounded-2xl font-bold transition-all border-2 ${
+                      donationAmount === amount 
+                      ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100 scale-105" 
+                      : "bg-white text-slate-600 border-slate-100 hover:border-blue-200 hover:bg-blue-50"
+                    }`}
+                  >
+                    {DisplayPriceInRupees(amount)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-wider italic">Note: GST and No cost EMI will not be applicable</p>
+            </div>
+          )}
         </div>
 
         {/* Order Summary Section */}
-        <div className="w-full max-w-md">
-          <div className="bg-white shadow-lg rounded-xl p-6 sticky top-20 flex flex-col max-h-[calc(100vh-100px)]">
+        <div className="w-full max-w-md lg:sticky lg:top-8">
+          <div className="bg-white shadow-lg rounded-2xl p-6 flex flex-col max-h-[calc(100vh-100px)] border border-slate-100">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Order Summary</h2>
 
             {/* Product List */}
@@ -281,28 +339,54 @@ const CheckoutPage = () => {
 
             <div className="space-y-4 text-sm text-gray-700 mt-auto pt-4 border-t border-gray-100">
               <div className="flex justify-between">
-                <span>Items Total</span>
-                <span className="font-semibold text-gray-900">
-                  {DisplayPriceInRupees(displayTotalPrice)}
+                <span className="text-gray-500">Subtotal (Original)</span>
+                <span className="font-semibold text-gray-400 line-through">
+                  {DisplayPriceInRupees(displayTotalOriginalPrice)}
                 </span>
               </div>
+
+              {totalDiscount > 0 && (
+                <div className="flex justify-between text-green-600 font-bold bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                  <div className="flex items-center gap-1.5">
+                    <span>Discount</span>
+                    <span className="bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-md">{discountPercentage}% OFF</span>
+                  </div>
+                  <span>- {DisplayPriceInRupees(totalDiscount)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between">
-                <span>Total Quantity</span>
-                <span>{displayTotalQty} items</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span>Shipping</span>
-                <span className="text-green-600 font-medium tracking-wide">FREE</span>
+                <span>Items Total</span>
+                <span className="font-bold text-gray-900">
+                  {DisplayPriceInRupees(displayTotalOfferPrice)}
+                </span>
               </div>
 
-              <div className="pt-2 flex justify-between text-lg font-extrabold text-blue-700">
-                <span>Grand Total</span>
-                <span>{DisplayPriceInRupees(displayTotalPrice)}</span>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total Quantity</span>
+                <span className="font-medium">{displayTotalQty} {displayTotalQty > 1 ? "items" : "item"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Shipping</span>
+                <span className={`${shippingCharge === 0 ? "text-green-600 font-bold" : "text-gray-900 font-semibold"}`}>
+                  {shippingCharge === 0 ? "FREE" : DisplayPriceInRupees(shippingCharge)}
+                </span>
+              </div>
+              
+              {donationAmount > 0 && (
+                <div className="flex justify-between text-blue-600 font-bold animate-in fade-in duration-300 bg-blue-50/50 px-3 py-2 rounded-lg border border-blue-100/50">
+                  <span>Donation</span>
+                  <span>+ {DisplayPriceInRupees(donationAmount)}</span>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-between items-center text-xl font-black text-slate-900 border-t-2 border-dashed border-slate-100 mt-2">
+                <span className="tracking-tight">Grand Total</span>
+                <span className="text-blue-700">{DisplayPriceInRupees(displayGrandTotal)}</span>
               </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3">
-              {/* Online Payment Button - Triggers address check and navigation */}
               <button
                 onClick={handleProceedToPayment}
                 className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition flex items-center justify-center gap-2"
@@ -315,7 +399,6 @@ const CheckoutPage = () => {
                   <FiTruck className="text-black" size={12} />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-black opacity-80">Deliver within 2 to 5 days all over India</span>
               </div>
-
             </div>
           </div>
         </div>

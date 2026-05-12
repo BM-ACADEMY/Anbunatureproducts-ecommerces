@@ -82,7 +82,7 @@ const CardProduct = ({ data }) => {
                 Combo offer
               </div>
             )}
-            {displayOriginalPrice > displayPrice && (
+            {displayOriginalPrice > displayPrice && displayPrice > 0 && (
               <div className="bg-[#DC0000] text-white text-[10px] md:text-xs font-bold px-2.5 py-1.5 rounded-br-lg w-fit shadow-sm">
                 {Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)}% OFF
               </div>
@@ -126,7 +126,7 @@ const CardProduct = ({ data }) => {
               <p className="text-[#16a34a] font-bold text-xl leading-none">
                 {DisplayPriceInRupees(displayPrice)}
               </p>
-              {displayOriginalPrice > displayPrice && (
+              {displayOriginalPrice > displayPrice && displayPrice > 0 && (
                 <p className="text-slate-400 line-through text-xs font-medium">
                   {DisplayPriceInRupees(displayOriginalPrice)}
                 </p>

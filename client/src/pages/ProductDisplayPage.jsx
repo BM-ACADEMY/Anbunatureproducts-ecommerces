@@ -83,7 +83,7 @@ const ReviewsSection = ({
                         size="small"
                       />
                     </div>
-                    <p className="mt-2 text-[#999999] text-[13px] leading-relaxed break-words">
+                    <p className="mt-2 text-[#999999] text-[13px] leading-relaxed break-words whitespace-pre-wrap">
                       {review.comment}
                     </p>
                   </div>
@@ -709,7 +709,7 @@ const ProductDisplayPage = () => {
                   <p className="font-bold text-2xl lg:text-3xl text-gray-900 border-none pb-1 leading-normal">
                     {DisplayPriceInRupees(currentCalculatedPrice)}
                   </p>
-                  {currentCalculatedOriginalPrice > currentCalculatedPrice && (
+                  {currentCalculatedOriginalPrice > currentCalculatedPrice && currentCalculatedPrice > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-base lg:text-lg text-slate-400 line-through pb-1 leading-normal">
                           {DisplayPriceInRupees(currentCalculatedOriginalPrice)}
@@ -801,7 +801,7 @@ const ProductDisplayPage = () => {
           {/* Description */}
           <div className="my-8">
             <h6 className="font-bold text-lg text-gray-800 mb-3 border-b border-gray-200 pb-2">Product Description</h6>
-            <p className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light">
+            <p className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light whitespace-pre-wrap">
               {data.description}
             </p>
           </div>

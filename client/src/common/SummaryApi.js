@@ -269,6 +269,22 @@ const SummaryApi = {
   getUserHistory: {
     url: "/api/order/user-history",
     method: "get"
+  },
+  getFoundation: {
+    url: "/api/foundation/get",
+    method: "get"
+  },
+  updateFoundation: {
+    url: "/api/foundation/update",
+    method: "post"
+  },
+  getSettings: {
+    url: "/api/settings/get",
+    method: "get"
+  },
+  updateSettings: {
+    url: "/api/settings/update",
+    method: "post"
   }
 };
 

@@ -13,7 +13,7 @@ import SubCategoryModel from "../models/subCategory.model.js";
 export async function CashOnDeliveryOrderController(req, res) {
   try {
     const userId = req.userId;
-    const { list_items, addressId, customImage } = req.body;
+    const { list_items, addressId, customImage, donationAmount } = req.body;
 
     if (!list_items || !addressId) {
       return res.status(400).json({
@@ -26,7 +26,7 @@ export async function CashOnDeliveryOrderController(req, res) {
     const commonGroupId = `GRP-${new mongoose.Types.ObjectId()}`;
 
     const payload = await Promise.all(
-      list_items.map(async (el) => {
+      list_items.map(async (el, index) => {
         let cartItem = null;
         if (el._id) {
             cartItem = await CartProductModel.findById(el._id).populate("productId");
@@ -68,7 +68,8 @@ export async function CashOnDeliveryOrderController(req, res) {
           payment_status: "Online Payment",
           delivery_address: addressId,
           subTotalAmt: itemTotal,
-          totalAmt: itemTotal,
+          totalAmt: index === 0 ? itemTotal + (Number(donationAmount) || 0) : itemTotal,
+          donationAmount: index === 0 ? (Number(donationAmount) || 0) : 0,
           customImage: customImage || "",
         };
       })
@@ -143,6 +144,7 @@ export async function CashOnDeliveryOrderController(req, res) {
         country: delivery.country,
       },
       customImageUrl: customImage || "",
+      donationAmount: Number(donationAmount) || 0,
     };
 
     await sendEmail({
@@ -183,7 +185,7 @@ export const pricewithDiscount = (price, dis = 0) => {
 export async function paymentController(request, response) {
     try {
         const userId = request.userId; // From auth middleware
-        const { list_items, addressId } = request.body;
+        const { list_items, addressId, donationAmount } = request.body;
 
         // Validate input
         if (!list_items || !addressId) {
@@ -236,6 +238,20 @@ export async function paymentController(request, response) {
             };
         });
 
+        if (donationAmount > 0) {
+            line_items.push({
+                price_data: {
+                    currency: "inr",
+                    product_data: {
+                        name: "Foundation Donation",
+                        description: "Charitable donation to foundation",
+                    },
+                    unit_amount: Number(donationAmount) * 100, // Price in paise
+                },
+                quantity: 1,
+            });
+        }
+
         const params = {
             submit_type: "pay",
             mode: "payment",
@@ -244,6 +260,7 @@ export async function paymentController(request, response) {
             metadata: {
                 userId: userId,
                 addressId: addressId,
+                donationAmount: donationAmount || 0,
             },
             line_items: line_items,
             success_url: `${process.env.PRODUCTION_URL}/success`,
@@ -263,12 +280,16 @@ export async function paymentController(request, response) {
     }
 }
 
-export const getOrderProductItems = async ({ lineItems, userId, addressId, paymentId, payment_status, groupId }) => {
+export const getOrderProductItems = async ({ lineItems, userId, addressId, paymentId, payment_status, groupId, donationAmount = 0 }) => {
     const productList = [];
 
     if (lineItems?.data?.length) {
+        let index = 0;
         for (const item of lineItems.data) {
             const product = await Stripe.products.retrieve(item.price.product);
+
+            // Skip foundation donation line item as we handle it separately via metadata
+            if (product.name === "Foundation Donation") continue;
 
             const payload = {
                 userId: userId,
@@ -284,10 +305,12 @@ export const getOrderProductItems = async ({ lineItems, userId, addressId, payme
                 payment_status: payment_status,
                 delivery_address: addressId,
                 subTotalAmt: Number(item.amount_total / 100), // Amount for this product (includes quantity)
-                totalAmt: Number(item.amount_total / 100), // Same as subTotalAmt
+                totalAmt: index === 0 ? Number(item.amount_total / 100) + (Number(donationAmount) || 0) : Number(item.amount_total / 100),
+                donationAmount: index === 0 ? (Number(donationAmount) || 0) : 0,
             };
 
             productList.push(payload);
+            index++;
         }
     }
 
@@ -313,6 +336,7 @@ export async function webhookStripe(request, response) {
                     paymentId: session.payment_intent,
                     payment_status: session.payment_status,
                     groupId: session.id, // Use Stripe session ID as groupId
+                    donationAmount: session.metadata.donationAmount,
                 });
 
                 const order = await OrderModel.insertMany(orderProduct);
