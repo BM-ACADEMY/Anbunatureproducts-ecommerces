@@ -299,7 +299,7 @@ const AdminProductReviews = () => {
                 </Col>
             </Row>
 
-            <Card bordered={false} className="shadow-sm rounded-xl overflow-hidden" bodyStyle={{ padding: 0 }}>
+            <Card bordered={true} style={{ borderRadius: '12px', border: '1px solid #e0e1e1', overflow: 'hidden' }} bodyStyle={{ padding: 0 }}>
                 <Table 
                     columns={columns} 
                     dataSource={reviews} 

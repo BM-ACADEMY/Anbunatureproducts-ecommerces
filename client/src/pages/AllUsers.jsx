@@ -129,7 +129,7 @@ const AllUsers = () => {
 
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <Card bordered={true} style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e0e1e1' }}>
                         <Statistic 
                             title="Total Users" 
                             value={users.length} 
@@ -138,7 +138,7 @@ const AllUsers = () => {
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <Card bordered={true} style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e0e1e1' }}>
                         <Statistic 
                             title="Verified Users" 
                             value={users.filter(u => u.verify_email).length} 
@@ -149,8 +149,8 @@ const AllUsers = () => {
             </Row>
 
             <Card 
-                bordered={false} 
-                style={{ borderRadius: 20, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                bordered={true} 
+                style={{ borderRadius: 20, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e0e1e1' }}
                 bodyStyle={{ padding: 0 }}
             >
                 <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0' }}>
@@ -167,7 +167,7 @@ const AllUsers = () => {
                     dataSource={filteredUsers} 
                     loading={loading}
                     rowKey="_id"
-                    pagination={{ pageSize: 10, showSizeChanger: true, borderRadius: 8 }}
+                    pagination={{ pageSize: 10, showSizeChanger: false }}
                     scroll={{ x: 800 }}
                     style={{ padding: '0 8px' }}
                 />

@@ -274,7 +274,7 @@ const AdminSiteReviews = () => {
             {/* Stats Cards */}
             <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
                 <Col xs={24} md={8}>
-                    <Card bordered={true} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)] rounded-xl border-[#cacbcc94]">
+                    <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '12px' }} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-blue-50 rounded-lg">
                                 <MessageOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
@@ -287,7 +287,7 @@ const AdminSiteReviews = () => {
                     </Card>
                 </Col>
                 <Col xs={24} md={8}>
-                    <Card bordered={true} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)] rounded-xl border-[#cacbcc94]">
+                    <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '12px' }} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-green-50 rounded-lg">
                                 <CheckCircleOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
@@ -300,7 +300,7 @@ const AdminSiteReviews = () => {
                     </Card>
                 </Col>
                 <Col xs={24} md={8}>
-                    <Card bordered={true} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)] rounded-xl border-[#cacbcc94]">
+                    <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '12px' }} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-orange-50 rounded-lg">
                                 <ClockCircleOutlined style={{ fontSize: '24px', color: '#faad14' }} />
@@ -315,7 +315,7 @@ const AdminSiteReviews = () => {
             </Row>
 
             {/* Table Card */}
-            <Card bordered={true} className="shadow-[0_2px_12px_rgba(0,0,0,0.03)] rounded-2xl overflow-hidden border-[#cacbcc94]" bodyStyle={{ padding: 0 }}>
+            <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '16px', overflow: 'hidden' }} className="shadow-[0_2px_12px_rgba(0,0,0,0.03)]" bodyStyle={{ padding: 0 }}>
                 <Table 
                     columns={columns} 
                     dataSource={reviews} 
