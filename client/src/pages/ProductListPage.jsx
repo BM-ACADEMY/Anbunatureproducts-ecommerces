@@ -4,11 +4,14 @@ import SummaryApi from '../common/SummaryApi';
 import { Link, useParams } from 'react-router-dom';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from '../components/Loading';
+import NoData from '../components/NoData';
+import CardLoading from '../components/CardLoading';
 import CardProduct from '../components/CardProduct';
 import { useSelector } from 'react-redux';
 import { valideURLConvert } from '../utils/valideURLConvert';
 import { Slider, Box, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
+import { FiShoppingBag } from 'react-icons/fi';
 
 const ProductListPage = () => {
   const [data, setData] = useState([]);
@@ -53,12 +56,8 @@ const ProductListPage = () => {
         } else {
           setData((prev) => [...prev, ...responseData.data]);
         }
-        if (responseData.maxPriceLimit !== undefined) {
+        if (responseData.maxPriceLimit !== undefined && responseData.maxPriceLimit !== maxPriceLimit) {
           setMaxPriceLimit(responseData.maxPriceLimit);
-          // If the current price range max is at the default or higher than the new limit, update it
-          if (priceRange[1] === 5000 || priceRange[1] > responseData.maxPriceLimit) {
-            setPriceRange(prev => [prev[0], responseData.maxPriceLimit]);
-          }
         }
         setTotalPages(responseData.totalPages);
       }
@@ -89,11 +88,16 @@ const ProductListPage = () => {
   };
 
   useEffect(() => {
-    setData([]); // Reset data when category or subcategory changes
-    setPage(1); // Reset page to 1
-    fetchProductdata(true); // Fetch with reset
+    setData([]);
+    setPage(1);
+    fetchProductdata(true);
     fetchSubCategories();
-  }, [categoryId, subCategoryId, debouncedPriceRange]);
+  }, [categoryId, subCategoryId]);
+
+  useEffect(() => {
+    setPage(1);
+    fetchProductdata(true);
+  }, [debouncedPriceRange]);
 
   useEffect(() => {
     console.log('AllSubCategory:', AllSubCategory.map(s => ({ name: s.name, createdAt: s.createdAt })));
@@ -191,17 +195,23 @@ const ProductListPage = () => {
         {/* Product Grid */}
         <div className="mt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {loading && page === 1 ? (
-              <div className="col-span-full flex justify-center">
-                <Loading />
+            {loading && data.length === 0 ? (
+              <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <CardLoading key={`loading-skeleton-${i}`} />
+                ))}
               </div>
             ) : data.length > 0 ? (
               data.map((p, index) => (
                 <CardProduct key={p._id + 'product' + index} data={p} />
               ))
             ) : (
-              <div className="col-span-full text-center text-gray-500 py-10">
-                No products available
+              <div className="col-span-full">
+                <NoData 
+                  message="No Products Found"
+                  description={`It seems we don't have any products matching your current selection in ${subCategoryName}.`}
+                >
+                </NoData>
               </div>
             )}
           </div>

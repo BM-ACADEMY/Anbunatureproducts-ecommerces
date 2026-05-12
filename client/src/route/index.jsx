@@ -39,6 +39,14 @@ import AllUsers from "../pages/AllUsers";
 import UserHistory from "../pages/UserHistory";
 import FoundationAdmin from "../pages/FoundationAdmin";
 import GeneralSettingsAdmin from "../pages/GeneralSettingsAdmin";
+import TermsAndConditions from "../pages/TermsAndConditions";
+import ShippingPolicy from "../pages/ShippingPolicy";
+import ReturnRefundPolicy from "../pages/ReturnRefundPolicy";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import PaymentPolicy from "../pages/PaymentPolicy";
+import DisclaimerPage from "../pages/DisclaimerPage";
+import DonationPolicy from "../pages/DonationPolicy";
+
 
 const router = createBrowserRouter([
 
@@ -82,6 +90,35 @@ const router = createBrowserRouter([
         path: "write-review",
         element: <WriteReview />,
       },
+      {
+        path: "terms-and-conditions",
+        element: <TermsAndConditions />,
+      },
+      {
+        path: "shipping-policy",
+        element: <ShippingPolicy />,
+      },
+      {
+        path: "return-refund-policy",
+        element: <ReturnRefundPolicy />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "payment-policy",
+        element: <PaymentPolicy />,
+      },
+      {
+        path: "disclaimer",
+        element: <DisclaimerPage />,
+      },
+      {
+        path: "donation-policy",
+        element: <DonationPolicy />,
+      },
+
 
       {
         path: "login",

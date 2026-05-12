@@ -40,7 +40,11 @@ const InvoiceModal = ({ open, handleClose, orderGroup }) => {
   };
 
   // Total amount from the group
-  const totalAmount = orderGroup?.totalAmt || firstItem?.totalAmt || 0;
+  // Totals from the group
+  const itemsSubtotal = (orderGroup?.items || [orderGroup]).reduce((sum, item) => sum + (item.totalAmt || 0), 0);
+  const totalDonation = (orderGroup?.items || [orderGroup]).reduce((sum, item) => sum + (item.donationAmount || 0), 0);
+  const totalShipping = (orderGroup?.items || [orderGroup]).reduce((sum, item) => sum + (item.shippingCharge || 0), 0);
+  const grandTotal = itemsSubtotal + totalDonation + totalShipping;
 
   const downloadInvoice = async () => {
     const element = invoiceRef.current;
@@ -193,10 +197,30 @@ const InvoiceModal = ({ open, handleClose, orderGroup }) => {
           </Table>
 
           {/* Totals Section */}
-          <Box sx={{ textAlign: "right", mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "14px", color: "#1a3c34" }}>
-              <strong>Total:</strong> ₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", mb: 3 }}>
+            <Box sx={{ width: "200px" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>Subtotal:</Typography>
+                <Typography variant="body2" sx={{ fontSize: "10px", fontWeight: "bold" }}>₹{itemsSubtotal.toFixed(2)}</Typography>
+              </Box>
+              {totalShipping > 0 && (
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>Shipping:</Typography>
+                  <Typography variant="body2" sx={{ fontSize: "10px", fontWeight: "bold" }}>₹{totalShipping.toFixed(2)}</Typography>
+                </Box>
+              )}
+              {totalDonation > 0 && (
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>Donation:</Typography>
+                  <Typography variant="body2" sx={{ fontSize: "10px", fontWeight: "bold" }}>₹{totalDonation.toFixed(2)}</Typography>
+                </Box>
+              )}
+              <Divider sx={{ my: 0.5 }} />
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "14px", color: "#1a3c34" }}>Total:</Typography>
+                <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "14px", color: "#1a3c34" }}>₹{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+              </Box>
+            </Box>
           </Box>
 
           {/* Payment and Tracking Status */}

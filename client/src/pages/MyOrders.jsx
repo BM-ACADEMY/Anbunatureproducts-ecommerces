@@ -71,11 +71,13 @@ const MyOrders = () => {
         payment_status: order.payment_status,
         orderId: order.orderId, // Keep one for display if needed
         donationAmount: 0,
+        shippingCharge: 0,
       };
     }
     acc[gid].items.push(order);
-    acc[gid].totalAmt += order.totalAmt;
+    acc[gid].totalAmt += (order.totalAmt || 0);
     acc[gid].donationAmount += (order.donationAmount || 0);
+    acc[gid].shippingCharge += (order.shippingCharge || 0);
     // Use the most "advanced" status if multiple items have different statuses? 
     // Usually they'd be the same for a group initially.
     return acc;
@@ -111,8 +113,8 @@ const MyOrders = () => {
     .sort((a, b) => {
       if (sortBy === "Newest") return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortBy === "Oldest") return new Date(a.createdAt) - new Date(b.createdAt);
-      if (sortBy === "Price: High to Low") return b.totalAmt - a.totalAmt;
-      if (sortBy === "Price: Low to High") return a.totalAmt - b.totalAmt;
+      if (sortBy === "Price: High to Low") return (b.totalAmt + b.donationAmount + b.shippingCharge) - (a.totalAmt + a.donationAmount + a.shippingCharge);
+      if (sortBy === "Price: Low to High") return (a.totalAmt + a.donationAmount + a.shippingCharge) - (b.totalAmt + b.donationAmount + b.shippingCharge);
       return 0;
     });
 
@@ -403,7 +405,7 @@ const MyOrders = () => {
                       <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8 pt-3 md:pt-0 border-t border-slate-50 md:border-none">
                         <div className="text-left md:text-right">
                           <span className="block text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Amount</span>
-                          <span className="text-sm sm:text-base font-bold text-slate-900">₹{group.totalAmt.toLocaleString()}</span>
+                          <span className="text-sm sm:text-base font-bold text-slate-900">₹{(group.totalAmt + group.donationAmount + group.shippingCharge).toLocaleString()}</span>
                         </div>
 
                         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -627,7 +629,7 @@ const MyOrders = () => {
                       )}
                       <div className="pt-3 border-t border-gray-100 flex justify-between">
                         <span className="text-gray-900 font-extrabold">Total Amount</span>
-                        <span className="text-lg font-black text-indigo-600 font-mono tracking-tight">₹{selectedOrder.totalAmt?.toLocaleString()}</span>
+                        <span className="text-lg font-black text-indigo-600 font-mono tracking-tight">₹{(selectedOrder.totalAmt + selectedOrder.donationAmount + (selectedOrder.shippingCharge || 0)).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>

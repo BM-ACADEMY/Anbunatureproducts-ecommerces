@@ -133,7 +133,10 @@ const OrderDetails = () => {
     }
 
     const mainGroupInfo = groupItems[0];
-    const totalAmount = groupItems.reduce((sum, item) => sum + item.totalAmt, 0);
+    const totalSubtotal = groupItems.reduce((sum, item) => sum + (item.subTotalAmt || 0), 0);
+    const totalDonation = groupItems.reduce((sum, item) => sum + (item.donationAmount || 0), 0);
+    const totalShipping = groupItems.reduce((sum, item) => sum + (item.shippingCharge || 0), 0);
+    const grandTotal = totalSubtotal + totalDonation + totalShipping;
 
     return (
     <div className="bg-[#fdf5e6] min-h-screen py-4 lg:py-10">
@@ -213,8 +216,7 @@ const OrderDetails = () => {
                         <div className="text-center sm:text-left">
                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Price</p>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-900">₹{item.totalAmt.toLocaleString()}</span>
-                            <span className="text-[10px] text-slate-300 line-through">₹{Math.round(item.totalAmt * 1.2).toLocaleString()}</span>
+                            <span className="text-xs font-bold text-slate-900">₹{(item.subTotalAmt || item.totalAmt).toLocaleString()}</span>
                           </div>
                         </div>
                         <div className="text-center sm:text-left">
@@ -276,14 +278,21 @@ const OrderDetails = () => {
                 <div className="space-y-3.5">
                   <div className="flex justify-between items-center text-slate-500 font-medium text-xs">
                     <span>Items Subtotal</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-300 line-through">₹{(totalAmount * 1.2).toLocaleString()}</span>
-                      <span className="text-slate-900 font-bold">₹{totalAmount.toLocaleString()}</span>
-                    </div>
+                    <span className="text-slate-900 font-bold">₹{totalSubtotal.toLocaleString()}</span>
                   </div>
+                  
+                  {totalDonation > 0 && (
+                    <div className="flex justify-between items-center text-blue-600 font-bold text-xs">
+                      <span>Donation</span>
+                      <span>₹{totalDonation.toLocaleString()}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center text-slate-500 font-medium text-xs">
-                    <span>Shipping & Handling</span>
-                    <span className="text-emerald-600 font-bold">FREE</span>
+                    <span>Shipping</span>
+                    <span className={`font-bold ${totalShipping === 0 ? "text-emerald-600" : "text-slate-900"}`}>
+                      {totalShipping === 0 ? "FREE" : `₹${totalShipping.toLocaleString()}`}
+                    </span>
                   </div>
 
                   {mainGroupInfo.trackingId && (
@@ -296,14 +305,9 @@ const OrderDetails = () => {
                     </div>
                   )}
 
-                  <div className="bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-3 flex items-center justify-center gap-2">
-                    <FaCoins className="text-amber-500" size={14} />
-                    <span className="text-emerald-700 text-[10px] sm:text-[11px] font-bold">You saved ₹{(totalAmount * 0.2).toLocaleString()} on this order</span>
-                  </div>
-
                   <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-tight">Amount Paid</h3>
-                    <span className="text-lg sm:text-xl font-bold text-slate-900">₹{totalAmount.toLocaleString()}</span>
+                    <span className="text-lg sm:text-xl font-bold text-slate-900">₹{grandTotal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

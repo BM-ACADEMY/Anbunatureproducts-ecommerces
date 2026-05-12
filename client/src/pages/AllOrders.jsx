@@ -152,12 +152,14 @@ const AllOrders = () => {
         payment_status: order.payment_status,
         tracking_status: order.tracking_status,
         isCancelled: order.isCancelled,
+        donationAmount: 0,
+        shippingCharge: 0,
       };
     }
     acc[gid].items.push(order);
-    acc[gid].totalAmt += order.totalAmt;
-    // If any item in the group is not cancelled, the group might be active, 
-    // but usually groups have consistent status
+    acc[gid].totalAmt += (order.totalAmt || 0);
+    acc[gid].donationAmount += (order.donationAmount || 0);
+    acc[gid].shippingCharge += (order.shippingCharge || 0);
     return acc;
   }, {});
 
@@ -192,8 +194,8 @@ const AllOrders = () => {
     .sort((a, b) => {
       if (sortBy === "Newest") return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortBy === "Oldest") return new Date(a.createdAt) - new Date(b.createdAt);
-      if (sortBy === "Price: High to Low") return b.totalAmt - a.totalAmt;
-      if (sortBy === "Price: Low to High") return a.totalAmt - b.totalAmt;
+      if (sortBy === "Price: High to Low") return (b.totalAmt + b.donationAmount + b.shippingCharge) - (a.totalAmt + a.donationAmount + a.shippingCharge);
+      if (sortBy === "Price: Low to High") return (a.totalAmt + a.donationAmount + a.shippingCharge) - (b.totalAmt + b.donationAmount + b.shippingCharge);
       return 0;
     });
 
@@ -235,7 +237,7 @@ const AllOrders = () => {
       `"${group.items.map(item => `${item.product_details?.name} (x${item.quantity})`).join(" | ").replace(/"/g, '""')}"`,
       group.items.reduce((sum, item) => sum + item.quantity, 0),
       `"${group.items.map(item => item.totalAmt).join(" + ")}"`,
-      group.totalAmt,
+      group.totalAmt + group.donationAmount + group.shippingCharge,
       `"${group.payment_status || "N/A"}"`,
       `"${group.tracking_status || "N/A"}"`,
       `"${new Date(group.createdAt).toLocaleDateString('en-GB')}"`
@@ -407,7 +409,7 @@ const AllOrders = () => {
                   <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8 pt-3 md:pt-0 border-t border-slate-50 md:border-none">
                     <div className="text-left md:text-right">
                       <span className="block text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Amount</span>
-                      <span className="text-sm sm:text-base font-bold text-slate-900">₹{group.totalAmt.toLocaleString()}</span>
+                      <span className="text-sm sm:text-base font-bold text-slate-900">₹{(group.totalAmt + group.donationAmount + group.shippingCharge).toLocaleString()}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5">

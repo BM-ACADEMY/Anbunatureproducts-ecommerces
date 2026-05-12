@@ -29,7 +29,7 @@ const features = [
   },
   {
     icon: truckImg,
-    title: "Door step delivery",
+    title: "Fast delivery",
   },
 ];
 

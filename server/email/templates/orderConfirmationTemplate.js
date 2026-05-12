@@ -8,6 +8,7 @@ const orderConfirmationTemplate = ({
   deliveryAddress, // Object with address details (now includes fullName & mobile)
   customImageUrl, // URL of the uploaded custom image
   donationAmount,
+  shippingCharge = 0,
 }) => `
   <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
     <div style="max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);">
@@ -50,8 +51,14 @@ const orderConfirmationTemplate = ({
           <tfoot>
             ${donationAmount > 0 ? `
             <tr>
-              <td colspan="2" style="padding: 10px 15px; text-align: right; font-size: 14px; color: #4b5563;">Donation to Foundation</td>
+              <td colspan="2" style="padding: 10px 15px; text-align: right; font-size: 14px; color: #4b5563;">Donation</td>
               <td style="padding: 10px 15px; text-align: right; font-size: 14px; font-weight: 600; color: #111827;">₹${donationAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            </tr>
+            ` : ""}
+            ${shippingCharge >= 0 ? `
+            <tr>
+              <td colspan="2" style="padding: 10px 15px; text-align: right; font-size: 14px; color: #4b5563;">Shipping</td>
+              <td style="padding: 10px 15px; text-align: right; font-size: 14px; font-weight: 600; color: #111827;">${shippingCharge === 0 ? "FREE" : `₹${shippingCharge.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}</td>
             </tr>
             ` : ""}
             <tr style="background-color: #f9fafb;">

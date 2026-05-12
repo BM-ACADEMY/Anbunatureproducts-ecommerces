@@ -3,13 +3,15 @@ import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import AxiosToastError from '../utils/AxiosToastError';
 import Loading from '../components/Loading';
-import CardProduct from '../components/CardProduct';
+import NoData from '../components/NoData';
+import CardLoading from '../components/CardLoading';
 import { useSelector } from 'react-redux';
 import { LuChevronRight } from 'react-icons/lu';
 import { FiFilter } from 'react-icons/fi';
 import { useLocation } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { Slider, Box, Typography } from '@mui/material';
+import CardProduct from '../components/CardProduct';
 
 const AllProducts = () => {
     const [data, setData] = useState([]);
@@ -263,10 +265,11 @@ const AllProducts = () => {
 
                     {/* Main Content Area */}
                     <div className="flex-1">
-                        {loading ? (
-                            <div className="flex flex-col items-center justify-center p-20 min-h-[400px]">
-                                <Loading />
-                                <p className="text-gray-400 mt-4 font-medium animate-pulse">Refining your selections...</p>
+                        {loading && data.length === 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                                {[...Array(6)].map((_, i) => (
+                                    <CardLoading key={`skeleton-${i}`} />
+                                ))}
                             </div>
                         ) : data.length > 0 ? (
                             <>
@@ -299,14 +302,17 @@ const AllProducts = () => {
                                 )}
                             </>
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-gray-50 px-10 text-center">
-                                <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-8">
-                                    <FiFilter className="text-gray-200" size={40} />
-                                </div>
-                                <h3 className="text-2xl font-bold text-gray-800 mb-3">No products matched</h3>
-                                <p className="text-gray-400 max-w-sm mb-8 leading-relaxed">We couldn't find any products matching your current filters. Try adjusting your price range or rating selection.</p>
-                               
-                            </div>
+                            <NoData 
+                                message="No Products Matched"
+                                description="We couldn't find any products matching your current filters. Try adjusting your price range or rating selection."
+                            >
+                                <button 
+                                    onClick={clearFilters}
+                                    className="px-8 py-3.5 bg-[#70a139] text-white rounded-2xl font-bold text-sm shadow-xl shadow-green-100 hover:bg-[#5e8730] transition-all active:scale-95"
+                                >
+                                    Clear All Filters
+                                </button>
+                            </NoData>
                         )}
                     </div>
                 </div>

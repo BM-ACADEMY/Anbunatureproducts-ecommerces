@@ -4,6 +4,7 @@ import SummaryApi from '../common/SummaryApi'
 import Axios from '../utils/Axios'
 import AxiosToastError from '../utils/AxiosToastError'
 import CardProduct from '../components/CardProduct'
+import NoData from '../components/NoData'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { useLocation } from 'react-router-dom'
 const noDataImage = '/assets/placeholder/nothing here yet.webp'
@@ -76,7 +77,7 @@ const SearchPage = () => {
 
         <InfiniteScroll
               dataLength={data.length}
-              hasMore={true}
+              hasMore={page < totalPage}
               next={handleFetchMore}
         >
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 py-4 gap-6'>
@@ -104,13 +105,10 @@ const SearchPage = () => {
               {
                 //no data 
                 !data[0] && !loading && (
-                  <div className='flex flex-col justify-center items-center w-full mx-auto'>
-                    <img
-                      src={noDataImage} 
-                      className='w-full h-full max-w-xs max-h-xs block'
-                    />
-                    <p className='font-semibold my-2'>No Data found</p>
-                  </div>
+                  <NoData 
+                    message="No Results Found"
+                    description={`We couldn't find any products matching "${searchText}". Try searching for something else.`}
+                  />
                 )
               }
       </div>

@@ -7,7 +7,7 @@ import AxiosToastError from "../utils/AxiosToastError";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { FiEdit2, FiTrash2, FiPlus, FiTruck, FiHeart } from "react-icons/fi";
 import { MdPayment } from "react-icons/md";
@@ -253,12 +253,12 @@ const CheckoutPage = () => {
 
         {/* Order Summary Sidebar Section */}
         <div className="w-full max-w-md lg:sticky lg:top-8">
-          <div className="bg-white shadow-lg rounded-2xl p-6 flex flex-col max-h-[calc(100vh-100px)] border border-slate-100">
+          <div className="bg-white shadow-lg rounded-2xl p-6 flex flex-col max-h-[calc(100vh-100px)] border border-slate-100 overflow-y-auto custom-scrollbar">
             <h2 className="text-2xl font-bold mb-5 text-gray-800">Order Summary</h2>
 
             {/* Foundation Section - Matching Screenshot EXACTLY */}
             {foundationSettings?.isActive && (
-              <div className="mb-6 bg-[#f0f7ff] rounded-2xl p-4 border border-[#e5e7eb] relative overflow-hidden">
+              <div className="mb-6 bg-[#f0f7ff] rounded-2xl p-5 pb-6 border border-[#e5e7eb] relative flex-shrink-0 shadow-sm">
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h2 className="text-[15px] font-bold text-slate-800 leading-tight">{foundationSettings.title}</h2>
@@ -267,7 +267,7 @@ const CheckoutPage = () => {
                   <img src="/assets/common/logoheader.png" alt="Logo" className="h-10 w-auto flex-shrink-0" />
                 </div>
                 
-                <div className="grid grid-cols-4 gap-2 mb-3">
+                <div className="grid grid-cols-4 gap-2 mb-4">
                   {foundationSettings.amounts.map((amount) => (
                     <button
                       key={amount}
@@ -282,7 +282,7 @@ const CheckoutPage = () => {
                     </button>
                   ))}
                 </div>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none">Note: GST and No cost EMI will not apply</p>
+                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest leading-tight mt-2">Note: GST and No cost EMI will not apply</p>
               </div>
             )}
 
@@ -367,6 +367,10 @@ const CheckoutPage = () => {
                 <MdPayment size={18} />
                 <span>Online Payment</span>
               </button>
+
+              <p className="text-[10px] text-slate-400 text-center mt-2 leading-relaxed">
+                By proceeding, you agree to our <NavLink to="/terms-and-conditions" className="underline hover:text-green-600">Terms & Conditions</NavLink> and <NavLink to="/privacy-policy" className="underline hover:text-green-600">Privacy Policy</NavLink>.
+              </p>
 
               <div className="flex items-center justify-center gap-2 mt-1 py-1">
                   <FiTruck className="text-black opacity-60" size={12} />

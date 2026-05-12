@@ -13,7 +13,7 @@ import SubCategoryModel from "../models/subCategory.model.js";
 export async function CashOnDeliveryOrderController(req, res) {
   try {
     const userId = req.userId;
-    const { list_items, addressId, customImage, donationAmount } = req.body;
+    const { list_items, addressId, customImage, donationAmount, shippingCharge } = req.body;
 
     if (!list_items || !addressId) {
       return res.status(400).json({
@@ -47,7 +47,7 @@ export async function CashOnDeliveryOrderController(req, res) {
         }
 
         let productBasePrice = cartItem.selectedAttributes.reduce(
-          (sum, attr) => sum + (attr.price || 0),
+          (sum, attr) => sum + (attr.offerPrice || attr.price || 0),
           0
         );
 
@@ -68,8 +68,9 @@ export async function CashOnDeliveryOrderController(req, res) {
           payment_status: "Online Payment",
           delivery_address: addressId,
           subTotalAmt: itemTotal,
-          totalAmt: index === 0 ? itemTotal + (Number(donationAmount) || 0) : itemTotal,
+          totalAmt: index === 0 ? itemTotal + (Number(donationAmount) || 0) + (Number(shippingCharge) || 0) : itemTotal,
           donationAmount: index === 0 ? (Number(donationAmount) || 0) : 0,
+          shippingCharge: index === 0 ? (Number(shippingCharge) || 0) : 0,
           customImage: customImage || "",
         };
       })
@@ -145,6 +146,7 @@ export async function CashOnDeliveryOrderController(req, res) {
       },
       customImageUrl: customImage || "",
       donationAmount: Number(donationAmount) || 0,
+      shippingCharge: Number(shippingCharge) || 0,
     };
 
     await sendEmail({
