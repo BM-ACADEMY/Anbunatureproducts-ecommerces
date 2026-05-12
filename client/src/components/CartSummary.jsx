@@ -49,8 +49,8 @@ const CartSummary = ({ notDiscountTotalPrice, totalPrice, totalSavings }) => {
         )}
         
         <div className="border-t-2 border-dashed border-gray-200 pt-4 flex justify-between items-center mt-2">
-          <span className="text-xl font-black text-gray-900 tracking-tight">Grand Total</span>
-          <span className="text-xl font-black text-green-700">
+          <span className="text-md font-bold text-gray-900 tracking-tight">Grand Total</span>
+          <span className="text-md font-black text-green-700">
             {DisplayPriceInRupees(grandTotal)}
           </span>
         </div>

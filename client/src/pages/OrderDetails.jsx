@@ -286,6 +286,16 @@ const OrderDetails = () => {
                     <span className="text-emerald-600 font-bold">FREE</span>
                   </div>
 
+                  {mainGroupInfo.trackingId && (
+                    <div className="bg-blue-50/50 border border-dashed border-blue-200 rounded-xl p-3 flex flex-col gap-1">
+                      <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">Tracking Details</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-900">{mainGroupInfo.trackingId}</span>
+                        <span className="text-[10px] font-medium text-blue-500 uppercase tracking-tighter">{mainGroupInfo.tracking_status}</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-emerald-50/50 border border-dashed border-emerald-200 rounded-xl p-3 flex items-center justify-center gap-2">
                     <FaCoins className="text-amber-500" size={14} />
                     <span className="text-emerald-700 text-[10px] sm:text-[11px] font-bold">You saved ₹{(totalAmount * 0.2).toLocaleString()} on this order</span>

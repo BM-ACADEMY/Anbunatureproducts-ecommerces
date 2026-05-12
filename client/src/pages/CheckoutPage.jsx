@@ -202,13 +202,12 @@ const CheckoutPage = () => {
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
 
-        {/* Left Side: Address & Foundation */}
+        {/* Left Side: Address Section */}
         <div className="w-full lg:w-[65%] space-y-6">
           <div className="mb-2">
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Checkout</h2>
           </div>
 
-          {/* Address Section */}
           <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-slate-700 uppercase text-xs tracking-widest">Select Shipping Address</h3>
@@ -250,44 +249,42 @@ const CheckoutPage = () => {
               )}
             </div>
           </div>
-
-          {/* Foundation Section */}
-          {foundationSettings?.isActive && (
-            <div className="mt-8 bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom duration-500">
-              <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-slate-800">{foundationSettings.title}</h3>
-                  <p className="text-sm text-slate-500 font-medium">{foundationSettings.description}</p>
-                </div>
-                <div className="flex-shrink-0">
-                  <img src="/assets/payment/foundation.png" alt="Foundation" className="h-16 w-auto opacity-80" onError={(e) => e.target.style.display='none'} />
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-3">
-                {foundationSettings.amounts.map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => setDonationAmount(donationAmount === amount ? 0 : amount)}
-                    className={`px-6 py-3 rounded-2xl font-bold transition-all border-2 ${
-                      donationAmount === amount 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100 scale-105" 
-                      : "bg-white text-slate-600 border-slate-100 hover:border-blue-200 hover:bg-blue-50"
-                    }`}
-                  >
-                    {DisplayPriceInRupees(amount)}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-wider italic">Note: GST and No cost EMI will not be applicable</p>
-            </div>
-          )}
         </div>
 
-        {/* Order Summary Section */}
+        {/* Order Summary Sidebar Section */}
         <div className="w-full max-w-md lg:sticky lg:top-8">
           <div className="bg-white shadow-lg rounded-2xl p-6 flex flex-col max-h-[calc(100vh-100px)] border border-slate-100">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Order Summary</h2>
+            <h2 className="text-2xl font-bold mb-5 text-gray-800">Order Summary</h2>
+
+            {/* Foundation Section - Matching Screenshot EXACTLY */}
+            {foundationSettings?.isActive && (
+              <div className="mb-6 bg-[#f0f7ff] rounded-2xl p-4 border border-[#e5e7eb] relative overflow-hidden">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h2 className="text-[15px] font-bold text-slate-800 leading-tight">{foundationSettings.title}</h2>
+                    <p className="text-[12px] text-slate-500 font-medium leading-tight mt-0.5">{foundationSettings.description}</p>
+                  </div>
+                  <img src="/assets/common/logoheader.png" alt="Logo" className="h-10 w-auto flex-shrink-0" />
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {foundationSettings.amounts.map((amount) => (
+                    <button
+                      key={amount}
+                      onClick={() => setDonationAmount(donationAmount === amount ? 0 : amount)}
+                      className={`py-2 rounded-xl text-[11px] font-bold transition-all border shadow-sm ${
+                        donationAmount === amount 
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md scale-105" 
+                        : "bg-white text-slate-500 border-white hover:border-slate-200"
+                      }`}
+                    >
+                      ₹{amount}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none">Note: GST and No cost EMI will not apply</p>
+              </div>
+            )}
 
             {/* Product List */}
             <div className="flex-grow overflow-y-auto mb-6 pr-2 custom-scrollbar">
@@ -302,8 +299,8 @@ const CheckoutPage = () => {
                     0
                   );
                   return (
-                    <div key={index} className="flex gap-3 items-start p-2 rounded-lg bg-gray-50 border border-gray-100">
-                      <div className="w-16 h-16 rounded-md overflow-hidden bg-white border border-gray-200 flex-shrink-0">
+                    <div key={index} className="flex gap-3 items-start p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border border-gray-200 flex-shrink-0">
                         <img
                           src={item.productId?.image[0]}
                           alt={item.productId?.name}
@@ -311,24 +308,17 @@ const CheckoutPage = () => {
                         />
                       </div>
                       <div className="flex-grow min-w-0">
-                        <h4 className="font-bold text-gray-800 text-sm line-clamp-1">
+                        <h4 className="font-bold text-gray-800 text-xs line-clamp-1">
                           {item.productId?.name}
                         </h4>
-                        <p className="text-[10px] text-gray-500 italic mb-1">
+                        <p className="text-[10px] text-gray-400 italic mb-1">
                           {item.selectedAttributes.map(a => `${a.attributeName}: ${a.optionName}`).join(", ")}
                         </p>
                         <div className="flex justify-between items-end">
-                          <span className="text-xs font-semibold text-gray-600">Qty: {item.quantity}</span>
-                          <div className="flex flex-col items-end">
-                            {itemOriginalPrice > itemOfferPrice && (
-                              <span className="text-[10px] text-gray-400 line-through">
-                                {DisplayPriceInRupees(itemOriginalPrice)}
-                              </span>
-                            )}
-                            <span className="text-sm font-bold text-green-700">
-                              {DisplayPriceInRupees(itemOfferPrice)}
-                            </span>
-                          </div>
+                          <span className="text-[10px] font-bold text-gray-500">Qty: {item.quantity}</span>
+                          <span className="text-xs font-bold text-green-700">
+                            {DisplayPriceInRupees(itemOfferPrice)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -338,23 +328,6 @@ const CheckoutPage = () => {
             </div>
 
             <div className="space-y-4 text-sm text-gray-700 mt-auto pt-4 border-t border-gray-100">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Subtotal (Original)</span>
-                <span className="font-semibold text-gray-400 line-through">
-                  {DisplayPriceInRupees(displayTotalOriginalPrice)}
-                </span>
-              </div>
-
-              {totalDiscount > 0 && (
-                <div className="flex justify-between text-green-600 font-bold bg-green-50 px-3 py-2 rounded-lg border border-green-100">
-                  <div className="flex items-center gap-1.5">
-                    <span>Discount</span>
-                    <span className="bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-md">{discountPercentage}% OFF</span>
-                  </div>
-                  <span>- {DisplayPriceInRupees(totalDiscount)}</span>
-                </div>
-              )}
-
               <div className="flex justify-between">
                 <span>Items Total</span>
                 <span className="font-bold text-gray-900">
@@ -374,7 +347,7 @@ const CheckoutPage = () => {
               </div>
               
               {donationAmount > 0 && (
-                <div className="flex justify-between text-blue-600 font-bold animate-in fade-in duration-300 bg-blue-50/50 px-3 py-2 rounded-lg border border-blue-100/50">
+                <div className="flex justify-between text-blue-600 font-bold bg-blue-50/50 px-3 py-2 rounded-lg border border-blue-100/50">
                   <span>Donation</span>
                   <span>+ {DisplayPriceInRupees(donationAmount)}</span>
                 </div>
@@ -389,15 +362,15 @@ const CheckoutPage = () => {
             <div className="mt-6 flex flex-col gap-3">
               <button
                 onClick={handleProceedToPayment}
-                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition flex items-center justify-center gap-2"
+                className="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold transition flex items-center justify-center gap-2 shadow-md shadow-green-100"
               >
-                <MdPayment size={20} />
+                <MdPayment size={18} />
                 <span>Online Payment</span>
               </button>
 
-              <div className="flex items-center justify-center gap-2 mt-1 py-2 border-t border-slate-50">
-                  <FiTruck className="text-black" size={12} />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-black opacity-80">Deliver within 2 to 5 days all over India</span>
+              <div className="flex items-center justify-center gap-2 mt-1 py-1">
+                  <FiTruck className="text-black opacity-60" size={12} />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-black opacity-60">Deliver within 2 to 5 days all over India</span>
               </div>
             </div>
           </div>

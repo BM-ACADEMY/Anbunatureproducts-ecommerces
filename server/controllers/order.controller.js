@@ -498,7 +498,7 @@ export async function cancelOrderController(request, response) {
 
 export async function updateTrackingStatusController(request, response) {
     try {
-        const { orderId, tracking_status, groupId } = request.body;
+        const { orderId, tracking_status, groupId, trackingId } = request.body;
         const userId = request.userId;
 
         if (!orderId && !groupId) {
@@ -565,20 +565,26 @@ export async function updateTrackingStatusController(request, response) {
             }
         }
 
-        // Update tracking status and add to history for all eligible orders
+        // Update tracking status, trackingId and add to history for all eligible orders
+        const updateData = {
+            tracking_status,
+            $push: {
+                tracking_history: {
+                    status: tracking_status,
+                    updatedBy: userId,
+                },
+            },
+        };
+
+        if (trackingId !== undefined) {
+            updateData.trackingId = trackingId;
+        }
+
         const updateResult = await OrderModel.updateMany(
             { 
                _id: { $in: nonCancelledOrders.map(o => o._id) } 
             },
-            {
-                tracking_status,
-                $push: {
-                    tracking_history: {
-                        status: tracking_status,
-                        updatedBy: userId,
-                    },
-                },
-            }
+            updateData
         );
 
         return response.json({

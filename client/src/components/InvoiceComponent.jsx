@@ -207,6 +207,11 @@ const InvoiceModal = ({ open, handleClose, orderGroup }) => {
             <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
               <strong>Tracking Status:</strong> {firstItem?.tracking_status}
             </Typography>
+            {firstItem?.trackingId && (
+              <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
+                <strong>Tracking ID:</strong> {firstItem?.trackingId}
+              </Typography>
+            )}
             {firstItem?.isCancelled && (
               <Typography variant="body2" sx={{ fontSize: "10px", color: "#d32f2f" }}>
                 <strong>Cancelled:</strong> {firstItem?.cancellationReason} (on{" "}

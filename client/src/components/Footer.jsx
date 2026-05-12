@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Mail, Phone, Instagram } from "lucide-react";
 import { Modal, Box, Typography, Button } from "@mui/material";
 import { valideURLConvert } from "../utils/valideURLConvert"; // Import the utility function
-const Logo = "/assets/common/logo.png";
+const Logo = "/assets/common/logoheader.png";
 
 const Footer = () => {
   const date = new Date().getFullYear();
@@ -44,9 +44,8 @@ const Footer = () => {
               <img
                 src={Logo}
                 alt="Anbu Natural Logo"
-                className="w-20 h-w-20 mr-2"
+                className="w-16 h-w-16 mr-2"
               />
-              <h3 className="text-lg font-medium">Anbu Natural</h3>
             </div>
             <p className="mb-2 flex items-center">
               <Mail className="w-4 h-4 mr-2 text-white" />

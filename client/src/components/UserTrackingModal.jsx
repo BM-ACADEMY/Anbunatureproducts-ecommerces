@@ -68,8 +68,18 @@ const UserTrackingModal = ({ open, handleClose, order }) => {
 
         <div className="p-8">
           <div className="mb-10 p-6 bg-[#f5f8ff] rounded-2xl border border-[#e8efff]">
-            <p className="text-[10px] font-black text-[#5c7cfa] uppercase tracking-widest mb-1.5">Current Status</p>
-            <p className="text-[#3b5bdb] text-xl font-extrabold">{order?.tracking_status}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-black text-[#5c7cfa] uppercase tracking-widest mb-1.5">Current Status</p>
+                <p className="text-[#3b5bdb] text-xl font-extrabold">{order?.tracking_status}</p>
+              </div>
+              {order?.trackingId && (
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-[#5c7cfa] uppercase tracking-widest mb-1.5">Tracking ID</p>
+                  <p className="text-[#3b5bdb] text-sm font-extrabold bg-white px-3 py-1 rounded-lg border border-[#e8efff] shadow-sm">{order?.trackingId}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="relative px-2">

@@ -37,7 +37,9 @@ const Header = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
-  const [announcementText, setAnnouncementText] = useState("deliver with in 2 to 5 days all over india");
+  const [announcementText, setAnnouncementText] = useState(
+    "deliver with in 2 to 5 days all over india",
+  );
 
   // Fetch announcement text from API
   useEffect(() => {
@@ -373,7 +375,7 @@ const Header = () => {
 
         {/* Search Bar Overlay */}
         {showSearch && (
-          <div 
+          <div
             ref={searchRef}
             className="absolute top-full left-0 w-full bg-transparent py-6 px-4  animate-in fade-in slide-in-from-top-4 duration-300 z-40"
           >

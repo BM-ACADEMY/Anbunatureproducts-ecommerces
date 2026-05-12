@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText } from "react-icons/fi";
+import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText, FiPackage } from "react-icons/fi";
 import { LayoutList, ArrowUpDown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
@@ -125,6 +125,8 @@ const AllOrders = () => {
 
   const getStatusClasses = (status) => {
     switch (status) {
+      case "Pending":
+        return "bg-slate-100 text-slate-600 border border-slate-200";
       case "Processing":
         return "bg-amber-50 text-amber-600 border border-amber-100";
       case "Shipped":
@@ -163,6 +165,7 @@ const AllOrders = () => {
 
   const statusCounts = {
     All: groupedOrdersList.length,
+    Pending: groupedOrdersList.filter(o => o.tracking_status === "Pending").length,
     Processing: groupedOrdersList.filter(o => o.tracking_status === "Processing").length,
     Shipped: groupedOrdersList.filter(o => o.tracking_status === "Shipped").length,
     Delivered: groupedOrdersList.filter(o => o.tracking_status === "Delivered").length,
@@ -171,6 +174,7 @@ const AllOrders = () => {
 
   const filteredOrders = groupedOrdersList
     .filter((group) => {
+      if (activeTab === "Pending") return group.tracking_status === "Pending";
       if (activeTab === "Processing") return group.tracking_status === "Processing";
       if (activeTab === "Shipped") return group.tracking_status === "Shipped";
       if (activeTab === "Delivered") return group.tracking_status === "Delivered";
@@ -277,9 +281,10 @@ const AllOrders = () => {
       </div>
 
       {/* Tabs - Responsive Grid/Pill Style */}
-      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1 p-1 bg-slate-200/60 rounded-xl w-full sm:w-fit">
+      <div className="flex items-center gap-1 p-1 bg-slate-200/60 rounded-xl overflow-x-auto no-scrollbar w-full sm:w-fit scroll-smooth whitespace-nowrap">
         {[
           { id: "All", label: "All", count: statusCounts.All, icon: LayoutList },
+          { id: "Pending", label: "Pending", count: statusCounts.Pending, icon: FiPackage },
           { id: "Processing", label: "Processing", count: statusCounts.Processing, icon: FiClock },
           { id: "Shipped", label: "Shipped", count: statusCounts.Shipped, icon: FiTruck },
           { id: "Delivered", label: "Delivered", count: statusCounts.Delivered, icon: FiCheckCircle },
@@ -288,15 +293,15 @@ const AllOrders = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all ${
+            className={`flex items-center justify-center sm:justify-start gap-2 px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex-shrink-0 ${
               activeTab === tab.id
                 ? "bg-white text-emerald-600 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
-            } ${tab.id === "Cancelled" ? "col-span-2 sm:col-span-1" : ""}`}
+            }`}
           >
             <tab.icon size={14} className={activeTab === tab.id ? "text-emerald-500" : "text-slate-400"} />
             <span className="truncate">{tab.label}</span>
-            <span className={`px-1.5 py-0.5 rounded text-[9px] ${
+            <span className={`px-1.5 py-0.5 rounded-md text-[9px] ${
               activeTab === tab.id ? "bg-emerald-50 text-emerald-600" : "bg-slate-200 text-slate-500"
             }`}>
               {tab.count}
@@ -347,17 +352,17 @@ const AllOrders = () => {
             {currentOrders.map((group, index) => (
               <div key={group.groupId + index} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 {/* Order Header */}
-                <div className="px-5 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-5">
+                <div className="px-4 py-3 sm:px-5 sm:py-3 bg-slate-50/50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-5">
                     <div className="flex flex-col">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">ID</span>
                       <span className="text-xs font-bold text-slate-900">#{group.groupId.slice(-10).toUpperCase()}</span>
                     </div>
-                    <div className="flex flex-col border-l border-slate-200 pl-5">
+                    <div className="flex flex-col border-l border-slate-200 pl-4 sm:pl-5">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Customer</span>
-                      <span className="text-xs font-semibold text-slate-600">{group?.userId?.name || "Customer"}</span>
+                      <span className="text-xs font-semibold text-slate-600 truncate max-w-[120px]">{group?.userId?.name || "Customer"}</span>
                     </div>
-                    <div className="flex flex-col border-l border-slate-200 pl-5">
+                    <div className="flex flex-col border-l border-slate-200 pl-4 sm:pl-5">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Date</span>
                       <span className="text-xs font-semibold text-slate-600">
                         {new Date(group.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
@@ -366,7 +371,7 @@ const AllOrders = () => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                     <span className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md ${getStatusClasses(group.tracking_status)}`}>
+                     <span className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md border ${getStatusClasses(group.tracking_status)}`}>
                         {group.tracking_status}
                      </span>
                      <div className="px-2 py-1 bg-slate-100 rounded-md text-[9px] font-bold text-slate-500 uppercase">
@@ -376,61 +381,61 @@ const AllOrders = () => {
                 </div>
 
                 {/* Order Body */}
-                <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex items-center gap-5 flex-1">
-                    <div className="flex -space-x-3">
+                <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
+                  <div className="flex items-center gap-4 sm:gap-5 flex-1">
+                    <div className="flex -space-x-3 flex-shrink-0">
                       {group.items.slice(0, 3).map((item, idx) => (
-                        <div key={idx} className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm bg-slate-50 z-[idx]">
+                        <div key={idx} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl overflow-hidden border-2 border-white shadow-sm bg-slate-50 z-[idx]">
                           <img src={item.product_details.image[0]} className="w-full h-full object-cover" alt="product" />
                         </div>
                       ))}
                     </div>
 
-                    <div className="space-y-1">
-                      <h4 className="font-semibold text-slate-900 text-sm leading-tight">
+                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                      <h4 className="font-bold text-slate-900 text-xs sm:text-sm leading-tight truncate">
                         {group.items[0].product_details.name}
-                        {group.items.length > 1 && (
-                          <span className="text-[10px] text-slate-400 ml-2">+{group.items.length - 1} more</span>
-                        )}
                       </h4>
-                      <Link to={`/order-details/${group.groupId}`} className="text-[10px] text-emerald-600 font-bold hover:underline">
+                      <p className="text-[10px] text-slate-400">
+                        {group.items.length > 1 ? `and ${group.items.length - 1} more items` : 'Single Item Order'}
+                      </p>
+                      <Link to={`/order-details/${group.groupId}`} className="text-[9px] sm:text-[10px] text-emerald-600 font-bold hover:underline block mt-0.5">
                         View details
                       </Link>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
-                      <span className="text-base font-bold text-slate-900">₹{group.totalAmt.toLocaleString()}</span>
+                  <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8 pt-3 md:pt-0 border-t border-slate-50 md:border-none">
+                    <div className="text-left md:text-right">
+                      <span className="block text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Amount</span>
+                      <span className="text-sm sm:text-base font-bold text-slate-900">₹{group.totalAmt.toLocaleString()}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5">
                         <Link
                           to={`/order-details/${group.groupId}`}
-                          className="p-2 text-slate-500 hover:bg-slate-50 rounded-lg border border-slate-100 transition-all"
+                          className="p-1.5 sm:p-2 text-slate-500 hover:bg-slate-50 rounded-lg border border-slate-100 transition-all"
                           title="View Details"
                         >
-                          <FiEye size={16} />
+                          <FiEye size={15} />
                         </Link>
                         <button
                           onClick={() => handleOpenInvoice(group)}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-50 transition-all"
+                          className="p-1.5 sm:p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-50 transition-all"
                           title="Invoice"
                         >
-                          <FiFileText size={16} />
+                          <FiFileText size={15} />
                         </button>
                         <button
                           onClick={() => handleOpenTracking(group.items[0])}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-50 transition-all"
+                          className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100 transition-all"
                           title="Track"
                         >
-                          <FiActivity size={16} />
+                          <FiActivity size={15} />
                         </button>
-
                     </div>
                   </div>
                 </div>
+
               </div>
             ))}
           </div>
