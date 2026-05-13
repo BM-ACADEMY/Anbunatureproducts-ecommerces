@@ -9,10 +9,10 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 // Import assets
-const manImg = "/assets/whychoose/man.png";
+const manImg = "/assets/whychoose/man.webp";
 const leafImg = "/assets/whychoose/leaf.webp";
 const chemicalImg = "/assets/whychoose/chemical.webp";
-const familyImg = "/assets/whychoose/health_living.png";
+const familyImg = "/assets/whychoose/health_living.webp";
 
 const features = [
   {

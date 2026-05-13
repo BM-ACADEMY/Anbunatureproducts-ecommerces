@@ -154,7 +154,7 @@ const FoundationAdmin = () => {
                                 </div>
                                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Live Preview</span>
                             </div>
-                            <img src="/assets/common/logoheader.png" alt="Logo" className="h-6 w-auto opacity-80" />
+                            <img src="/assets/common/logoheader.webp" alt="Logo" className="h-6 w-auto opacity-80" />
                         </div>
                         
                         <div className="bg-white rounded-xl border border-gray-100 shadow-md p-5 space-y-4">

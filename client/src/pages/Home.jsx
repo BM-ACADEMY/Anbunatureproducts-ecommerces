@@ -15,7 +15,6 @@ import "swiper/css/navigation";
 import "swiper/css/autoplay";
 
 import BannerSlider from "../components/BannerSlider";
-import WellnessClock from "../components/WellnessClock";
 import FounderSection from "../components/FounderSection";
 import TestimonialSection from "../components/TestimonialSection";
 
@@ -141,7 +140,6 @@ const Home = () => {
         />
       </div>
 
-      <WellnessClock />
       <FounderSection />
       <TestimonialSection />
 
