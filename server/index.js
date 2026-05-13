@@ -32,22 +32,22 @@ const app = express();
 
 // ✅ CORS setup
 const allowedOrigins = [
-  process.env.FRONTEND_URL.replace(/\/$/, ""), // Remove trailing slash
-  process.env.PRODUCTION_URL.replace(/\/$/, ""), // Remove trailing slash
-].filter(Boolean); // Remove any undefined/null values
+  process.env.FRONTEND_URL?.trim().replace(/\/$/, ""),
+  process.env.PRODUCTION_URL?.trim().replace(/\/$/, ""),
+].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., Postman)
+      // Allow requests with no origin (e.g., Postman/Mobile)
       if (!origin) return callback(null, true);
-      
+
       // Allow any localhost origin during development
-      if (origin.startsWith('http://localhost:')) {
+      if (origin.startsWith("http://localhost:")) {
         return callback(null, true);
       }
 
-      const normalizedOrigin = origin.replace(/\/$/, "");
+      const normalizedOrigin = origin.trim().replace(/\/$/, "");
       if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
@@ -56,12 +56,18 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Requested-With", 
+      "Accept", 
+      "Origin",
+      "Access-Control-Allow-Headers",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
   })
 );
-
-// ✅ Handle preflight requests
-app.options("*", cors());
 
 // Middleware
 app.use(express.json());
@@ -70,7 +76,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(helmet({ 
   crossOriginResourcePolicy: false,
-  crossOriginOpenerPolicy: { policy: "unsafe-none" }
+  crossOriginOpenerPolicy: { policy: "unsafe-none" },
+  contentSecurityPolicy: false, // Fix font/Stripe loading issues
 }));
 
 // Serve static files from uploads directory
