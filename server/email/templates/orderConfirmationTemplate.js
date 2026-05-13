@@ -7,14 +7,16 @@ const orderConfirmationTemplate = ({
   items, // Array of { name, quantity, price, attributes } -- 'attributes' is the new addition
   deliveryAddress, // Object with address details (now includes fullName & mobile)
   customImageUrl, // URL of the uploaded custom image
+  donationAmount,
+  shippingCharge = 0,
 }) => `
   <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #1f2937;">
-    <div style="max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+    <div style="max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);">
       
       <!-- Header with Logo -->
       <div style="background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 1px solid #f3f4f6;">
         <img src="https://anbunatural.com/assets/common/logo.png" alt="Anbu Natural" style="height: 60px; width: auto; margin-bottom: 15px;">
-        <h2 style="color: #111827; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.025em;">🎉 Your Order Has Been Placed!</h2>
+        <h2 style="color: #111827; margin: 0; font-size: 24px; font-weight: 500; letter-spacing: -0.025em;">Your Order Has Been Placed!</h2>
       </div>
 
       <div style="padding: 30px;">
@@ -47,9 +49,21 @@ const orderConfirmationTemplate = ({
               .join("")}
           </tbody>
           <tfoot>
+            ${donationAmount > 0 ? `
+            <tr>
+              <td colspan="2" style="padding: 10px 15px; text-align: right; font-size: 14px; color: #4b5563;">Donation</td>
+              <td style="padding: 10px 15px; text-align: right; font-size: 14px; font-weight: 600; color: #111827;">₹${donationAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            </tr>
+            ` : ""}
+            ${shippingCharge >= 0 ? `
+            <tr>
+              <td colspan="2" style="padding: 10px 15px; text-align: right; font-size: 14px; color: #4b5563;">Shipping</td>
+              <td style="padding: 10px 15px; text-align: right; font-size: 14px; font-weight: 600; color: #111827;">${shippingCharge === 0 ? "FREE" : `₹${shippingCharge.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}</td>
+            </tr>
+            ` : ""}
             <tr style="background-color: #f9fafb;">
               <td colspan="2" style="padding: 15px; text-align: right; font-size: 14px; font-weight: 700; color: #374151;">Total Amount</td>
-              <td style="padding: 15px; text-align: right; font-size: 18px; font-weight: 800; color: #10b981;">₹${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td style="padding: 15px; text-align: right; font-size: 18px; font-weight: 700; color: #238d0e;">₹${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
             </tr>
           </tfoot>
         </table>
@@ -81,7 +95,6 @@ const orderConfirmationTemplate = ({
         }
 
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f3f4f6; text-align: center;">
-          <p style="font-size: 14px; color: #6b7280;">You'll receive another email when your items are shipped.</p>
           <p style="font-size: 13px; color: #9ca3af; margin-top: 10px;">Questions? Contact us at <a href="mailto:anbunaturalproducts@gmail.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">anbunaturalproducts@gmail.com</a></p>
         </div>
       </div>

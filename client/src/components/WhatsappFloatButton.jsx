@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 const whatsappIcon = "/assets/common/whatsapp.webp";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, PhoneCall } from "lucide-react";
 
 const WhatsappFloatButton = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const phoneNumber = "9488549948"; // Corrected number from user data
 
   // Show the scroll-to-top button after scrolling 200px
   useEffect(() => {
@@ -23,54 +24,61 @@ const WhatsappFloatButton = () => {
   };
 
   return (
-    <>
-      {/* Scroll to Top Button (with bounce + fade in when scrolling down) */}
+    <div className="fixed bottom-6 right-6 z-[999] flex flex-col gap-4 items-center">
+      {/* Scroll to Top Button */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
             key="scrollTop"
             onClick={handleScrollTop}
-            className="fixed bottom-20 right-6 z-50 bg-[rgb(37,172,113)] text-white p-3 rounded-full"
-            initial={{ opacity: 0, y: 40 }}
+            className="bg-white text-[#163722] p-3 rounded-full shadow-lg border border-gray-100"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{ type: "spring", stiffness: 300 }}
-            whileHover={{
-              scale: 1.1,
-              boxShadow: "0px 0px 12px rgb(37,172,113)",
-            }}
+            whileHover={{ scale: 1.1 }}
           >
             <ArrowUp className="w-5 h-5" />
           </motion.button>
         )}
       </AnimatePresence>
 
+      {/* Call Button */}
+      <motion.a
+        href={`tel:+91${phoneNumber}`}
+        className="bg-blue-600 text-white p-3.5 rounded-full shadow-lg flex items-center justify-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{
+          scale: 1.1,
+          boxShadow: "0px 0px 15px rgba(37, 99, 235, 0.6)",
+        }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <PhoneCall className="w-5 h-5" />
+      </motion.a>
+
       {/* WhatsApp Button */}
       <motion.a
-        href={`https://wa.me/9952787198?text=${encodeURIComponent(
-          "Hello, Anbu Natural Products"
+        href={`https://wa.me/91${phoneNumber}?text=${encodeURIComponent(
+          "Hello, Anbu Natural. I'm interested in your products."
         )}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
         whileHover={{
           scale: 1.1,
-          boxShadow: "0px 0px 12px rgba(37, 211, 102, 0.9)",
-        }}
-        style={{
-          display: "inline-block",
-          borderRadius: "50%",
-          transition: "box-shadow 0.3s ease-in-out",
         }}
         transition={{ type: "spring", stiffness: 300 }}
       >
         <img
           src={whatsappIcon}
           alt="WhatsApp"
-          className="w-12 h-12 object-contain"
+          className="w-12 h-12 object-contain drop-shadow-md"
         />
       </motion.a>
-    </>
+    </div>
   );
 };
 

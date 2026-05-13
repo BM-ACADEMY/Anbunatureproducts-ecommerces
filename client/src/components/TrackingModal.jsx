@@ -7,10 +7,12 @@ import TrackingStepper from "./TrackingStepper";
 
 const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
   const [selectedStatus, setSelectedStatus] = useState(order?.tracking_status || "");
+  const [trackingId, setTrackingId] = useState(order?.trackingId || "");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (order?.tracking_status) setSelectedStatus(order.tracking_status);
+    if (order?.trackingId) setTrackingId(order.trackingId);
   }, [order, open]);
 
   const handleUpdateTracking = async () => {
@@ -22,6 +24,7 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
           orderId: order.orderId,
           groupId: order.groupId,
           tracking_status: selectedStatus,
+          trackingId: trackingId,
         },
       });
 
@@ -72,6 +75,18 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
             <TrackingStepper
               trackingStatus={order?.tracking_status}
               isCancelled={order?.isCancelled}
+            />
+          </div>
+
+          {/* Tracking ID Section */}
+          <div className="mb-6 space-y-1.5">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider ml-1">Tracking ID / AWB Number</p>
+            <input 
+              type="text"
+              placeholder="Enter tracking number (e.g. SF123456789)"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-slate-900 transition-all"
+              value={trackingId}
+              onChange={(e) => setTrackingId(e.target.value)}
             />
           </div>
 

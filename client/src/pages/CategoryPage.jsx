@@ -26,11 +26,16 @@ const CategoryPage = () => {
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
     const itemsPerPage = 10;
+
+    const filteredData = categoryData.filter(cat => 
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = categoryData.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePageChange = (value) => {
         setCurrentPage(value);
@@ -79,7 +84,18 @@ const CategoryPage = () => {
         <section className=''>
             {/* Header */}
             <div className='p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white shadow-sm rounded-lg'>
-                <h2 className='font-bold text-xl sm:text-2xl text-slate-800'>Category</h2>
+                <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto'>
+                    <h2 className='font-bold text-xl sm:text-2xl text-slate-800'>Category</h2>
+                    <div className='relative w-full sm:w-64'>
+                        <input 
+                            type="text" 
+                            placeholder='Search category...' 
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            className='w-full bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg outline-none focus:border-[#279d68] transition-all text-sm'
+                        />
+                    </div>
+                </div>
                 <button 
                   onClick={() => setOpenUploadCategory(true)}
                   className='w-full sm:w-auto bg-[#279d68] hover:bg-[#279d68]/90 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all font-bold text-sm sm:text-base shadow-sm active:scale-95'
@@ -131,7 +147,7 @@ const CategoryPage = () => {
             </div>
 
             {/* Pagination */}
-            {categoryData.length > itemsPerPage && (
+            {filteredData.length > itemsPerPage && (
                 <div className='flex items-center justify-center gap-2 mt-6 pb-10'>
                      <button 
                         onClick={() => handlePageChange(currentPage - 1)}
@@ -140,7 +156,7 @@ const CategoryPage = () => {
                      >
                         Prev
                      </button>
-                     {[...Array(Math.ceil(categoryData.length / itemsPerPage))].map((_, i) => (
+                     {[...Array(Math.ceil(filteredData.length / itemsPerPage))].map((_, i) => (
                         <button
                             key={i}
                             onClick={() => handlePageChange(i + 1)}
@@ -151,7 +167,7 @@ const CategoryPage = () => {
                      ))}
                      <button 
                         onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === Math.ceil(categoryData.length / itemsPerPage)}
+                        disabled={currentPage === Math.ceil(filteredData.length / itemsPerPage)}
                         className='px-3 py-1 border rounded hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed'
                      >
                         Next

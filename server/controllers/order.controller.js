@@ -13,7 +13,7 @@ import SubCategoryModel from "../models/subCategory.model.js";
 export async function CashOnDeliveryOrderController(req, res) {
   try {
     const userId = req.userId;
-    const { list_items, addressId, customImage } = req.body;
+    const { list_items, addressId, customImage, donationAmount, shippingCharge } = req.body;
 
     if (!list_items || !addressId) {
       return res.status(400).json({
@@ -26,7 +26,7 @@ export async function CashOnDeliveryOrderController(req, res) {
     const commonGroupId = `GRP-${new mongoose.Types.ObjectId()}`;
 
     const payload = await Promise.all(
-      list_items.map(async (el) => {
+      list_items.map(async (el, index) => {
         let cartItem = null;
         if (el._id) {
             cartItem = await CartProductModel.findById(el._id).populate("productId");
@@ -47,7 +47,7 @@ export async function CashOnDeliveryOrderController(req, res) {
         }
 
         let productBasePrice = cartItem.selectedAttributes.reduce(
-          (sum, attr) => sum + (attr.price || 0),
+          (sum, attr) => sum + (attr.offerPrice || attr.price || 0),
           0
         );
 
@@ -68,7 +68,9 @@ export async function CashOnDeliveryOrderController(req, res) {
           payment_status: "Online Payment",
           delivery_address: addressId,
           subTotalAmt: itemTotal,
-          totalAmt: itemTotal,
+          totalAmt: index === 0 ? itemTotal + (Number(donationAmount) || 0) + (Number(shippingCharge) || 0) : itemTotal,
+          donationAmount: index === 0 ? (Number(donationAmount) || 0) : 0,
+          shippingCharge: index === 0 ? (Number(shippingCharge) || 0) : 0,
           customImage: customImage || "",
         };
       })
@@ -143,6 +145,8 @@ export async function CashOnDeliveryOrderController(req, res) {
         country: delivery.country,
       },
       customImageUrl: customImage || "",
+      donationAmount: Number(donationAmount) || 0,
+      shippingCharge: Number(shippingCharge) || 0,
     };
 
     await sendEmail({
@@ -183,7 +187,7 @@ export const pricewithDiscount = (price, dis = 0) => {
 export async function paymentController(request, response) {
     try {
         const userId = request.userId; // From auth middleware
-        const { list_items, addressId } = request.body;
+        const { list_items, addressId, donationAmount } = request.body;
 
         // Validate input
         if (!list_items || !addressId) {
@@ -236,6 +240,20 @@ export async function paymentController(request, response) {
             };
         });
 
+        if (donationAmount > 0) {
+            line_items.push({
+                price_data: {
+                    currency: "inr",
+                    product_data: {
+                        name: "Foundation Donation",
+                        description: "Charitable donation to foundation",
+                    },
+                    unit_amount: Number(donationAmount) * 100, // Price in paise
+                },
+                quantity: 1,
+            });
+        }
+
         const params = {
             submit_type: "pay",
             mode: "payment",
@@ -244,6 +262,7 @@ export async function paymentController(request, response) {
             metadata: {
                 userId: userId,
                 addressId: addressId,
+                donationAmount: donationAmount || 0,
             },
             line_items: line_items,
             success_url: `${process.env.PRODUCTION_URL}/success`,
@@ -263,12 +282,16 @@ export async function paymentController(request, response) {
     }
 }
 
-export const getOrderProductItems = async ({ lineItems, userId, addressId, paymentId, payment_status, groupId }) => {
+export const getOrderProductItems = async ({ lineItems, userId, addressId, paymentId, payment_status, groupId, donationAmount = 0 }) => {
     const productList = [];
 
     if (lineItems?.data?.length) {
+        let index = 0;
         for (const item of lineItems.data) {
             const product = await Stripe.products.retrieve(item.price.product);
+
+            // Skip foundation donation line item as we handle it separately via metadata
+            if (product.name === "Foundation Donation") continue;
 
             const payload = {
                 userId: userId,
@@ -284,10 +307,12 @@ export const getOrderProductItems = async ({ lineItems, userId, addressId, payme
                 payment_status: payment_status,
                 delivery_address: addressId,
                 subTotalAmt: Number(item.amount_total / 100), // Amount for this product (includes quantity)
-                totalAmt: Number(item.amount_total / 100), // Same as subTotalAmt
+                totalAmt: index === 0 ? Number(item.amount_total / 100) + (Number(donationAmount) || 0) : Number(item.amount_total / 100),
+                donationAmount: index === 0 ? (Number(donationAmount) || 0) : 0,
             };
 
             productList.push(payload);
+            index++;
         }
     }
 
@@ -313,6 +338,7 @@ export async function webhookStripe(request, response) {
                     paymentId: session.payment_intent,
                     payment_status: session.payment_status,
                     groupId: session.id, // Use Stripe session ID as groupId
+                    donationAmount: session.metadata.donationAmount,
                 });
 
                 const order = await OrderModel.insertMany(orderProduct);
@@ -474,7 +500,7 @@ export async function cancelOrderController(request, response) {
 
 export async function updateTrackingStatusController(request, response) {
     try {
-        const { orderId, tracking_status, groupId } = request.body;
+        const { orderId, tracking_status, groupId, trackingId } = request.body;
         const userId = request.userId;
 
         if (!orderId && !groupId) {
@@ -541,20 +567,26 @@ export async function updateTrackingStatusController(request, response) {
             }
         }
 
-        // Update tracking status and add to history for all eligible orders
+        // Update tracking status, trackingId and add to history for all eligible orders
+        const updateData = {
+            tracking_status,
+            $push: {
+                tracking_history: {
+                    status: tracking_status,
+                    updatedBy: userId,
+                },
+            },
+        };
+
+        if (trackingId !== undefined) {
+            updateData.trackingId = trackingId;
+        }
+
         const updateResult = await OrderModel.updateMany(
             { 
                _id: { $in: nonCancelledOrders.map(o => o._id) } 
             },
-            {
-                tracking_status,
-                $push: {
-                    tracking_history: {
-                        status: tracking_status,
-                        updatedBy: userId,
-                    },
-                },
-            }
+            updateData
         );
 
         return response.json({
@@ -627,22 +659,37 @@ export async function deleteOrderController(request, response) {
 
 export async function getOrderStatsController(request, response) {
     try {
+        const { startDate, endDate } = request.query;
+        let dateFilter = { isDeleted: false };
+        
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            
+            dateFilter.createdAt = {
+                $gte: start,
+                $lte: end
+            };
+        }
+
         const totalUsers = await UserModel.countDocuments({ role: "USER" });
-        const totalOrders = await OrderModel.countDocuments({ isDeleted: false });
+        const totalOrders = await OrderModel.countDocuments(dateFilter);
         const canceledOrders = await OrderModel.countDocuments({
-            isDeleted: false,
+            ...dateFilter,
             isCancelled: true,
         });
         const deliveredOrders = await OrderModel.countDocuments({
-            isDeleted: false,
+            ...dateFilter,
             tracking_status: "Delivered",
         });
 
-        // Calculate total revenue from non-cancelled orders
+        // Calculate total revenue from non-cancelled orders with date filter
         const revenueData = await OrderModel.aggregate([
             {
                 $match: {
-                    isDeleted: false,
+                    ...dateFilter,
                     isCancelled: false,
                     payment_status: { $in: ["Online Payment", "paid", "COD", "Cash On Delivery"] }
                 }
@@ -660,95 +707,43 @@ export async function getOrderStatsController(request, response) {
         const totalCategories = await CategoryModel.countDocuments();
         const totalSubCategories = await SubCategoryModel.countDocuments();
 
-        // Time periods for trending products
-        const now = new Date();
-        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-        const startOfWeek = new Date(now.setDate(now.getDate() - 7));
-        const startOfMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
-        const startOfYear = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
-
-        const getTrendingProducts = async (startDate) => {
-            return await OrderModel.aggregate([
-                {
-                    $match: {
-                        isDeleted: false,
-                        isCancelled: false,
-                        createdAt: { $gte: startDate }
-                    }
-                },
-                {
-                    $group: {
-                        _id: "$productId",
-                        totalQuantity: { $sum: "$quantity" },
-                        totalSales: { $sum: "$totalAmt" }
-                    }
-                },
-                { $sort: { totalQuantity: -1 } },
-                { $limit: 10 },
-                {
-                    $lookup: {
-                        from: "products",
-                        localField: "_id",
-                        foreignField: "_id",
-                        as: "productDetails"
-                    }
-                },
-                { $unwind: "$productDetails" },
-                {
-                    $project: {
-                        _id: 1,
-                        totalQuantity: 1,
-                        totalSales: 1,
-                        name: "$productDetails.name",
-                        image: "$productDetails.image"
-                    }
-                }
-            ]);
-        };
-
-        const [trendingDay, trendingWeek, trendingMonth, trendingYear] = await Promise.all([
-            getTrendingProducts(startOfDay),
-            getTrendingProducts(startOfWeek),
-            getTrendingProducts(startOfMonth),
-            getTrendingProducts(startOfYear)
-        ]);
-
-        // Unsold Products
-        const soldProductIds = await OrderModel.distinct("productId", { isDeleted: false, isCancelled: false });
-        const unsoldProducts = await ProductModel.find({
-            _id: { $nin: soldProductIds },
-            publish: true
-        }).select("name image").limit(20);
-
-        // Cancellation stats for the last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const cancellationStats = await OrderModel.aggregate([
+        // Top Selling Products (Global or Date-filtered)
+        const topSellingProducts = await OrderModel.aggregate([
             {
                 $match: {
-                    isDeleted: false,
-                    isCancelled: true,
-                    cancellationDate: { $gte: thirtyDaysAgo }
+                    ...dateFilter,
+                    isCancelled: false
                 }
             },
             {
                 $group: {
-                    _id: {
-                        day: { $dayOfMonth: "$cancellationDate" },
-                        month: { $month: "$cancellationDate" },
-                        year: { $year: "$cancellationDate" }
-                    },
-                    count: { $sum: 1 }
+                    _id: "$productId",
+                    totalQuantity: { $sum: "$quantity" },
+                    totalSales: { $sum: "$totalAmt" }
                 }
             },
-            { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+            { $sort: { totalQuantity: -1 } },
+            { $limit: 15 },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+            {
+                $project: {
+                    _id: 1,
+                    totalQuantity: 1,
+                    totalSales: 1,
+                    name: "$productDetails.name",
+                    image: "$productDetails.image",
+                    price: "$productDetails.price"
+                }
+            }
         ]);
-
-        const formattedCancellationStats = cancellationStats.map(item => ({
-            label: `${item._id.day}/${item._id.month}`,
-            y: item.count
-        }));
 
         // Monthly sales data for the last 6 months
         const sixMonthsAgo = new Date();
@@ -779,9 +774,49 @@ export async function getOrderStatsController(request, response) {
         const formattedMonthlyStats = monthlySales.map(item => ({
             name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
             revenue: item.revenue,
-            orders: item.orders,
-            y: item.revenue // For CanvasJS
+            orders: item.orders
         }));
+
+        // Recent Orders
+        const recentOrders = await OrderModel.find(dateFilter)
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate("userId", "name email")
+            .populate("productId", "name image");
+
+        // Get daily sales trend for top products
+        const topProductIds = topSellingProducts.map(p => p._id);
+        const productTrends = await OrderModel.aggregate([
+            {
+                $match: {
+                    ...dateFilter,
+                    productId: { $in: topProductIds }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        productId: "$productId",
+                        date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
+                    },
+                    quantity: { $sum: 1 },
+                    revenue: { $sum: "$totalAmt" }
+                }
+            },
+            { $sort: { "_id.date": 1 } }
+        ]);
+
+        // Attach trends to topSellingProducts
+        const topSellingWithTrends = topSellingProducts.map(product => {
+            const history = productTrends
+                .filter(t => t._id.productId.toString() === product._id.toString())
+                .map(t => ({
+                    date: t._id.date,
+                    quantity: t.quantity,
+                    revenue: t.revenue
+                }));
+            return { ...product, history };
+        });
 
         return response.json({
             message: "Dashboard statistics",
@@ -796,12 +831,8 @@ export async function getOrderStatsController(request, response) {
                 totalCategories,
                 totalSubCategories,
                 monthlyStats: formattedMonthlyStats,
-                cancellationStats: formattedCancellationStats,
-                trendingDay,
-                trendingWeek,
-                trendingMonth,
-                trendingYear,
-                unsoldProducts
+                topSellingProducts: topSellingWithTrends,
+                recentOrders
             },
             error: false,
             success: true,
@@ -809,6 +840,76 @@ export async function getOrderStatsController(request, response) {
     } catch (error) {
         return response.status(500).json({
             message: error.message || "Failed to fetch dashboard statistics",
+            error: true,
+            success: false,
+        });
+    }
+}
+
+export async function getUserPurchaseHistoryController(request, response) {
+    try {
+        const { userId } = request.params;
+
+        if (!userId) {
+            return response.status(400).json({
+                message: "Provide userId",
+                error: true,
+                success: false,
+            });
+        }
+
+        const user = await UserModel.findById(userId).select("name email mobile avatar createdAt verify_email");
+        const orders = await OrderModel.find({ userId, isDeleted: false })
+            .sort({ createdAt: -1 })
+            .populate("productId", "name image price");
+
+        // Calculate summary stats
+        const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmt || 0), 0);
+        const totalItems = orders.reduce((sum, order) => sum + (order.quantity || 0), 0);
+
+        // Group by date for graph
+        const dailyTrends = await OrderModel.aggregate([
+            {
+                $match: {
+                    userId: new mongoose.Types.ObjectId(userId),
+                    isDeleted: false,
+                    isCancelled: false
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    totalAmt: { $sum: "$totalAmt" },
+                    count: { $sum: "$quantity" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        const formattedTrends = dailyTrends.map(item => ({
+            date: item._id,
+            amount: item.totalAmt,
+            quantity: item.count
+        }));
+
+        return response.json({
+            message: "User purchase history",
+            data: {
+                user,
+                orders,
+                summary: {
+                    totalSpent,
+                    totalItems,
+                    totalOrders: orders.length
+                },
+                trends: formattedTrends
+            },
+            error: false,
+            success: true,
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
             error: true,
             success: false,
         });

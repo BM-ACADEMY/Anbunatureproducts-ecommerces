@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
+import { useSelector } from 'react-redux';
 
 import uploadImage from '../utils/UploadImage';
 import Axios from '../utils/Axios';
@@ -25,8 +26,16 @@ const UploadCategoryModel = ({ close, fetchData }) => {
     }));
   };
 
+  const allCategory = useSelector((state) => state.product.allCategory);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if(allCategory.length >= 10){
+        toast.error("Maximum 10 categories allowed. Please delete existing ones to add more.");
+        return;
+    }
+
     try {
       setLoading(true);
 
@@ -150,13 +159,7 @@ const UploadCategoryModel = ({ close, fetchData }) => {
           <div className='flex flex-col gap-1'>
             <div className='flex items-center justify-between'>
               <label className='text-base font-medium' htmlFor='altText'>SEO Alt Text</label>
-              <button 
-                type='button'
-                onClick={() => setData(prev => ({ ...prev, altText: prev.name }))}
-                className='text-[11px] font-bold text-indigo-600 hover:underline'
-              >
-                Auto-generate
-              </button>
+              
             </div>
             <div className='relative'>
               <input

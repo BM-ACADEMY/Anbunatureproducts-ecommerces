@@ -24,7 +24,6 @@ import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
 import AllOrders from "../pages/AllOrders";
 import About from "../pages/About";
-import Manufacturing from "../pages/Manufacturing";
 import Contact from "../pages/Contact";
 import Processing from "../pages/Processing";
 import DashboardOverview from "../pages/DashboardOverview";
@@ -34,7 +33,19 @@ import CartPage from "../pages/CartPage";
 import WriteReview from "../pages/WriteReview";
 import AdminSiteReviews from "../pages/AdminSiteReviews";
 import AnnouncementAdmin from "../pages/AnnouncementAdmin";
-// import Overview from "../pages/Overview";
+import AdminProductReviews from "../pages/AdminProductReviews";
+import AllUsers from "../pages/AllUsers";
+import UserHistory from "../pages/UserHistory";
+import FoundationAdmin from "../pages/FoundationAdmin";
+import GeneralSettingsAdmin from "../pages/GeneralSettingsAdmin";
+import TermsAndConditions from "../pages/TermsAndConditions";
+import ShippingPolicy from "../pages/ShippingPolicy";
+import ReturnRefundPolicy from "../pages/ReturnRefundPolicy";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import PaymentPolicy from "../pages/PaymentPolicy";
+import DisclaimerPage from "../pages/DisclaimerPage";
+import DonationPolicy from "../pages/DonationPolicy";
+
 
 const router = createBrowserRouter([
 
@@ -59,10 +70,6 @@ const router = createBrowserRouter([
         element: <Processing />,
       },
       {
-        path: "manufacturing",
-        element: <Manufacturing />,
-      },
-      {
         path: "contact",
         element: <Contact />,
       },
@@ -78,6 +85,35 @@ const router = createBrowserRouter([
         path: "write-review",
         element: <WriteReview />,
       },
+      {
+        path: "terms-and-conditions",
+        element: <TermsAndConditions />,
+      },
+      {
+        path: "shipping-policy",
+        element: <ShippingPolicy />,
+      },
+      {
+        path: "return-refund-policy",
+        element: <ReturnRefundPolicy />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "payment-policy",
+        element: <PaymentPolicy />,
+      },
+      {
+        path: "disclaimer",
+        element: <DisclaimerPage />,
+      },
+      {
+        path: "donation-policy",
+        element: <DonationPolicy />,
+      },
+
 
       {
         path: "login",
@@ -118,7 +154,11 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        element: <Dashboard />,
+        element: (
+          <AdminPermision>
+            <Dashboard />
+          </AdminPermision>
+        ),
         children: [
           {
             index: true,
@@ -189,6 +229,46 @@ const router = createBrowserRouter([
             element: (
               <AdminPermision>
                 <AnnouncementAdmin />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "product-reviews",
+            element: (
+              <AdminPermision>
+                <AdminProductReviews />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "users",
+            element: (
+              <AdminPermision>
+                <AllUsers />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "user-history/:userId",
+            element: (
+              <AdminPermision>
+                <UserHistory />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "foundation",
+            element: (
+              <AdminPermision>
+                <FoundationAdmin />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "settings",
+            element: (
+              <AdminPermision>
+                <GeneralSettingsAdmin />
               </AdminPermision>
             ),
           },

@@ -15,7 +15,7 @@ import "swiper/css/navigation";
 import "swiper/css/autoplay";
 
 import BannerSlider from "../components/BannerSlider";
-import WhyChooseUs from "../components/WhyChooseUs";
+import WellnessClock from "../components/WellnessClock";
 import FounderSection from "../components/FounderSection";
 import TestimonialSection from "../components/TestimonialSection";
 
@@ -141,7 +141,7 @@ const Home = () => {
         />
       </div>
 
-      <WhyChooseUs />
+      <WellnessClock />
       <FounderSection />
       <TestimonialSection />
 

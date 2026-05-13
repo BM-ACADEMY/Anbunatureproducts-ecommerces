@@ -174,6 +174,7 @@ const GlobalProvider = ({ children }) => {
   const [notDiscountTotalPrice, setNotDiscountTotalPrice] = useState(0);
   const [totalQty, setTotalQty] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [settings, setSettings] = useState({ shippingCharge: 0, freeShippingThreshold: 0 });
   const cartItem = useSelector((state) => state.cartItem.cart);
   const user = useSelector((state) => state?.user);
 
@@ -293,6 +294,21 @@ const GlobalProvider = ({ children }) => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const response = await Axios(SummaryApi.getSettings);
+      if (response.data.success) {
+        setSettings(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching settings", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   useEffect(() => {
     if (user._id) {
       fetchCartItem();
@@ -315,6 +331,8 @@ const GlobalProvider = ({ children }) => {
         handleLogoutOut,
         isCartOpen,
         setIsCartOpen,
+        settings,
+        fetchSettings,
       }}
     >
       {children}

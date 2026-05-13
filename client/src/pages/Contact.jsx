@@ -25,7 +25,7 @@ const Contact = () => {
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0">
         <iframe
           title="Google Map Location"
-          src="https://maps.google.com/maps?q=anbu+natural+products&t=&z=13&ie=UTF8&iwloc=&output=embed" // Replace with your actual embed URL
+          src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d2583.7659132320296!2d78.41315923530254!3d10.61000998952879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTDCsDM2JzM2LjAiTiA3OMKwMjQnNTIuMCJF!5e1!3m2!1sen!2sin!4v1778651636830!5m2!1sen!2sin"
           width="100%"
           height="100%"
           style={{ border: 0, filter: 'grayscale(0.2) contrast(1.1)' }}
@@ -104,8 +104,9 @@ const Contact = () => {
                   <div>
                     <h3 className="font-medium text-emerald-100 text-sm mb-1">Location</h3>
                     <p className="text-white">
-                      Puducherry, Tamil Nadu<br />
-                      India
+                      30, veerachi south Street, Vellakal,<br />
+                      Manaparai Tk, Trichy Dt. Tamilnadu<br />
+                      India - 621307
                     </p>
                   </div>
                 </div>

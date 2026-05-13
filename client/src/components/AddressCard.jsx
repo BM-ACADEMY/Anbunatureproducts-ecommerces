@@ -15,8 +15,8 @@ const AddressCard = ({
             onClick={() => onSelect?.(address._id)}
             className={`relative border rounded-2xl p-5 transition-all duration-300 cursor-pointer ${
                 isSelected
-                ? "border-[#BC2E2E] bg-red-50/10 shadow-md ring-1 ring-[#BC2E2E]/20"
-                : "border-slate-200 bg-white hover:border-[#BC2E2E]/30 hover:shadow-lg hover:shadow-slate-100"
+                ? "border-[#e5e7eb] bg-red-50/10 shadow-md ring-1 ring-[#e5e7eb]/20"
+                : "border-slate-200 bg-white hover:border-[#e5e7eb]/30 hover:shadow-lg hover:shadow-slate-100"
             }`}
         >
             <div className="flex gap-4 items-start">

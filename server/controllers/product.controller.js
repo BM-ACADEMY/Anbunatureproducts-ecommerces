@@ -23,14 +23,22 @@ const validateAttributes = (attributes) => {
     }
     for (const option of attrGroup.options) {
       if (typeof option !== 'object' || option === null || !option.name || 
-          typeof option.originalPrice !== 'number' || isNaN(option.originalPrice) || option.originalPrice < 0 ||
-          typeof option.offerPrice !== 'number' || isNaN(option.offerPrice) || option.offerPrice < 0) {
-        return `Option in '${attrGroup.name}' must have a 'name', 'originalPrice' and 'offerPrice'.`;
+          typeof option.originalPrice !== 'number' || isNaN(option.originalPrice) || option.originalPrice < 0) {
+        return `Option in '${attrGroup.name}' must have a 'name' and 'originalPrice'.`;
       }
-      // Sync price with offerPrice for backward compatibility if price is not provided
-      if (option.price === undefined) {
-        option.price = option.offerPrice;
+      
+      // Handle optional offerPrice
+      if (option.offerPrice === undefined || option.offerPrice === null || option.offerPrice === 0) {
+        option.offerPrice = option.originalPrice;
       }
+
+      if (typeof option.offerPrice !== 'number' || isNaN(option.offerPrice) || option.offerPrice < 0) {
+        return `Option in '${attrGroup.name}' must have a valid 'offerPrice' if provided.`;
+      }
+
+      // Sync price with offerPrice for backward compatibility
+      option.price = option.offerPrice;
+
       if (option.stock !== undefined && option.stock !== null && (typeof option.stock !== 'number' || isNaN(option.stock) || option.stock < 0)) {
         return `Stock in option '${option.name}' for '${attrGroup.name}' must be a valid number or null.`;
       }
@@ -91,6 +99,19 @@ export const createProductController = async (request, response) => {
       });
     }
 
+    if (subCategory && Array.isArray(subCategory)) {
+        for (const subId of subCategory) {
+            const productCount = await ProductModel.countDocuments({ subCategory: subId });
+            if (productCount >= 50) {
+                return response.status(400).json({
+                    message: `Subcategory is full. Maximum 50 products allowed per subcategory.`,
+                    error: true,
+                    success: false
+                });
+            }
+        }
+    }
+
     const attributeValidationError = validateAttributes(attributes);
     if (attributeValidationError) {
       return response.status(400).json({
@@ -100,17 +121,19 @@ export const createProductController = async (request, response) => {
       });
     }
 
-    if (attributes && attributes.length > 0) {
-      let hasPriceInAttributes = false;
-      for (const attrGroup of attributes) {
-        if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice))) {
-          hasPriceInAttributes = true;
-          break;
+    if (publish) {
+      let hasPrice = false;
+      if (attributes && Array.isArray(attributes)) {
+        for (const attrGroup of attributes) {
+          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice) && option.offerPrice > 0)) {
+            hasPrice = true;
+            break;
+          }
         }
       }
-      if (!hasPriceInAttributes) {
+      if (!hasPrice) {
         return response.status(400).json({
-          message: "If attributes are provided, at least one attribute option must have a valid offer price.",
+          message: "Cannot publish a product without a valid price. Please add at least one pricing option.",
           error: true,
           success: false
         });
@@ -267,22 +290,28 @@ export const updateProductDetails = async (request, response) => {
         });
       }
 
-      if (attributes && attributes.length > 0) {
-        let hasPriceInAttributes = false;
-        for (const attrGroup of attributes) {
-          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice))) {
-            hasPriceInAttributes = true;
+    if (publish) {
+      let hasPrice = false;
+      // Check provided attributes or existing attributes if not provided
+      const attrsToCheck = attributes !== undefined ? attributes : (await ProductModel.findById(_id))?.attributes;
+      
+      if (attrsToCheck && Array.isArray(attrsToCheck)) {
+        for (const attrGroup of attrsToCheck) {
+          if (attrGroup.options && attrGroup.options.some(option => typeof option.offerPrice === 'number' && !isNaN(option.offerPrice) && option.offerPrice > 0)) {
+            hasPrice = true;
             break;
           }
         }
-        if (!hasPriceInAttributes) {
-          return response.status(400).json({
-            message: "If attributes are updated and provided, at least one attribute option must have a valid offer price.",
-            error: true,
-            success: false
-          });
-        }
       }
+      
+      if (!hasPrice) {
+        return response.status(400).json({
+          message: "Cannot publish a product without a valid price. Please add at least one pricing option.",
+          error: true,
+          success: false
+        });
+      }
+    }
     }
 
     if (reviews !== undefined && reviews !== null) {
@@ -489,7 +518,7 @@ export const getRecentProducts = async (request, response) => {
 
 export const getProductByCategory = async (request, response) => {
   try {
-    let { page = 1, limit = 10, categoryId, minPrice, maxPrice, minRating } = request.body;
+    let { page = 1, limit = 10, categoryId, minPrice, maxPrice, minRating, inStock, sort } = request.body;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
@@ -515,6 +544,10 @@ export const getProductByCategory = async (request, response) => {
       if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
     }
 
+    if (inStock) {
+      matchQuery["attributes.options.stock"] = { $gt: 0 };
+    }
+
     const maxPriceResult = await ProductModel.aggregate([
       { $match: baseMatchQuery },
       { $unwind: "$attributes" },
@@ -535,7 +568,8 @@ export const getProductByCategory = async (request, response) => {
               then: { $avg: "$reviews.stars" },
               else: 0
             }
-          }
+          },
+          minOfferPrice: { $min: "$attributes.options.offerPrice" }
         }
       }
     ];
@@ -544,10 +578,16 @@ export const getProductByCategory = async (request, response) => {
       pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
     }
 
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sort === "priceLowToHigh") sortObj = { minOfferPrice: 1 };
+    else if (sort === "priceHighToLow") sortObj = { minOfferPrice: -1 };
+    else if (sort === "rating") sortObj = { averageRating: -1 };
+
     const countPipeline = [...pipeline, { $count: "total" }];
 
     pipeline.push(
-      { $sort: { createdAt: -1 } },
+      { $sort: sortObj },
       { $skip: skip },
       { $limit: limit },
       {
@@ -597,11 +637,171 @@ export const getProductByCategory = async (request, response) => {
 
 
 /**
- * Other controller functions (unchanged)
+ * Deletes a review from a product.
  */
+export const deleteReviewController = async (request, response) => {
+  try {
+    const { productId, reviewId } = request.body;
+
+    if (!productId || !reviewId) {
+      return response.status(400).json({
+        message: "Please provide both productId and reviewId.",
+        error: true,
+        success: false
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return response.status(400).json({
+        message: "Invalid Product ID format.",
+        error: true,
+        success: false
+      });
+    }
+
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return response.status(404).json({
+        message: "Product not found.",
+        error: true,
+        success: false
+      });
+    }
+
+    // Filter out the review to be deleted
+    const initialReviewCount = product.reviews.length;
+    product.reviews = product.reviews.filter(review => review._id.toString() !== reviewId);
+
+    if (product.reviews.length === initialReviewCount) {
+      return response.status(404).json({
+        message: "Review not found in this product.",
+        error: true,
+        success: false
+      });
+    }
+
+    await product.save();
+
+    return response.json({
+      message: "Review deleted successfully.",
+      error: false,
+      success: true
+    });
+
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return response.status(500).json({
+      message: error.message || "An internal server error occurred.",
+      error: true,
+      success: false
+    });
+  }
+};
+
+/**
+ * Updates an existing review in a product.
+ */
+export const updateReviewController = async (request, response) => {
+  try {
+    const { productId, reviewId, name, stars, comment } = request.body;
+
+    if (!productId || !reviewId || !name || !stars || !comment) {
+      return response.status(400).json({
+        message: "Please provide all required fields: productId, reviewId, name, stars, and comment.",
+        error: true,
+        success: false
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return response.status(400).json({
+        message: "Invalid Product ID format.",
+        error: true,
+        success: false
+      });
+    }
+
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return response.status(404).json({
+        message: "Product not found.",
+        error: true,
+        success: false
+      });
+    }
+
+    const review = product.reviews.id(reviewId);
+    if (!review) {
+      return response.status(404).json({
+        message: "Review not found.",
+        error: true,
+        success: false
+      });
+    }
+
+    // Update review fields
+    review.name = name;
+    review.stars = stars;
+    review.comment = comment;
+
+    await product.save();
+
+    return response.json({
+      message: "Review updated successfully.",
+      data: review,
+      error: false,
+      success: true
+    });
+
+  } catch (error) {
+    console.error("Error updating review:", error);
+    return response.status(500).json({
+      message: error.message || "An internal server error occurred.",
+      error: true,
+      success: false
+    });
+  }
+};
+
+/**
+ * Fetches all reviews across all products (for admin).
+ */
+export const getAllProductReviewsController = async (request, response) => {
+  try {
+    const products = await ProductModel.find({ "reviews.0": { $exists: true } }, 'name reviews image');
+    
+    let allReviews = [];
+    products.forEach(product => {
+      const productReviews = product.reviews.map(review => ({
+        ...review.toObject(),
+        productId: product._id,
+        productName: product.name,
+        productImage: product.image[0]
+      }));
+      allReviews = [...allReviews, ...productReviews];
+    });
+
+    // Sort all reviews by date (newest first)
+    allReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    return response.json({
+      message: "All product reviews fetched successfully.",
+      data: allReviews,
+      error: false,
+      success: true
+    });
+  } catch (error) {
+    console.error("Error fetching all reviews:", error);
+    return response.status(500).json({
+      message: error.message || "An internal server error occurred.",
+      error: true,
+      success: false
+    });
+  }
+};
 export const getProductController = async (request, response) => {
   try {
-    let { page = 1, limit = 10, search, minPrice, maxPrice, minRating } = request.body;
+    let { page = 1, limit = 10, search, minPrice, maxPrice, minRating, inStock, sort } = request.body;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
@@ -620,6 +820,10 @@ export const getProductController = async (request, response) => {
       matchQuery["attributes.options.offerPrice"] = {};
       if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
       if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
+    }
+
+    if (inStock) {
+      matchQuery["attributes.options.stock"] = { $gt: 0 };
     }
 
     const maxPriceResult = await ProductModel.aggregate([
@@ -642,7 +846,9 @@ export const getProductController = async (request, response) => {
               then: { $avg: "$reviews.stars" },
               else: 0
             }
-          }
+          },
+          // Add a minPrice field for sorting
+          minOfferPrice: { $min: "$attributes.options.offerPrice" }
         }
       }
     ];
@@ -651,11 +857,17 @@ export const getProductController = async (request, response) => {
       pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
     }
 
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sort === "priceLowToHigh") sortObj = { minOfferPrice: 1 };
+    else if (sort === "priceHighToLow") sortObj = { minOfferPrice: -1 };
+    else if (sort === "rating") sortObj = { averageRating: -1 };
+
     // Clone pipeline for count
     const countPipeline = [...pipeline, { $count: "total" }];
 
     pipeline.push(
-      { $sort: { createdAt: -1 } },
+      { $sort: sortObj },
       { $skip: skip },
       { $limit: limit },
       {
@@ -884,7 +1096,7 @@ export const deleteProductDetails = async (request, response) => {
 
 export const searchProduct = async (request, response) => {
   try {
-    let { search, page = 1, limit = 10 } = request.body;
+    let { search, page = 1, limit = 10, minPrice, maxPrice, minRating, inStock, sort } = request.body;
 
     if (!search || search.trim() === "") {
       return response.json({
@@ -901,19 +1113,84 @@ export const searchProduct = async (request, response) => {
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
 
-    const query = {
+    const baseMatchQuery = {
+      publish: true,
       $or: [
         { name: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } }
       ]
     };
 
+    const matchQuery = { ...baseMatchQuery };
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      matchQuery["attributes.options.offerPrice"] = {};
+      if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
+      if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
+    }
+
+    if (inStock) {
+      matchQuery["attributes.options.stock"] = { $gt: 0 };
+    }
+
     const skip = (page - 1) * limit;
 
-    const [data, totalCount] = await Promise.all([
-      ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
-      ProductModel.countDocuments(query)
+    const pipeline = [
+      { $match: matchQuery },
+      {
+        $addFields: {
+          averageRating: {
+            $cond: {
+              if: { $gt: [{ $size: "$reviews" }, 0] },
+              then: { $avg: "$reviews.stars" },
+              else: 0
+            }
+          },
+          minOfferPrice: { $min: "$attributes.options.offerPrice" }
+        }
+      }
+    ];
+
+    if (minRating) {
+      pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
+    }
+
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sort === "priceLowToHigh") sortObj = { minOfferPrice: 1 };
+    else if (sort === "priceHighToLow") sortObj = { minOfferPrice: -1 };
+    else if (sort === "rating") sortObj = { averageRating: -1 };
+
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push(
+      { $sort: sortObj },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      {
+        $lookup: {
+          from: 'subcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory'
+        }
+      }
+    );
+
+    const [data, countResult] = await Promise.all([
+      ProductModel.aggregate(pipeline),
+      ProductModel.aggregate(countPipeline)
     ]);
+
+    const totalCount = countResult.length > 0 ? countResult[0].total : 0;
 
     return response.json({
       message: "Product search results",

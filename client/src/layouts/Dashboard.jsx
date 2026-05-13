@@ -3,7 +3,7 @@ import UserMenu from "../components/UserMenu";
 import DashboardHeader from "../components/DashboardHeader";
 import { Link, Outlet } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
-const logo = "/assets/common/logo.png";
+const logo = "/assets/common/logoheader.png";
 import "../assets/css/dashboard.css";
 
 const Dashboard = () => {
@@ -41,14 +41,7 @@ const Dashboard = () => {
       >
         <Link to="/">
           <div className="sidebar-logo">
-            {isCollapsed ? (
-              <img src={logo} alt="Anbu Logo" className="logo-img mx-auto" />
-            ) : (
-              <>
-                <img src={logo} alt="Anbu Logo" className="logo-img" />
-                <span className="logo-text">Anbu</span>
-              </>
-            )}
+            <img src={isCollapsed ? logo : logo} alt="Anbu Logo" className="logo-img" />
           </div>
         </Link>
         <div className="sidebar-content">

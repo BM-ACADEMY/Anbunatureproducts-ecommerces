@@ -1,507 +1,486 @@
-// import React from "react";
-// import {
-//   Container,
-//   Breadcrumbs,
-//   Link,
-//   Typography,
-//   Button,
-//   List,
-//   ListItem,
-//   ListItemIcon,
-//   ListItemText,
-// } from "@mui/material";
-// import { Leaf, Shield, Hand, Book, Heart, Check } from "lucide-react";
-// import AboutImage from "../assets/about.png"; // Update with appropriate image
-// // import TestimonialSlider from "./Reviews";
-// import { Link as RouterLink } from 'react-router-dom';
-
-
-// const AboutUs = () => {
-//   const features = [
-//     {
-//       title: "100% Natural & Herbal Ingredients",
-//       description:
-//         "Crafted with pure, herbal, and organic ingredients, free from chemicals and preservatives.",
-//       icon: <Leaf className="w-6 h-6 text-green-600" />,
-//     },
-//     {
-//       title: "No Chemicals, No Artificial Preservatives",
-//       description:
-//         "Completely free from harmful chemicals and synthetic additives for safe use.",
-//       icon: <Shield className="w-6 h-6 text-green-600" />,
-//     },
-//     {
-//       title: "Made in Small Batches with Quality & Care",
-//       description:
-//         "Handcrafted in small batches to ensure consistent quality and attention to detail.",
-//       icon: <Hand className="w-6 h-6 text-green-600" />,
-//     },
-//     {
-//       title: "Inspired by Traditional Indian Wisdom",
-//       description:
-//         "Rooted in time-tested Indian recipes for holistic health, skincare, and haircare.",
-//       icon: <Book className="w-6 h-6 text-green-600" />,
-//     },
-//     {
-//       title: "Focused on Health, Family, and Sustainability",
-//       description:
-//         "Promoting wellness for families and sustainable practices for communities.",
-//       icon: <Heart className="w-6 h-6 text-green-600" />,
-//     },
-//   ];
-
-//   return (
-//     <div className="min-h-screen font-outfit">
-//       {/* Header */}
-//       <header className="bg-[#f5f5f5] py-6">
-//         <Container maxWidth="lg">
-//           <h1 className="text-3xl font-medium text-center pb-5 font-outfit">
-//             About Anbu Natural
-//           </h1>
-//           <Breadcrumbs
-//             aria-label="breadcrumb"
-//             className="mt-4 flex justify-center"
-//           >
-//             <Link underline="hover" color="inherit" href="/">
-//               Home
-//             </Link>
-//             <Typography color="text.primary">About Us</Typography>
-//           </Breadcrumbs>
-//         </Container>
-//       </header>
-
-//       {/* Main Section */}
-//       <main className="py-12 bg-white">
-//         <Container maxWidth="lg" className="flex flex-col md:flex-row gap-8">
-//           <div className="md:w-1/2 relative">
-//             <img
-//               src={AboutImage}
-//               alt="Anbu Natural products"
-//               className="w-full h-96 object-cover rounded-lg"
-//             />
-//             <div className="absolute top-4 left-4 bg-white text-green-600 px-4 py-2 font-mulish rounded">
-//               Inspired by Nature
-//             </div>
-//           </div>
-
-//           <div className="md:w-1/2 flex flex-col justify-center">
-//             <h2 className="text-3xl font-medium mb-4 font-outfit">
-//               Bringing Back Nature, Rooted in Love
-//             </h2>
-//             <strong className="text-lg font-light text-gray-400 mb-6 font-outfit">
-//               Stay Organic, Stay Natural
-//             </strong>
-//             <p className="text-gray-600 mb-4">
-//               At Anbu Natural, we believe true wellness begins with what we put
-//               into and onto our bodies. Our handcrafted products use natural,
-//               herbal, and organic ingredients that are safe, effective, and
-//               chemical-free.
-//             </p>
-//             <p className="text-gray-600">
-//               What started as a small dream is now a growing movement to make
-//               natural living affordable and accessible to every home. We
-//               specialize in creating products for daily health, baby care, women
-//               wellness, skincare, and haircare, using time-tested recipes passed
-//               down through generations. Every batch is made with love, purity,
-//               and purpose. From millet health mixes to herbal hair oils and
-//               sanitary napkins, every product is made with love, ensuring
-//               purity, safety, and sustainability.
-//             </p>
-//           </div>
-//         </Container>
-//       </main>
-
-//       {/* Mission & Vision Section */}
-//       <section className="py-12 bg-[#f7f7f7]">
-//         <Container maxWidth="lg">
-//           <div className="max-w-4xl mx-auto">
-//             <div className="mb-6">
-//               <span className="inline-block bg-green-100 text-green-600 text-sm font-medium py-2 px-4 rounded-full border border-green-300">
-//                 Our Mission
-//               </span>
-//             </div>
-//             <h2 className="text-3xl md:text-4xl font-light mb-4 font-outfit">
-//               Safe, Natural, and Affordable Wellness
-//             </h2>
-//             <p className="text-gray-600 font-light mb-6">
-//               To provide safe, natural, and affordable products that improve the
-//               health and lives of individuals and families — while supporting
-//               traditional farming and women empowerment.
-//             </p>
-//             <h3 className="text-xl font-medium mb-4 font-outfit">Our Vision</h3>
-//             <p className="text-gray-600 font-light">
-//               To become a trusted household name in herbal and natural wellness
-//               across India and the world, while continuing to innovate and
-//               empower communities.
-//             </p>
-//           </div>
-//         </Container>
-//       </section>
-
-//       {/* Why Choose Us */}
-//       <section className="py-12 bg-white">
-//         <Container maxWidth="lg">
-//           <h2 className="text-3xl font-medium mb-8 text-center font-outfit">
-//             Why Choose Anbu Natural?
-//           </h2>
-//           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-//             {features.map((feature, index) => (
-//               <div
-//                 key={index}
-//                 className="bg-[#f7f7f7] rounded-lg transition-all duration-300 overflow-hidden flex flex-col items-center hover:bg-green-50"
-//               >
-//                 <div className="p-6 text-center w-full">
-//                   <div className="flex justify-center mb-4">{feature.icon}</div>
-//                   <h3 className="text-xl font-medium font-outfit text-gray-800 mb-4">
-//                     {feature.title}
-//                   </h3>
-//                   <p className="text-gray-400 font-light font-outfit">
-//                     {feature.description}
-//                   </p>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </Container>
-//       </section>
-
-//       {/* Anbu Care Trust */}
-//       <section className="py-12 bg-[#f5f5f5]">
-//         <Container maxWidth="lg">
-//           <h2 className="text-3xl font-medium mb-4 text-center font-outfit">
-//             Expanding Our Mission Through Anbu Care Trust
-//           </h2>
-//           <p className="text-gray-600 text-center mb-6 max-w-3xl mx-auto">
-//             Anbu Natural is not just a business — it's a mission. Through our
-//             registered non-profit trust, Anbu Care Trust, we extend our love and
-//             care to the needy, malnourished children, pregnant mothers, and
-//             underprivileged communities in rural areas. We believe everyone
-//             deserves health, dignity, and support — no matter their background.
-//           </p>
-//           <div className="py-10">
-//             <h2 className="text-3xl font-medium mb-8 text-center font-outfit">
-//               Our Mission
-//             </h2>
-//             <div className="flex justify-center">
-//               <List className="w-full max-w-2xl space-y-2">
-//                 <ListItem>
-//                   <ListItemIcon>
-//                     <Check className="w-5 h-5 text-green-600" />
-//                   </ListItemIcon>
-//                   <ListItemText primary="Provide free nutrition kits to undernourished children and pregnant women" />
-//                 </ListItem>
-//                 <ListItem>
-//                   <ListItemIcon>
-//                     <Check className="w-5 h-5 text-green-600" />
-//                   </ListItemIcon>
-//                   <ListItemText primary="Distribute herbal health mixes, sanitary napkins, and baby care packs to low-income families" />
-//                 </ListItem>
-//                 <ListItem>
-//                   <ListItemIcon>
-//                     <Check className="w-5 h-5 text-green-600" />
-//                   </ListItemIcon>
-//                   <ListItemText primary="Conduct wellness education camps in villages and slums" />
-//                 </ListItem>
-//                 <ListItem>
-//                   <ListItemIcon>
-//                     <Check className="w-5 h-5 text-green-600" />
-//                   </ListItemIcon>
-//                   <ListItemText primary="Empower women with health awareness and training in natural product making" />
-//                 </ListItem>
-//               </List>
-//             </div>
-//           </div>
-
-//           <p className="text-gray-600 text-center mt-6 mb-6 max-w-3xl mx-auto">
-//             When you buy a product from Anbu Natural, a portion of your support
-//             goes directly to serve someone in need.
-//           </p>
-//           <div className="mb-6 text-center">
-//             <span className="inline-block bg-green-100 text-green-600 text-sm font-medium py-2 px-4 rounded-full border border-green-300">
-//               Our Concern
-//             </span>
-//           </div>
-//           <p className="text-gray-600 text-center mb-6 max-w-3xl mx-auto">
-//             To create a healthier, more conscious world — where natural wellness
-//             and compassionate service go hand in hand.
-//           </p>
-//         </Container>
-//       </section>
-
-//       {/* Join Our Journey */}
-//       <section className="py-12 bg-white">
-//         <Container maxWidth="lg">
-//           <h2 className="text-3xl font-medium mb-4 text-center font-outfit">
-//             Join Our Journey
-//           </h2>
-//           <p className="text-gray-600 text-center mb-6 max-w-3xl mx-auto">
-//             Support local. Support natural. Support purpose. Together with our
-//             customers, partners, and community, we aim to build a brand with
-//             soul and a mission with action.
-//           </p>
-//           <h3 className="text-xl font-medium mb-4 text-center font-outfit">
-//             Let's Grow Together
-//           </h3>
-//           <p className="text-gray-600 text-center mb-6 max-w-3xl mx-auto">
-//             When you choose Anbu Natural, you’re not just buying a product —
-//             you're joining a community that values health, honesty, and
-//             heritage.
-//           </p>
-//           <div className="text-center mt-6">
-//             <button
-//   component={RouterLink}
-//   to="/"
-//   className="bg-green-600 hover:bg-green-700 p-2 text-white mr-4"
-// >
-//   Shop With Us
-// </button>
-//           </div>
-//         </Container>
-//       </section>
-
-//     </div>
-//   );
-// };
-
-// export default AboutUs;
-
-
-
-
-
-import React from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import {
-  Container,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-import { Leaf, Shield, Hand, Book, Heart, Check } from "lucide-react";
-const AboutImage = "/assets/about/about.webp"; 
-import { Link as RouterLink } from 'react-router-dom';
-import { FaLeaf, FaEye } from "react-icons/fa";
+  Leaf as LeafIcon, Heart, Baby, Sprout, Shield, Award, Smile, Handshake,
+  TrendingUp, TreePine, UtensilsCrossed, Wheat, FlaskConical, Pill,
+  Flag, Factory, Star, ClipboardList, Home, HeartHandshake, Salad,
+  CheckCircle2, X
+} from "lucide-react";
 
+const useScrollInView = (threshold = 0.15) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: threshold });
+  return [ref, isInView];
+};
 
-const AboutUs = () => {
-  const features = [
-    {
-      title: "100% Natural & Herbal Ingredients",
-      description: "Crafted with pure, herbal, and organic ingredients, free from chemicals and preservatives.",
-      icon: <Leaf className="w-6 h-6 text-green-600" />,
-    },
-    {
-      title: "No Chemicals, No Artificial Preservatives",
-      description: "Completely free from harmful chemicals and synthetic additives for safe use.",
-      icon: <Shield className="w-6 h-6 text-green-600" />,
-    },
-    {
-      title: "Made in Small Batches with Quality & Care",
-      description: "Handcrafted in small batches to ensure consistent quality and attention to detail.",
-      icon: <Hand className="w-6 h-6 text-green-600" />,
-    },
-    {
-      title: "Inspired by Traditional Indian Wisdom",
-      description: "Rooted in time-tested Indian recipes for holistic health, skincare, and haircare.",
-      icon: <Book className="w-6 h-6 text-green-600" />,
-    },
-    {
-      title: "Focused on Health, Family, and Sustainability",
-      description: "Promoting wellness for families and sustainable practices for communities.",
-      icon: <Heart className="w-6 h-6 text-green-600" />,
-    },
-  ];
+const fadeUp = {
+  hidden: { opacity: 0, y: 50 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.75, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }
+  })
+};
 
+import FounderSection from "../components/FounderSection";
+
+const slideLeft = {
+  hidden: { opacity: 0, x: -50 },
+  visible: (i = 0) => ({
+    opacity: 1, x: 0,
+    transition: { duration: 0.7, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }
+  })
+};
+
+const slideRight = {
+  hidden: { opacity: 0, x: 50 },
+  visible: (i = 0) => ({
+    opacity: 1, x: 0,
+    transition: { duration: 0.7, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }
+  })
+};
+
+const Leaf = ({ className = "", style = {} }) => (
+  <svg viewBox="0 0 60 80" className={className} style={style} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30 75 C30 75 5 55 5 30 C5 10 20 2 30 2 C40 2 55 10 55 30 C55 55 30 75 30 75Z" fill="currentColor" opacity="0.22"/>
+    <path d="M30 75 L30 10" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
+    <path d="M30 30 C20 25 12 28 8 32" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
+    <path d="M30 45 C40 40 48 43 52 47" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
+  </svg>
+);
+
+const Divider = ({ dark = false }) => (
+  <div className="flex items-center justify-center gap-4 my-4">
+    <div className="h-px w-16" style={{ background: dark ? "linear-gradient(to right, transparent, #6ee7b7)" : "linear-gradient(to right, transparent, #059669)" }} />
+    <Leaf style={{ width: 20, color: dark ? "#6ee7b7" : "#059669" }} />
+    <div className="h-px w-16" style={{ background: dark ? "linear-gradient(to left, transparent, #6ee7b7)" : "linear-gradient(to left, transparent, #059669)" }} />
+  </div>
+);
+
+const TimelineItem = ({ year, text, icon, i, isLast }) => {
+  const [ref, inView] = useScrollInView();
   return (
-    <div className="min-h-screen font-outfit">
-      
-      {/* Hero Section */}
-      <div className="relative w-full overflow-hidden pt-10">
-        {/* Background SVG Pattern */}
-        <svg className="size-full absolute -z-10 inset-0" width="1440" height="720" viewBox="0 0 1440 720" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path stroke="#5ab14b3f" strokeOpacity=".7" d="M-15.227 702.342H1439.7" />
-          <circle cx="711.819" cy="372.562" r="308.334" stroke="#5ab14b3f" strokeOpacity=".7" />
-          <circle cx="16.942" cy="20.834" r="308.334" stroke="#5ab14b3f" strokeOpacity=".7" />
-          <path stroke="#5ab14b3f" strokeOpacity=".7" d="M-15.227 573.66H1439.7M-15.227 164.029H1439.7" />
-          <circle cx="782.595" cy="411.166" r="308.334" stroke="#5ab14b3f" strokeOpacity=".7" />
-        </svg>
-
-        <Container maxWidth="lg" className="relative z-10">
-          <div className="flex flex-col max-md:gap-16 md:flex-row pb-20 items-center justify-between mt-10">
-            <div className="flex flex-col items-center md:items-start md:pr-8">              
-             <h1 className="text-center md:text-left text-3xl leading-tight md:text-4xl md:leading-[1.2] lg:text-5xl lg:leading-[1.2] font-semibold max-w-xl text-slate-900 mt-6 font-outfit">
-        Bringing Back Nature, <br className="hidden md:block" /> Rooted in Love.
-      </h1>
-              
-              <div className="space-y-4 text-center md:text-left text-base text-slate-600 max-w-lg mt-6 font-outfit leading-relaxed">
-                <p>
-                  At Anbu Natural, we believe true wellness begins with what we put into and onto our bodies. 
-                  Our handcrafted products use natural, herbal, and organic ingredients that are safe, effective, and chemical-free.
-                </p>
-                <p>
-                  What started as a small dream is now a movement to make natural living affordable and accessible. 
-                  From millet health mixes to herbal hair oils and baby care, every batch is made with purity, safety, and purpose.
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-4 mt-10 text-sm font-outfit">
-                <RouterLink 
-                  to="/all-products"
-                  className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center active:scale-95 transition-all rounded-md px-8 h-12 font-medium"
-                >
-                  Shop Now
-                </RouterLink>
-              </div>
-            </div>
-            
-            <div className="relative mt-10 md:mt-0">
-              <img 
-                src={AboutImage} 
-                alt="Anbu Natural Products" 
-                className="w-full max-w-xs sm:max-w-sm lg:max-w-md rounded-2xl shadow-2xl transition-all duration-300 object-cover h-[500px]" 
-              />
-            </div>
-          </div>
-        </Container>
+    <motion.div ref={ref} variants={fadeUp} custom={i} initial="hidden" animate={inView ? "visible" : "hidden"}
+      className="flex gap-5 items-start relative">
+      <div className="flex flex-col items-center">
+        <motion.div
+          initial={{ scale: 0 }} animate={inView ? { scale: 1 } : {}}
+          transition={{ delay: i * 0.15 + 0.2, type: "spring", stiffness: 180 }}
+          className="w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-md z-10"
+          style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white" }}
+        >{icon}</motion.div>
+        {!isLast && <div className="w-0.5 flex-1 mt-1" style={{ minHeight: 48, background: "linear-gradient(to bottom, #a7f3d0, transparent)" }} />}
       </div>
-
-      {/* Mission & Vision Section */}
-       <section className="py-20 bg-gradient-to-b from-[#fdf5e6] to-white">
-      <Container maxWidth="lg">
-        <div className="grid md:grid-cols-2 gap-10">
-
-          {/* Mission Card */}
-          <div className="bg-white rounded-3xl p-8 shadow-md hover:shadow-xl transition duration-300 border border-[#f1dcd6]">
-            <div className="flex items-start gap-4">
-              <div className="bg-[#cb2800]/10 p-4 rounded-2xl text-[#cb2800] text-2xl">
-                <FaLeaf />
-              </div>
-              <div>
-                <h3 className="text-2xl font-semibold text-slate-800 mb-3">
-                  Our Mission
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  To provide safe, natural, and affordable products that improve
-                  the health and lives of individuals and families — while
-                  supporting traditional farming and women empowerment.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Vision Card */}
-          <div className="bg-white rounded-3xl p-8 shadow-md hover:shadow-xl transition duration-300 border border-[#f1dcd6]">
-            <div className="flex items-start gap-4">
-              <div className="bg-[#cb2800]/10 p-4 rounded-2xl text-[#cb2800] text-2xl">
-                <FaEye />
-              </div>
-              <div>
-                <h3 className="text-2xl font-semibold text-slate-800 mb-3">
-                  Our Vision
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  To become a trusted household name in herbal and natural
-                  wellness across India and the world, while continuing to
-                  innovate and empower communities.
-                </p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </Container>
-    </section>
-
-      {/* Why Choose Us */}
-     <section className="py-20 bg-white">
-  <Container maxWidth="lg">
-    <h2 className="text-4xl font-medium mb-16 text-center font-outfit text-slate-900">
-      Why Choose Anbu Natural?
-    </h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-      {features.map((feature, index) => (
-        <div
-          key={index}
-          className="group max-w-sm mx-auto border border-slate-300 p-8 rounded-2xl transition-all duration-300 flex flex-col items-center text-center bg-green-50 hover:shadow-xl hover:-translate-y-1"
-        >
-          <div className="flex justify-center mb-6 bg-white p-4 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-            {feature.icon}
-          </div>
-
-          <h3 className="text-xl font-semibold font-outfit text-slate-800 mb-4">
-            {feature.title}
-          </h3>
-
-          <p className="text-slate-500 font-light font-outfit leading-relaxed">
-            {feature.description}
-          </p>
-        </div>
-      ))}
-    </div>
-  </Container>
-</section>
-
-      {/* Anbu Care Trust Section */}
-      <section className="py-20 bg-[#f1f5f1]">
-        <Container maxWidth="lg">
-          <div className="text-center mb-12">
-             <h2 className="text-3xl md:text-4xl font-medium mb-6 font-outfit text-slate-900">
-              Expanding Our Mission Through Anbu Care Trust
-            </h2>
-            <p className="text-slate-600 text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
-              Anbu Natural is more than a brand — it's a mission of love. Through our
-              registered non-profit, **Anbu Care Trust**, we support malnourished children, 
-              expectant mothers, and underprivileged rural communities.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-green-100 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-semibold mb-8 text-center text-green-800">Our Direct Impact</h3>
-            <List className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                "Free nutrition kits for undernourished children",
-                "Support for pregnant women in rural areas",
-                "Distribution of herbal health mixes & baby care",
-                "Wellness education camps in villages",
-                "Women empowerment through skill training",
-                "Sanitary napkin distribution for hygiene"
-              ].map((item, i) => (
-                <ListItem key={i} className="items-start">
-                  <ListItemIcon className="min-w-[40px]">
-                    <Check className="w-6 h-6 text-green-500" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={item} 
-                    primaryTypographyProps={{ className: "text-slate-700 font-medium" }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </div>
-        </Container>
-      </section>
-
-      {/* Final Call to Action */}
-      <section className="py-24 border-t border-slate-100">
-        <Container maxWidth="md" className="text-center">
-          <h2 className="text-4xl font-medium mb-6 font-outfit">
-            Let’s Grow Together
-          </h2>
-          <p className="text-slate-600 text-lg mb-10 leading-relaxed">
-            When you choose Anbu Natural, you’re joining a community that values health, honesty, and heritage. 
-            Support local. Support natural. Support purpose.
-          </p>
-          <RouterLink
-            to="/contact"
-            className="inline-block bg-green-700 hover:bg-green-800 text-white rounded-full px-10 py-4 transition-all hover:px-12 font-bold text-lg shadow-md"
-          >
-            Join Our Journey
-          </RouterLink>
-        </Container>
-      </section>
-    </div>
+      <div className="pb-10">
+        <motion.div initial={{ opacity: 0, x: 24 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: i * 0.15 + 0.3 }}>
+          <span className="inline-block px-3 py-0.5 rounded-full text-xs font-bold tracking-widest mb-2"
+            style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0" }}>{year}</span>
+          <p className="font-medium text-base leading-relaxed text-gray-700" style={{ fontFamily: "'DM Sans', sans-serif" }}>{text}</p>
+        </motion.div>
+      </div>
+    </motion.div>
   );
 };
 
-export default AboutUs;
+export default function AnbuNaturalAbout() {
+  const [differRef, differInView] = useScrollInView();
+  const [visionRef, visionInView] = useScrollInView();
+  const [missionRef, missionInView] = useScrollInView();
+  const [timelineRef, timelineInView] = useScrollInView();
+  const [certRef, certInView] = useScrollInView();
+  const [trustRef, trustInView] = useScrollInView();
+  const [careRef, careInView] = useScrollInView();
+  const [commitRef, commitInView] = useScrollInView();
+
+  const differentiators = [
+    { icon: <LeafIcon size={28} />, title: "Natural Ingredients", desc: "Carefully chosen herbs, traditional ingredients, and naturally inspired formulations trusted for generations.", accent: "#059669" },
+    { icon: <Heart size={28} />, title: "Made with Care", desc: "We see customers as families who trust us. That trust drives quality, honesty, and care in every step.", accent: "#e11d48" },
+    { icon: <Baby size={28} />, title: "Family Wellness", desc: "Designed with family wellness in mind — women, children, and everyday household health from baby care to herbal wellness.", accent: "#d97706" },
+    { icon: <Sprout size={28} />, title: "Tradition Meets Today", desc: "We value traditional herbal knowledge while adapting for today's lifestyle — making natural wellness practical.", accent: "#0284c7" },
+  ];
+
+  const missions = [
+    "Encourage healthier lifestyles through natural products",
+    "Support families with affordable wellness solutions",
+    "Promote traditional herbal knowledge",
+    "Create products with honesty, care, and responsibility",
+    "Grow as a socially responsible brand",
+  ];
+
+  const commitments = [
+    { icon: <Award size={26} />, text: "Quality-Focused", color: "#d97706" },
+    { icon: <Smile size={26} />, text: "Customer First", color: "#059669" },
+    { icon: <Handshake size={26} />, text: "Honest Practices", color: "#0284c7" },
+    { icon: <TrendingUp size={26} />, text: "Continuous Growth", color: "#7c3aed" },
+    { icon: <TreePine size={26} />, text: "Natural Wellness", color: "#16a34a" },
+  ];
+
+  const careItems = [
+    { icon: <Salad size={26} />, label: "Child Nutrition Awareness" },
+    { icon: <HeartHandshake size={26} />, label: "Women Wellness" },
+    { icon: <Wheat size={26} />, label: "Rural Community Support" },
+    { icon: <LeafIcon size={26} />, label: "Natural Health Awareness" },
+    { icon: <Home size={26} />, label: "Support for Needy Families" },
+  ];
+
+  const certs = [
+    { icon: <UtensilsCrossed size={30} />, name: "FSSAI", desc: "Food Safety & Standards Authority of India" },
+    { icon: <Factory size={30} />, name: "MSME", desc: "Ministry of Micro, Small & Medium Enterprises", file: "/assets/about/msme.pdf" },
+    { icon: <Star size={30} />, name: "AGMARK", desc: "Agricultural Mark — Quality Guarantee" },
+    { icon: <ClipboardList size={30} />, name: "ISO", desc: "Quality Management System Certified" },
+  ];
+
+  const timeline = [
+    { year: "2024", text: "Started Anbu Natural with a dream to bring nature-based wellness to every home.", icon: <Sprout size={18} /> },
+    { year: "2025", text: "Expanded our product range — herbal hair oils, millet health mixes, baby care, and more.", icon: <LeafIcon size={18} /> },
+    { year: "2026", text: "Launching Anbu Care Trust — giving back with love through community wellness initiatives.", icon: <HeartHandshake size={18} /> },
+  ];
+
+  const products = [
+    { icon: <LeafIcon size={20} />, label: "Herbal Hair Oils", color: "#059669" },
+    { icon: <Wheat size={20} />, label: "Millet Health Mixes", color: "#d97706" },
+    { icon: <FlaskConical size={20} />, label: "Spice Powders & Premix", color: "#ea580c" },
+    { icon: <Baby size={20} />, label: "Baby Care Powders", color: "#db2777" },
+    { icon: <Pill size={20} />, label: "Wellness Products", color: "#0284c7" },
+  ];
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#fdfcf8", color: "#1f2937" }} className="min-h-screen overflow-x-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+        .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fdfcf8; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 99px; }
+      `}</style>
+
+      {/* ── Hero ── */}
+      <section className="relative flex flex-col items-center justify-center overflow-hidden py-24 md:py-32"
+        style={{ background: "linear-gradient(160deg, #0a2618 0%, #0d3320 40%, #061410 100%)" }}>
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+          backgroundSize: "200px"
+        }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 50% at 50% 40%, rgba(52,211,153,0.12) 0%, transparent 70%)" }} />
+        {[...Array(6)].map((_, i) => (
+          <motion.div key={i} className="absolute pointer-events-none" style={{ color: "#34d399", left: `${8 + i * 16}%`, top: `${10 + (i % 3) * 28}%`, width: 28 + (i % 2) * 20, opacity: 0.07 + (i % 3) * 0.04 }}
+            animate={{ y: [0, -14, 0], rotate: [0, 12, -8, 0] }} transition={{ duration: 5 + i, repeat: Infinity, delay: i * 0.6 }}>
+            <Leaf />
+          </motion.div>
+        ))}
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+          <motion.div initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 100, delay: 0.1 }}
+            className="w-20 h-20 mx-auto mb-8 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(52,211,153,0.1)", border: "1.5px solid rgba(110,231,183,0.35)" }}>
+            <img src="/assets/common/logoheader.png" alt="Anbu Natural Logo" className="w-16 h-auto drop-shadow-lg" />
+          </motion.div>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            style={{ color: "#6ee7b7", letterSpacing: "0.35em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-4">About Us</motion.p>
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+            className="serif text-white text-5xl md:text-7xl font-bold leading-tight mb-6"
+            style={{ textShadow: "0 2px 60px rgba(52,211,153,0.2)" }}>
+            Anbu Natural
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+            style={{ color: "#a7f3d0", fontWeight: 300, fontSize: "1.1rem" }} className="leading-relaxed mb-12 max-w-2xl mx-auto">
+            True wellness begins with nature. We're dedicated to creating natural, herbal, and wellness-based products that support healthier families and happier lifestyles.
+          </motion.p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}
+            className="flex flex-wrap justify-center gap-4">
+            {[
+              { icon: <Flag size={22} />, label: "Made in India" },
+              { icon: <UtensilsCrossed size={22} />, label: "FSSAI Certified" },
+              { icon: <Factory size={22} />, label: "MSME Registered" },
+            ].map((b) => (
+              <motion.div key={b.label} whileHover={{ scale: 1.06, y: -3 }}
+                className="flex items-center gap-2.5 px-5 py-3 rounded-xl"
+                style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(110,231,183,0.25)", backdropFilter: "blur(8px)" }}>
+                <span style={{ color: "#6ee7b7" }}>{b.icon}</span>
+                <span style={{ color: "#d1fae5", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "0.08em" }}>{b.label}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Our Story ── */}
+      <section className="relative py-24 px-6 overflow-hidden bg-white">
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)" }} />
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+          <motion.div variants={slideLeft} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Our Story</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-5 leading-tight text-gray-900">
+              Born from a<br /><span style={{ color: "#059669" }} className="italic">Simple Dream</span>
+            </h2>
+            <Divider />
+            <p className="mt-6 text-base text-gray-600 leading-relaxed font-light">
+              Anbu Natural was born from a simple dream — to create products that are closer to nature and safer for families. We started this journey with a desire to support healthier living using traditional ingredients, herbal knowledge, and natural wellness practices trusted for generations.
+            </p>
+            <p className="mt-4 text-base text-gray-600 leading-relaxed font-light">
+              As a family-focused brand, we understand the importance of purity, care, and trust. Every product reflects our belief that wellness should be accessible to everyone.
+            </p>
+          </motion.div>
+          <motion.div variants={slideRight} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+            <div className="rounded-3xl p-8 bg-gray-50 shadow-sm border border-gray-200">
+              <p style={{ color: "#059669", fontSize: "0.7rem", letterSpacing: "0.25em" }} className="uppercase font-semibold mb-6">What We Offer</p>
+              {products.map((item, i) => (
+                <motion.div key={item.label} variants={fadeUp} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                  className="flex items-center gap-4 mb-5 last:mb-0 bg-white p-3 rounded-2xl shadow-sm border border-gray-200">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${item.color}15`, color: item.color }}>
+                    {item.icon}
+                  </div>
+                  <span className="text-gray-800 font-medium">{item.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Daily Wellness Clock Section ── */}
+      <section className="py-24 px-6 bg-[#f0f9f4]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Daily Routine</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              Daily Wellness <span style={{ color: "#059669" }} className="italic">Clock</span>
+            </h2>
+            <Divider />
+            <p className="mt-6 text-base text-gray-600 leading-relaxed font-light max-w-2xl mx-auto">
+              Goodness in every moment, wellness in every day. Our wellness clock is a guide to natural living, helping you stay balanced and healthy throughout the day with Anbu Natural's trusted formulations.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white"
+          >
+            <img 
+              src="/assets/wellness/daily_wellness_clock.jpg" 
+              alt="Anbu Natural Daily Wellness Clock guide - Traditional herbal wellness routine from morning to night" 
+              className="w-full h-auto"
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── What Makes Us Different ── */}
+      <section ref={differRef} className="py-24 px-6 bg-[#fcfbf8]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeUp} initial="hidden" animate={differInView ? "visible" : "hidden"} className="text-center mb-16">
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Why Choose Us</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              What Makes Us<br /><span style={{ color: "#059669" }} className="italic">Different</span>
+            </h2>
+            <Divider />
+          </motion.div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {differentiators.map((d, i) => (
+              <motion.div key={d.title} variants={fadeUp} custom={i} initial="hidden" animate={differInView ? "visible" : "hidden"}
+                whileHover={{ y: -8 }}
+                className="rounded-3xl p-8 cursor-default transition-all duration-300 bg-white shadow-sm border border-gray-200 hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6"
+                  style={{ background: `${d.accent}15`, color: d.accent }}>
+                  {d.icon}
+                </div>
+                <h3 className="serif font-bold text-xl mb-3 leading-tight text-gray-900">{d.title}</h3>
+                <p className="text-gray-600 font-light text-sm leading-relaxed">{d.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Vision & Mission ── */}
+      <section ref={visionRef} className="py-24 px-6 relative overflow-hidden bg-[#f4f7f5]">
+        <div className="max-w-5xl mx-auto relative z-10 grid md:grid-cols-2 gap-14">
+          <motion.div variants={slideLeft} initial="hidden" animate={visionInView ? "visible" : "hidden"}>
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Our Vision</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-6 leading-tight text-gray-900">
+              Growing Together,<br /><span style={{ color: "#059669" }} className="italic">Naturally</span>
+            </h2>
+            <div className="rounded-2xl p-6 bg-white border border-gray-200 shadow-sm">
+              <p className="text-gray-600 font-light leading-relaxed">
+                To become a trusted natural wellness brand that brings healthier living, traditional goodness, and affordable herbal care to every home across India and beyond.
+              </p>
+            </div>
+          </motion.div>
+          <motion.div ref={missionRef} variants={slideRight} initial="hidden" animate={visionInView ? "visible" : "hidden"}>
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Our Mission</p>
+            <h2 className="serif text-4xl font-bold mb-6 leading-tight text-gray-900">
+              What We <span style={{ color: "#059669" }} className="italic">Stand For</span>
+            </h2>
+            <ul className="space-y-3">
+              {missions.map((m, i) => (
+                <motion.li key={m} variants={fadeUp} custom={i} initial="hidden" animate={missionInView ? "visible" : "hidden"}
+                  className="flex items-start gap-4 rounded-xl px-5 py-4 bg-white border border-gray-200 shadow-sm">
+                  <span className="mt-1 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-green-100">
+                    <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 2.5" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
+                  </span>
+                  <span className="text-gray-700 font-light text-sm leading-relaxed">{m}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Commitment ── */}
+      <section ref={commitRef} className="py-24 px-6 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div variants={fadeUp} initial="hidden" animate={commitInView ? "visible" : "hidden"}>
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Our Commitment</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              Committed to<br /><span style={{ color: "#059669" }} className="italic">Excellence</span>
+            </h2>
+            <Divider />
+          </motion.div>
+          <div className="flex flex-wrap justify-center gap-4 mt-12">
+            {commitments.map((c, i) => (
+              <motion.div key={c.text} variants={fadeUp} custom={i} initial="hidden" animate={commitInView ? "visible" : "hidden"}
+                whileHover={{ scale: 1.06, y: -4 }}
+                className="flex flex-col items-center gap-3 rounded-2xl px-7 py-6 cursor-default transition-all duration-300 bg-gray-50 border border-gray-200"
+                style={{ minWidth: 130 }}>
+                <span style={{ color: c.color }}>{c.icon}</span>
+                <span className="text-gray-800 font-semibold text-sm text-center">{c.text}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Trust & Certifications ── */}
+      <section ref={trustRef} className="py-24 px-6 relative" style={{ background: "#0a2618" }}>
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#34d399 1px, transparent 1px)", backgroundSize: "30px 30px" }}></div>
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <motion.div variants={fadeUp} initial="hidden" animate={trustInView ? "visible" : "hidden"}>
+            <p style={{ color: "#6ee7b7", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Our Trust</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-white">
+              Certified &amp;<br /><span style={{ color: "#34d399" }} className="italic">Trustworthy</span>
+            </h2>
+            <Divider dark={true} />
+            <p style={{ color: "#a7f3d0", fontWeight: 300 }} className="text-base mt-6 mb-14 max-w-xl mx-auto">
+              Every product we make is backed by certification, quality checks, and a deep sense of responsibility towards our customers.
+            </p>
+          </motion.div>
+          <div className="flex flex-wrap justify-center gap-6 mb-16">
+            {[
+              { icon: <Flag size={36} style={{ color: "#fbbf24" }} />, title: "Made in India", sub: "Proudly Indian" },
+              { icon: <UtensilsCrossed size={36} style={{ color: "#34d399" }} />, title: "FSSAI", sub: "Food Safe & Approved" },
+              { icon: <Factory size={36} style={{ color: "#60a5fa" }} />, title: "MSME", sub: "Govt. Registered" },
+            ].map((t, i) => (
+              <motion.div key={t.title} variants={fadeUp} custom={i} initial="hidden" animate={trustInView ? "visible" : "hidden"}
+                whileHover={{ y: -6 }}
+                className="flex flex-col items-center gap-3 rounded-3xl px-10 py-8 transition-all duration-300"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(10px)" }}>
+                {t.icon}
+                <span className="serif font-bold text-xl text-white">{t.title}</span>
+                <span style={{ color: "#6ee7b7", fontSize: "0.7rem", letterSpacing: "0.2em" }} className="uppercase">{t.sub}</span>
+              </motion.div>
+            ))}
+          </div>
+          
+          <motion.div ref={certRef} variants={fadeUp} initial="hidden" animate={trustInView ? "visible" : "hidden"}>
+            <h3 className="serif text-2xl font-bold mb-2 text-white">Our Certificates</h3>
+            <p style={{ color: "#6ee7b7", fontSize: "0.85rem", opacity: 0.8 }} className="mb-8 font-light">Click any certificate to view</p>
+          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {certs.map((c, i) => (
+              <motion.div key={c.name} variants={fadeUp} custom={i} initial="hidden" animate={certInView ? "visible" : "hidden"}
+                whileHover={{ scale: 1.04, y: -4 }}
+                onClick={() => c.file && window.open(c.file, '_blank')}
+                className={`flex flex-col items-center gap-3 rounded-2xl p-6 transition-all duration-300 ${c.file ? 'cursor-pointer hover:bg-white/10' : 'cursor-default opacity-80'}`}
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(52,211,153,0.15)", color: "#6ee7b7" }}>
+                  {c.icon}
+                </div>
+                <div className="text-center">
+                  <div className="serif font-bold text-base text-white">{c.name}</div>
+                  <div style={{ color: "#a7f3d0", fontSize: "0.75rem", fontWeight: 300 }} className="mt-1">{c.desc}</div>
+                </div>
+                {c.file && <span className="text-[10px] text-emerald-400 font-bold uppercase mt-1 tracking-widest">View Document</span>}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Timeline ── */}
+      <section ref={timelineRef} className="py-24 px-6 bg-[#fcfbf8]">
+        <div className="max-w-xl mx-auto">
+          <motion.div variants={fadeUp} initial="hidden" animate={timelineInView ? "visible" : "hidden"} className="text-center mb-14">
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Our Journey</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              Milestones of<br /><span style={{ color: "#059669" }} className="italic">Growth</span>
+            </h2>
+            <Divider />
+          </motion.div>
+          <div>
+            {timeline.map((t, i) => (
+              <TimelineItem key={t.year} {...t} i={i} isLast={i === timeline.length - 1} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Anbu Care Trust ── */}
+      <section ref={careRef} className="py-24 px-6 relative overflow-hidden bg-[#eef5f1]">
+        <div className="max-w-4xl mx-auto relative z-10 text-center">
+          <motion.div variants={fadeUp} initial="hidden" animate={careInView ? "visible" : "hidden"}>
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-200">
+              <HeartHandshake size={30} className="text-emerald-600" />
+            </div>
+            <p className="text-emerald-700 uppercase font-semibold mb-3 tracking-[0.3em] text-[0.7rem]">Giving Back</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 leading-tight text-gray-900">
+              Anbu Care <span className="text-emerald-600 italic">Trust</span>
+            </h2>
+            <Divider />
+            <p className="text-gray-600 font-light text-base mt-6 mb-12 max-w-2xl mx-auto leading-relaxed">
+              At Anbu Natural, we believe business should also create kindness. Through our upcoming Anbu Care initiative, we aim to make a meaningful difference in communities.
+            </p>
+          </motion.div>
+          <div className="flex flex-wrap justify-center gap-4">
+            {careItems.map((c, i) => (
+              <motion.div key={c.label} variants={fadeUp} custom={i} initial="hidden" animate={careInView ? "visible" : "hidden"}
+                whileHover={{ scale: 1.07, y: -5 }}
+                className="flex flex-col items-center gap-2 rounded-2xl px-6 py-5 cursor-default transition-all duration-300 bg-white border border-gray-200 shadow-sm">
+                <span className="text-emerald-500">{c.icon}</span>
+                <span className="text-gray-800 text-[0.8rem] font-medium max-w-[100px] text-center leading-snug">{c.label}</span>
+              </motion.div>
+            ))}
+          </div>
+          <motion.p variants={fadeUp} custom={6} initial="hidden" animate={careInView ? "visible" : "hidden"}
+            className="text-sm mt-12 italic font-light text-emerald-700">
+            "Because even small acts of care can create meaningful change."
+          </motion.p>
+        </div>
+      </section>
+
+      {/* ── Founder Section ── */}
+      <FounderSection />
+
+      {/* ── Footer Banner ── */}
+      <section className="py-20 px-6 text-center" style={{ background: "#0a2618" }}>
+        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
+          <img src="/assets/common/logoheader.png" alt="Anbu Natural Logo" className="w-16 h-auto mx-auto mb-6 drop-shadow-md" />
+          <h2 className="serif text-3xl md:text-4xl font-bold mb-4 leading-tight text-white">
+            "Nature, Wellness &amp; Care —<br />
+            <span style={{ color: "#34d399" }} className="italic">Together in Every Product."</span>
+          </h2>
+          <p style={{ color: "#a7f3d0", fontSize: "0.9rem", fontWeight: 300, opacity: 0.8 }} className="mt-4">
+            Every order from Anbu Natural is packed with gratitude, care, and responsibility.
+          </p>
+          <div className="flex justify-center items-center gap-3 mt-8">
+            <span style={{ color: "#6ee7b7", fontSize: "0.7rem", letterSpacing: "0.2em", opacity: 0.8 }} className="uppercase">With gratitude</span>
+            <span style={{ color: "#34d399" }}>•</span>
+            <span className="serif font-bold text-lg" style={{ color: "#34d399" }}>Team Anbu Natural</span>
+          </div>
+        </motion.div>
+      </section>
+    </div>
+  );
+}

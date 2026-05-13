@@ -36,6 +36,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     storage_image: propsData.storage_image || '',
     megaCombo: propsData.megaCombo || false,
     trending: propsData.trending || false,
+    publish: propsData.publish !== undefined ? propsData.publish : true,
     demoVideoLink: propsData.demoVideoLink || ''
   });
 
@@ -83,6 +84,9 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   const [reviewName, setReviewName] = useState('');
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
+
+  const [isEditingOption, setIsEditingOption] = useState(false);
+  const [editingOptionOriginalName, setEditingOptionOriginalName] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -258,7 +262,9 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
       toast.error('Please enter a valid original price.');
       return;
     }
-    if (newOptionOfferPrice === '' || isNaN(Number(newOptionOfferPrice)) || Number(newOptionOfferPrice) < 0) {
+    // Offer price is now optional
+    const offerPrice = newOptionOfferPrice === '' ? Number(newOptionOriginalPrice) : Number(newOptionOfferPrice);
+    if (isNaN(offerPrice) || offerPrice < 0) {
       toast.error('Please enter a valid offer price.');
       return;
     }
@@ -284,8 +290,8 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
               {
                 name: newOptionValue.trim(),
                 originalPrice: Number(newOptionOriginalPrice),
-                offerPrice: Number(newOptionOfferPrice),
-                price: Number(newOptionOfferPrice), // Sync for compatibility
+                offerPrice: offerPrice,
+                price: offerPrice, // Sync for compatibility
                 stock: newOptionStock !== null ? Number(newOptionStock) : null,
                 unit: "", // Removed unit
               },
@@ -302,6 +308,57 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     setNewOptionOfferPrice('');
     setNewOptionStock(null);
     setSelectedAttributeTypeForOption('');
+  };
+
+  const handleEditAttributeOption = (groupName, option) => {
+    setSelectedAttributeTypeForOption(groupName);
+    setNewOptionValue(option.name);
+    setEditingOptionOriginalName(option.name);
+    setNewOptionOriginalPrice(option.originalPrice);
+    setNewOptionOfferPrice(option.offerPrice);
+    setNewOptionStock(option.stock);
+    setIsEditingOption(true);
+  };
+
+  const handleUpdateAttributeOption = () => {
+    if (!selectedAttributeTypeForOption) return;
+    if (!newOptionValue.trim()) { toast.error('Value cannot be empty'); return; }
+
+    const offerPrice = newOptionOfferPrice === '' ? Number(newOptionOriginalPrice) : Number(newOptionOfferPrice);
+
+    setData(prev => ({
+      ...prev,
+      attributes: prev.attributes.map(attr => {
+        if (attr.name === selectedAttributeTypeForOption) {
+          return {
+            ...attr,
+            options: attr.options.map(opt => {
+              if (opt.name === editingOptionOriginalName) {
+                return {
+                  ...opt,
+                  name: newOptionValue.trim(),
+                  originalPrice: Number(newOptionOriginalPrice),
+                  offerPrice: offerPrice,
+                  price: offerPrice,
+                  stock: newOptionStock !== null ? Number(newOptionStock) : null,
+                };
+              }
+              return opt;
+            })
+          };
+        }
+        return attr;
+      })
+    }));
+
+    // Reset
+    setNewOptionValue('');
+    setNewOptionOriginalPrice('');
+    setNewOptionOfferPrice('');
+    setNewOptionStock(null);
+    setSelectedAttributeTypeForOption('');
+    setIsEditingOption(false);
+    setEditingOptionOriginalName('');
   };
 
   const handleDeleteAttributeOption = (attributeTypeName, optionValueToDelete) => {
@@ -405,6 +462,17 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         return;
       }
 
+      // Check if price exists if trying to publish
+      const hasPrice = data.attributes.some(attr => 
+        attr.options && attr.options.some(opt => (opt.offerPrice > 0 || opt.originalPrice > 0))
+      );
+
+      if (data.publish && !hasPrice) {
+        toast.error("Cannot publish a product without a price. Please add a pricing option first.");
+        setSubmitLoading(false);
+        return;
+      }
+
       const imageUrls = await Promise.all(
         data.image.map(async (url) => {
           if (imageFileMap[url]) {
@@ -434,6 +502,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
         comboOffer: data.comboOffer,
         megaCombo: data.megaCombo,
         trending: data.trending,
+        publish: data.publish,
         altText: data.altText,
         storage_instructions: data.storage_instructions,
         storage_image: storageImageUrl,
@@ -464,7 +533,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
+      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b bg-white'>
           <h3 className='text-lg font-bold text-gray-800'>Edit Product</h3>
@@ -489,13 +558,6 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
               <div className='flex flex-col gap-1.5'>
                 <div className='flex items-center justify-between'>
                   <label className='text-[15px] font-bold text-gray-700' htmlFor='altText'>SEO Alt Text</label>
-                  <button 
-                    type='button'
-                    onClick={() => setData(prev => ({ ...prev, altText: prev.name }))}
-                    className='text-[11px] font-bold text-[#279d68] hover:underline'
-                  >
-                    Auto-generate
-                  </button>
                 </div>
                 <div className='relative'>
                   <input
@@ -516,7 +578,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
             <div className='flex flex-col gap-1.5'>
               <label className='text-[15px] font-bold text-gray-700' htmlFor='description'>Description</label>
               <textarea
-                id='description' name='description' value={data.description} onChange={handleChange} required rows={3}
+                id='description' name='description' value={data.description} onChange={handleChange} required rows={6}
                 placeholder='Enter product description'
                 className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium resize-none'
               />
@@ -531,24 +593,38 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                 />
             </div>
 
-            <div className='flex items-center gap-2.5 bg-white p-3 rounded-xl border border-gray-100 shadow-sm w-fit'>
             <div className='flex flex-wrap items-center gap-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm'>
                 <div className='flex items-center gap-2'>
                   <input
-                    type='checkbox' id='editMegaCombo' checked={data.megaCombo} onChange={handleMegaComboToggle}
+                    type='checkbox' id='editComboOffer' checked={data.comboOffer} onChange={(e) => setData(prev => ({ ...prev, comboOffer: e.target.checked }))}
                     className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
                   />
-                  <label htmlFor='editMegaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo Offer</label>
+                  <label htmlFor='editComboOffer' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Combo Offer</label>
                 </div>
 
-                <div className='flex items-center gap-2 ml-auto'>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='checkbox' id='editMegaCombo' checked={data.megaCombo} onChange={(e) => setData(prev => ({ ...prev, megaCombo: e.target.checked }))}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='editMegaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo</label>
+                </div>
+
+                <div className='flex items-center gap-2'>
                   <input
                     type='checkbox' id='editTrending' checked={data.trending} onChange={handleTrendingToggle}
                     className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
                   />
                   <label htmlFor='editTrending' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Trending</label>
                 </div>
-              </div>
+
+                <div className='flex items-center gap-2 ml-auto'>
+                  <input
+                    type='checkbox' id='publish' checked={data.publish} onChange={(e) => setData(prev => ({ ...prev, publish: e.target.checked }))}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='publish' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Published</label>
+                </div>
             </div>
 
             {/* Images */}
@@ -644,13 +720,13 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
             {/* Storage Instructions */}
             <div className='space-y-4'>
-               <h4 className='text-[15px] font-bold text-gray-800'>Storage & Usage Instructions</h4>
+               <h4 className='text-[15px] font-bold text-gray-800'>Storage & Quality Instructions</h4>
                <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
                   <div className='flex flex-col gap-1.5'>
                     <label className='text-[13px] font-bold text-gray-500' htmlFor='storage_instructions'>Instructions</label>
                     <textarea
                       id='storage_instructions' name='storage_instructions' value={data.storage_instructions} onChange={handleChange} rows={4}
-                      placeholder='Enter storage or usage instructions...'
+                      placeholder='Enter storage or quality instructions...'
                       className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all text-sm font-medium resize-none'
                     />
                   </div>
@@ -663,7 +739,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                              type='button' onClick={handleDeleteStorageImage}
                              className='absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10'
                           >
-                            <IoClose size={14} />
+                             <IoClose size={14} />
                           </button>
                        </div>
                     ) : (
@@ -684,7 +760,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
             {/* Custom Fields (More Details) */}
             <div className='space-y-4'>
                <div className='flex items-center justify-between'>
-                  <h4 className='text-[15px] font-bold text-gray-800'>Additional Specs</h4>
+                  <h4 className='text-[15px] font-bold text-gray-800'>Additional Specification</h4>
                   <button
                     type='button' onClick={() => setOpenAddField(true)}
                     className='text-[#279d68] hover:text-white hover:bg-[#279d68] font-bold text-[13px] flex items-center gap-1 bg-green-50 px-3 py-1.5 rounded-lg border border-[#279d68]/30 transition-all'
@@ -773,9 +849,14 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                      <div className='p-4 space-y-4'>
                         <div className='flex flex-wrap gap-2'>
                            {attr.options.map((opt, ix) => (
-                             <span key={ix} className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2'>
-                                {opt.name} · ₹{opt.offerPrice} <span className='line-through text-slate-400 font-medium'>₹{opt.originalPrice}</span>
-                                <IoClose className='cursor-pointer hover:text-rose-500' onClick={() => handleDeleteAttributeOption(attr.name, opt.name)} />
+                             <span 
+                               key={ix} 
+                               className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2 cursor-pointer hover:bg-indigo-100/50 transition-colors group'
+                               onClick={() => handleEditAttributeOption(attr.name, opt)}
+                               title="Click to edit"
+                             >
+                                {opt.name} · ₹{opt.offerPrice} {opt.originalPrice > opt.offerPrice && <span className='line-through text-slate-400 font-medium ml-1'>₹{opt.originalPrice}</span>}
+                                <IoClose className='cursor-pointer text-slate-400 hover:text-rose-500' onClick={(e) => { e.stopPropagation(); handleDeleteAttributeOption(attr.name, opt.name); }} />
                              </span>
                            ))}
                         </div>
@@ -798,8 +879,10 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                                  <input type='number' placeholder='∞' value={newOptionStock || ""} onChange={e => setNewOptionStock(e.target.value === "" ? null : Number(e.target.value))} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
                                </div>
                               <div className='col-span-2 md:col-span-4 flex justify-end gap-2 pt-2'>
-                                 <button type='button' onClick={() => setSelectedAttributeTypeForOption("")} className='px-4 py-2 text-xs font-bold text-slate-500'>Cancel</button>
-                                 <button type='button' onClick={handleAddAttributeOption} className='px-6 py-2 bg-[#279d68] text-white rounded-xl text-xs font-bold shadow-lg shadow-green-100 hover:bg-[#279d68]/90 transition-all'>Add Option</button>
+                                 <button type='button' onClick={() => { setSelectedAttributeTypeForOption(""); setIsEditingOption(false); setEditingOptionOriginalName(''); setNewOptionValue(''); setNewOptionOriginalPrice(''); setNewOptionOfferPrice(''); setNewOptionStock(null); }} className='px-4 py-2 text-xs font-bold text-slate-500'>Cancel</button>
+                                 <button type='button' onClick={isEditingOption ? handleUpdateAttributeOption : handleAddAttributeOption} className='px-6 py-2 bg-[#279d68] text-white rounded-xl text-xs font-bold shadow-lg shadow-green-100 hover:bg-[#279d68]/90 transition-all'>
+                                   {isEditingOption ? 'Update Option' : 'Add Option'}
+                                 </button>
                               </div>
                            </div>
                         ) : (

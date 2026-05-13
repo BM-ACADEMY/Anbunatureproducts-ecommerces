@@ -99,6 +99,18 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    donationAmount: {
+      type: Number,
+      default: 0,
+    },
+    shippingCharge: {
+      type: Number,
+      default: 0,
+    },
+    trackingId: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

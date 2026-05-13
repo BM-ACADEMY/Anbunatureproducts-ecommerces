@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { FaStar, FaGoogle } from "react-icons/fa";
-const Logo = "/assets/common/logo.png";
+const Logo = "/assets/common/logoheader.png";
 
 // Import Swiper styles
 

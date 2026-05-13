@@ -13,6 +13,14 @@ const ContactForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === 'contactNumber') {
+      // Only allow digits and limit to 10 characters
+      const numericValue = value.replace(/\D/g, '').slice(0, 10);
+      setFormData((prev) => ({ ...prev, [name]: numericValue }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -23,6 +31,12 @@ const ContactForm = () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
+
+    if (formData.contactNumber && formData.contactNumber.length !== 10) {
+      setError('Please enter a valid 10-digit phone number.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(`${API_URL}/api/email/send`, {
@@ -93,14 +107,17 @@ const ContactForm = () => {
 
               {/* Phone Field */}
               <div className="text-left">
-                <input
-                  type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  placeholder="Enter Phone Number"
-                  className="w-full p-3 border border-gray-300 rounded-none text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-400"
-                />
+                  <input
+                    type="tel"
+                    name="contactNumber"
+                    value={formData.contactNumber}
+                    onChange={handleChange}
+                    placeholder="Enter 10-Digit Phone Number *"
+                    required
+                    pattern="[0-9]{10}"
+                    maxLength="10"
+                    className="w-full p-3 border border-gray-300 rounded-none text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                  />
               </div>
             </div>
 

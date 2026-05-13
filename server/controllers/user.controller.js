@@ -637,3 +637,22 @@ export async function googleAuthController(request, response) {
     }
 }
 
+
+export async function getAllUsersController(request, response) {
+    try {
+        const users = await UserModel.find({ is_temp: false }).select('-password -refresh_token -forgot_password_otp -email_verification_otp').sort({ createdAt: -1 });
+
+        return response.json({
+            message: "All users",
+            success: true,
+            error: false,
+            data: users
+        });
+    } catch (error) {
+        return response.status(500).json({
+            message: error.message || error,
+            error: true,
+            success: false
+        });
+    }
+}

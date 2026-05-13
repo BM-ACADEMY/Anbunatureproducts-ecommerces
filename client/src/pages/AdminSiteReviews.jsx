@@ -2,29 +2,68 @@ import React, { useEffect, useState } from 'react';
 import Axios from '../utils/Axios';
 import SummaryApi from '../common/SummaryApi';
 import { toast } from 'sonner';
-import { FaCheckCircle, FaTrash, FaTimesCircle, FaStar, FaPlus, FaTimes } from 'react-icons/fa';
-
+import { 
+    Table, 
+    Button, 
+    Modal, 
+    Form, 
+    Input, 
+    Rate, 
+    Space, 
+    Tag, 
+    Avatar, 
+    Popconfirm, 
+    Typography,
+    Card,
+    Tooltip,
+    Row,
+    Col,
+    Dropdown,
+    Menu
+} from 'antd';
+import { 
+    PlusOutlined, 
+    DeleteOutlined, 
+    CheckCircleOutlined, 
+    CloseCircleOutlined,
+    StarFilled,
+    MoreOutlined,
+    MessageOutlined,
+    ClockCircleOutlined,
+    EyeOutlined
+} from '@ant-design/icons';
 import NoData from '../components/NoData';
+
+const { Title, Text, Paragraph } = Typography;
 
 const AdminSiteReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [newReview, setNewReview] = useState({
-        name: '',
-        rating: 5,
-        comment: ''
-    });
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedReview, setSelectedReview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
-
+    const [form] = Form.useForm();
+    
+    // Pagination state
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 10,
+        showSizeChanger: false
+    });
 
     const fetchAllReviews = async () => {
+        setLoading(true);
         try {
             const response = await Axios({
                 ...SummaryApi.getAllSiteReviews
             });
             if (response.data.success) {
-                setReviews(response.data.data);
+                const dataWithKeys = response.data.data.map(item => ({
+                    ...item,
+                    key: item._id
+                }));
+                setReviews(dataWithKeys);
             }
         } catch (error) {
             toast.error("Failed to fetch reviews");
@@ -55,8 +94,6 @@ const AdminSiteReviews = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this review?")) return;
-
         try {
             const response = await Axios({
                 url: `${SummaryApi.deleteSiteReview.url}/${id}`,
@@ -72,20 +109,19 @@ const AdminSiteReviews = () => {
         }
     };
 
-    const handleAddReview = async (e) => {
-        e.preventDefault();
+    const handleAddReview = async (values) => {
         setSubmitting(true);
         try {
             const response = await Axios({
                 ...SummaryApi.submitSiteReview,
-                data: newReview
+                data: values
             });
 
             if (response.data.success) {
                 toast.success("Review added successfully");
                 setShowAddModal(false);
-                setNewReview({ name: '', rating: 5, comment: '' });
-                fetchAllReviews(); // Refresh list to see the new one
+                form.resetFields();
+                fetchAllReviews();
             }
         } catch (error) {
             toast.error(error?.response?.data?.message || "Failed to add review");
@@ -94,183 +130,351 @@ const AdminSiteReviews = () => {
         }
     };
 
-    return (
+    const stats = {
+        total: reviews.length,
+        approved: reviews.filter(r => r.isVerified).length,
+        pending: reviews.filter(r => !r.isVerified).length
+    };
 
-        <div className="p-4 md:p-6 bg-white rounded-2xl shadow-sm border border-slate-100 min-h-[80vh]">
-            <div className="flex justify-between items-center mb-8">
+    const columns = [
+        {
+            title: 'Date Received',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            className: 'bg-slate-50/50 font-medium',
+            width: 200,
+            render: (date) => (
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800">Site Reviews</h1>
-                    <p className="text-sm text-slate-500 mt-1">Manage and verify reviews shown on the homepage</p>
-                </div>
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => setShowAddModal(true)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95"
-                    >
-                        <FaPlus size={14} /> Add Review
-                    </button>
-                    <div className="bg-orange-50 text-orange-600 px-4 py-2 rounded-full text-sm font-bold border border-orange-100">
-                        Total: {reviews.length}
+                    <Text strong>{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                    <div style={{ fontSize: '12px', color: '#8c8c8c' }}>
+                        {new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                     </div>
                 </div>
-            </div>
+            ),
+            sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+        },
+        {
+            title: 'User Info',
+            dataIndex: 'name',
+            key: 'name',
+            render: (text, record) => (
+                <div>
+                    <Text strong style={{ display: 'block', fontSize: '14px' }}>{text}</Text>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>user</Text>
+                </div>
+            ),
+        },
+        {
+            title: 'Rating',
+            dataIndex: 'rating',
+            key: 'rating',
+            render: (rating) => (
+                <Space size={4}>
+                    <StarFilled style={{ color: '#faad14' }} />
+                    <Text strong>{rating}/5</Text>
+                </Space>
+            ),
+            sorter: (a, b) => a.rating - b.rating,
+        },
+        {
+            title: 'Status',
+            dataIndex: 'isVerified',
+            key: 'isVerified',
+            render: (isVerified) => (
+                <Tag 
+                    color={isVerified ? '#f6ffed' : '#e6f7ff'} 
+                    style={{ 
+                        color: isVerified ? '#52c41a' : '#1890ff',
+                        borderColor: 'transparent',
+                        fontWeight: '600',
+                        padding: '4px 12px',
+                        borderRadius: '6px'
+                    }}
+                >
+                    {isVerified ? 'APPROVED' : 'PENDING'}
+                </Tag>
+            ),
+        },
+        {
+            title: 'Action',
+            key: 'action',
+            align: 'right',
+            width: 120,
+            render: (_, record, index) => {
+                const items = [
+                    {
+                        key: 'view',
+                        label: 'View Details',
+                        icon: <EyeOutlined />,
+                        onClick: () => {
+                            setSelectedReview(record);
+                            setShowViewModal(true);
+                        }
+                    },
+                    {
+                        key: 'verify',
+                        label: record.isVerified ? 'Unverify' : 'Approve',
+                        icon: record.isVerified ? <CloseCircleOutlined /> : <CheckCircleOutlined />,
+                        onClick: () => handleVerifyToken(record._id, !record.isVerified)
+                    },
+                    {
+                        key: 'delete',
+                        label: 'Delete',
+                        icon: <DeleteOutlined />,
+                        danger: true,
+                        onClick: () => {
+                            Modal.confirm({
+                                title: 'Delete Review',
+                                content: 'Are you sure you want to delete this review?',
+                                okText: 'Yes, Delete',
+                                okType: 'danger',
+                                cancelText: 'No',
+                                centered: true,
+                                onOk: () => handleDelete(record._id)
+                            });
+                        }
+                    }
+                ];
+                return (
+                    <div className="flex justify-end pr-4">
+                        <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+                            <Button 
+                                type="text" 
+                                icon={<MoreOutlined style={{ fontSize: '24px', color: '#334155', fontWeight: 'bold' }} />} 
+                                className={`flex items-center justify-center transition-all active:scale-95 `}
+                            />
+                        </Dropdown>
+                    </div>
+                );
+            },
+        },
+    ];
 
-            {/* Add Review Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center p-6 border-b border-slate-100">
-                            <h2 className="text-xl font-bold text-slate-800">Add New Review</h2>
-                            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                                <FaTimes size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleAddReview} className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Customer Name</label>
-                                <input 
-                                    type="text" 
-                                    required
-                                    value={newReview.name}
-                                    onChange={(e) => setNewReview(prev => ({ ...prev, name: e.target.value }))}
-                                    placeholder="Enter name"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-all font-medium"
-                                />
+    return (
+        <div style={{ padding: '24px', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+            {/* Header */}
+            <Row justify="space-between" align="middle" style={{ marginBottom: 32 }}>
+                <Col>
+                    <Title level={2} style={{ margin: 0, fontWeight: 700 }}>Testimonials</Title>
+                    <Text type="secondary">Review and manage user feedback appearing on the public website</Text>
+                </Col>
+                <Col>
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        onClick={() => setShowAddModal(true)}
+                        size="large"
+                        style={{ borderRadius: '8px', height: '44px', fontWeight: 600, display: 'flex', alignItems: 'center' }}
+                    >
+                        Add Testimonial
+                    </Button>
+                </Col>
+            </Row>
+
+            {/* Stats Cards */}
+            <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+                <Col xs={24} md={8}>
+                    <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '12px' }} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-50 rounded-lg">
+                                <MessageOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Rating</label>
-                                <div className="flex gap-2">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
-                                            className="text-2xl transition-all hover:scale-110"
-                                        >
-                                            <FaStar className={star <= newReview.rating ? "text-orange-400" : "text-slate-200"} />
-                                        </button>
-                                    ))}
+                                <Text type="secondary" style={{ display: 'block', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>Total Reviews</Text>
+                                <Title level={2} style={{ margin: 0, fontWeight: 700 }}>{stats.total}</Title>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} md={8}>
+                    <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '12px' }} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-green-50 rounded-lg">
+                                <CheckCircleOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+                            </div>
+                            <div>
+                                <Text type="secondary" style={{ display: 'block', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>Approved</Text>
+                                <Title level={2} style={{ margin: 0, fontWeight: 700 }}>{stats.approved}</Title>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} md={8}>
+                    <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '12px' }} className="shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-orange-50 rounded-lg">
+                                <ClockCircleOutlined style={{ fontSize: '24px', color: '#faad14' }} />
+                            </div>
+                            <div>
+                                <Text type="secondary" style={{ display: 'block', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>Pending</Text>
+                                <Title level={2} style={{ margin: 0, fontWeight: 700 }}>{stats.pending}</Title>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
+
+            {/* Table Card */}
+            <Card bordered={true} style={{ border: '1px solid #e0e1e1', borderRadius: '16px', overflow: 'hidden' }} className="shadow-[0_2px_12px_rgba(0,0,0,0.03)]" bodyStyle={{ padding: 0 }}>
+                <Table 
+                    columns={columns} 
+                    dataSource={reviews} 
+                    loading={loading}
+                    pagination={{
+                        ...pagination,
+                        style: { margin: '16px 24px' }
+                    }}
+                    onChange={(p) => setPagination(p)}
+                    locale={{ emptyText: <NoData /> }}
+                    className="testimonial-table"
+                    scroll={{ x: 800 }}
+                />
+            </Card>
+
+            {/* View Review Modal */}
+            <Modal
+                title={<Title level={4}>Review Details</Title>}
+                open={showViewModal}
+                onCancel={() => setShowViewModal(false)}
+                footer={[
+                    <Button key="close" type="primary" onClick={() => setShowViewModal(false)}>
+                        Close
+                    </Button>
+                ]}
+                centered
+                destroyOnClose
+            >
+                {selectedReview && (
+                    <div className="space-y-4 pt-4">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <Text type="secondary" className="text-xs uppercase font-bold tracking-wider">Customer</Text>
+                                <Title level={4} style={{ margin: 0 }}>{selectedReview.name}</Title>
+                            </div>
+                            <Tag color={selectedReview.isVerified ? 'success' : 'warning'}>
+                                {selectedReview.isVerified ? 'APPROVED' : 'PENDING'}
+                            </Tag>
+                        </div>
+                        
+                        <div>
+                            <Text type="secondary" className="text-xs uppercase font-bold tracking-wider">Rating</Text>
+                            <div className="mt-1">
+                                <Rate disabled defaultValue={selectedReview.rating} />
+                                <Text strong className="ml-2">{selectedReview.rating}/5</Text>
+                            </div>
+                        </div>
+
+                        <div>
+                            <Text type="secondary" className="text-xs uppercase font-bold tracking-wider">Comment</Text>
+                            <Paragraph className="mt-1 text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                {selectedReview.comment}
+                            </Paragraph>
+                        </div>
+
+                        <div className="flex gap-8">
+                            <div>
+                                <Text type="secondary" className="text-xs uppercase font-bold tracking-wider">Date</Text>
+                                <div className="mt-1 font-semibold">
+                                    {new Date(selectedReview.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Comment</label>
-                                <textarea 
-                                    required
-                                    rows="4"
-                                    maxLength="200"
-                                    value={newReview.comment}
-                                    onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-                                    placeholder="Review message (max 200 chars)"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-all resize-none font-medium"
-                                ></textarea>
-                                <div className="text-[10px] text-slate-400 mt-1 text-right">{newReview.comment.length}/200</div>
+                                <Text type="secondary" className="text-xs uppercase font-bold tracking-wider">Time</Text>
+                                <div className="mt-1 font-semibold">
+                                    {new Date(selectedReview.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                </div>
                             </div>
-                            <div className="flex gap-3 pt-2">
-                                <button 
-                                    type="button"
-                                    onClick={() => setShowAddModal(false)}
-                                    className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 py-3"
-                                >
-                                    {submitting ? "Adding..." : "Add Review"}
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
 
+            <Modal
+                title={<Title level={4}>New Review</Title>}
+                open={showAddModal}
+                onCancel={() => setShowAddModal(false)}
+                footer={null}
+                centered
+                destroyOnClose
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleAddReview}
+                    initialValues={{ rating: 5 }}
+                >
+                    <Form.Item
+                        name="name"
+                        label="Customer Name"
+                        rules={[{ required: true, message: 'Please enter customer name' }]}
+                    >
+                        <Input placeholder="e.g. John Doe" size="large" />
+                    </Form.Item>
 
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                </div>
-            ) : reviews.length > 0 ? (
-                <div className="overflow-x-auto custom-scrollbar rounded-xl border border-slate-100">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
-                            <tr>
-                                <th className="px-6 py-4">User</th>
-                                <th className="px-6 py-4">Rating</th>
-                                <th className="px-6 py-4 w-1/3">Comment</th>
-                                <th className="px-6 py-4">Date</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {reviews.map((review) => (
-                                <tr key={review._id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
-                                                {review.name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <span className="font-bold text-slate-700 text-sm whitespace-nowrap">{review.name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex text-orange-400 gap-0.5">
-                                            {[...Array(5)].map((_, i) => (
-                                                <FaStar key={i} size={12} className={i < review.rating ? "" : "text-slate-200"} />
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm text-slate-600 line-clamp-2 max-w-xs">{review.comment}</p>
-                                    </td>
-                                    <td className="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
-                                        {new Date(review.createdAt).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {review.isVerified ? (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold border border-green-100">
-                                                <FaCheckCircle size={10} /> Verified
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold border border-amber-100">
-                                                <FaTimesCircle size={10} /> Pending
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleVerifyToken(review._id, !review.isVerified)}
-                                                className={`p-2 rounded-lg transition-all ${
-                                                    review.isVerified 
-                                                    ? 'text-amber-500 hover:bg-amber-50' 
-                                                    : 'text-green-600 hover:bg-green-50'
-                                                }`}
-                                                title={review.isVerified ? "Unverify" : "Verify"}
-                                            >
-                                                {review.isVerified ? <FaTimesCircle size={18} /> : <FaCheckCircle size={18} />}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(review._id)}
-                                                className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                                                title="Delete"
-                                            >
-                                                <FaTrash size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ) : (
-                <NoData />
-            )}
+                    <Form.Item
+                        name="rating"
+                        label="Rating"
+                        rules={[{ required: true }]}
+                    >
+                        <Rate style={{ fontSize: 24 }} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="comment"
+                        label="Comment"
+                        rules={[
+                            { required: true, message: 'Please enter comment' },
+                            { max: 200, message: 'Comment cannot exceed 200 characters' }
+                        ]}
+                    >
+                        <Input.TextArea 
+                            rows={4} 
+                            placeholder="What did the customer say?" 
+                            showCount 
+                            maxLength={200} 
+                        />
+                    </Form.Item>
+
+                    <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+                            <Button onClick={() => setShowAddModal(false)} size="large">
+                                Cancel
+                            </Button>
+                            <Button 
+                                type="primary" 
+                                htmlType="submit" 
+                                loading={submitting} 
+                                size="large"
+                            >
+                                Publish Review
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <style jsx>{`
+                .testimonial-table :global(.ant-table-thead > tr > th) {
+                    background: #ffffff;
+                    color: #595959;
+                    font-weight: 600;
+                    border-bottom: 1px solid #f0f0f0;
+                    padding: 16px 24px;
+                }
+                .testimonial-table :global(.ant-table-tbody > tr > td) {
+                    padding: 16px 24px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .testimonial-table :global(.ant-table-row:hover > td) {
+                    background: #fafafa !important;
+                }
+                .testimonial-table :global(.bg-slate-50\/50) {
+                    background-color: #f9fafb !important;
+                }
+            `}</style>
         </div>
     );
 };
 
 export default AdminSiteReviews;
+

@@ -48,19 +48,19 @@ const ProductCardAdmin = ({ data, fetchProductData }) => {
             
             {/* Tags/Badges */}
             <div className="absolute top-2 left-2 flex flex-col gap-1">
-              {data?.megaCombo && (
+              {data?.megaCombo ? (
                 <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                   Mega Combo
                 </span>
-              )}
+              ) : data?.comboOffer ? (
+                <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  Combo
+                </span>
+              ) : null}
+              
               {data?.trending && (
                 <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                   Trending
-                </span>
-              )}
-              {data?.comboOffer && (
-                <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                  Combo
                 </span>
               )}
             </div>

@@ -7,9 +7,9 @@ import AxiosToastError from "../utils/AxiosToastError";
 import Axios from "../utils/Axios";
 import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
-import { FiEdit2, FiTrash2, FiPlus, FiTruck } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiPlus, FiTruck, FiHeart } from "react-icons/fi";
 import { MdPayment } from "react-icons/md";
 import EditAddressDetails from "../components/EditAddressDetails";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -18,7 +18,7 @@ import AddressCard from "../components/AddressCard";
 
 
 const CheckoutPage = () => {
-  const { notDiscountTotalPrice, totalPrice, totalQty, fetchCartItem, fetchOrder } =
+  const { notDiscountTotalPrice, fetchCartItem, fetchOrder, totalQty, totalPrice, settings } =
     useGlobalContext();
 
   const [openAddress, setOpenAddress] = useState(false);
@@ -30,6 +30,8 @@ const CheckoutPage = () => {
 
   const addressList = useSelector((state) => state.addresses.addressList);
   const [selectAddress, setSelectAddress] = useState("");
+  const [foundationSettings, setFoundationSettings] = useState(null);
+  const [donationAmount, setDonationAmount] = useState(0);
 
   const cartItemsList = useSelector((state) => state.cartItem.cart);
   const navigate = useNavigate();
@@ -45,6 +47,20 @@ const CheckoutPage = () => {
     }
   }, [addressList, selectAddress]);
 
+  React.useEffect(() => {
+    const fetchFoundation = async () => {
+      try {
+        const response = await Axios({ ...SummaryApi.getFoundation });
+        if (response.data.success) {
+          setFoundationSettings(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching foundation", error);
+      }
+    };
+    fetchFoundation();
+  }, []);
+
   // Single item override from Buy Now
   const singleItem = location.state?.singleItem;
 
@@ -54,9 +70,22 @@ const CheckoutPage = () => {
     ? singleItem.quantity
     : totalQty;
 
-  const displayTotalPrice = singleItem
+  const displayTotalOriginalPrice = singleItem
+    ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.originalPrice || attr.price || 0), 0) * singleItem.quantity
+    : notDiscountTotalPrice;
+
+  const displayTotalOfferPrice = singleItem
     ? singleItem.selectedAttributes.reduce((sum, attr) => sum + (attr.price || 0), 0) * singleItem.quantity
     : totalPrice;
+
+  const totalDiscount = displayTotalOriginalPrice - displayTotalOfferPrice;
+  const discountPercentage = displayTotalOriginalPrice > 0 
+    ? Math.round((totalDiscount / displayTotalOriginalPrice) * 100) 
+    : 0;
+
+  const displayGrandTotal = displayTotalOfferPrice + donationAmount + (displayTotalOfferPrice >= (settings?.freeShippingThreshold || 0) && settings?.freeShippingThreshold > 0 ? 0 : (settings?.shippingCharge || 0));
+
+  const shippingCharge = (displayTotalOfferPrice >= (settings?.freeShippingThreshold || 0) && settings?.freeShippingThreshold > 0) ? 0 : (settings?.shippingCharge || 0);
 
   // Helper function to check if an address is currently selected
   const isAddressSelected = () => {
@@ -105,6 +134,7 @@ const CheckoutPage = () => {
         data: {
           list_items: displayCartItems,
           addressId: selectAddress,
+          donationAmount: donationAmount,
         },
       });
 
@@ -125,8 +155,6 @@ const CheckoutPage = () => {
   };
 
   const handleOnlinePayment = async () => {
-    // This function is intended to be called when the actual payment initiation occurs,
-    // potentially from the /processing page, or if you re-introduce direct online payment.
     if (!isAddressSelected()) {
       toast.error("Please select a delivery address first.");
       return;
@@ -157,15 +185,12 @@ const CheckoutPage = () => {
     }
   };
 
-  // This function is triggered by the "Online Payment" button on this page.
-  // It checks for address selection and then navigates to the /processing page.
   const handleProceedToPayment = () => {
     if (!isAddressSelected()) {
       toast.error("Please select a delivery address first.");
       return;
     }
-    // If an address is selected, navigate to the processing page.
-    navigate("/processing", { state: { singleItem } });
+    navigate("/processing", { state: { singleItem, donationAmount } });
   };
 
   return (
@@ -175,11 +200,11 @@ const CheckoutPage = () => {
             <Breadcrumbs />
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
 
         {/* Left Side: Address Section */}
-        <div className="w-full lg:w-[65%]">
-          <div className="mb-6">
+        <div className="w-full lg:w-[65%] space-y-6">
+          <div className="mb-2">
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Checkout</h2>
           </div>
 
@@ -226,10 +251,40 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        {/* Order Summary Section */}
-        <div className="w-full max-w-md">
-          <div className="bg-white shadow-lg rounded-xl p-6 sticky top-20 flex flex-col max-h-[calc(100vh-100px)]">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Order Summary</h2>
+        {/* Order Summary Sidebar Section */}
+        <div className="w-full max-w-md lg:sticky lg:top-8">
+          <div className="bg-white shadow-lg rounded-2xl p-6 flex flex-col max-h-[calc(100vh-100px)] border border-slate-100 overflow-y-auto custom-scrollbar">
+            <h2 className="text-2xl font-bold mb-5 text-gray-800">Order Summary</h2>
+
+            {/* Foundation Section - Matching Screenshot EXACTLY */}
+            {foundationSettings?.isActive && (
+              <div className="mb-6 bg-[#f0f7ff] rounded-2xl p-5 pb-6 border border-[#e5e7eb] relative flex-shrink-0 shadow-sm">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h2 className="text-[15px] font-bold text-slate-800 leading-tight">{foundationSettings.title}</h2>
+                    <p className="text-[12px] text-slate-500 font-medium leading-tight mt-0.5">{foundationSettings.description}</p>
+                  </div>
+                  <img src="/assets/common/logoheader.png" alt="Logo" className="h-10 w-auto flex-shrink-0" />
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {foundationSettings.amounts.map((amount) => (
+                    <button
+                      key={amount}
+                      onClick={() => setDonationAmount(donationAmount === amount ? 0 : amount)}
+                      className={`py-2 rounded-xl text-[11px] font-bold transition-all border shadow-sm ${
+                        donationAmount === amount 
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md scale-105" 
+                        : "bg-white text-slate-500 border-white hover:border-slate-200"
+                      }`}
+                    >
+                      ₹{amount}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest leading-tight mt-2">Note: GST and No cost EMI will not apply</p>
+              </div>
+            )}
 
             {/* Product List */}
             <div className="flex-grow overflow-y-auto mb-6 pr-2 custom-scrollbar">
@@ -244,8 +299,8 @@ const CheckoutPage = () => {
                     0
                   );
                   return (
-                    <div key={index} className="flex gap-3 items-start p-2 rounded-lg bg-gray-50 border border-gray-100">
-                      <div className="w-16 h-16 rounded-md overflow-hidden bg-white border border-gray-200 flex-shrink-0">
+                    <div key={index} className="flex gap-3 items-start p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border border-gray-200 flex-shrink-0">
                         <img
                           src={item.productId?.image[0]}
                           alt={item.productId?.name}
@@ -253,24 +308,17 @@ const CheckoutPage = () => {
                         />
                       </div>
                       <div className="flex-grow min-w-0">
-                        <h4 className="font-bold text-gray-800 text-sm line-clamp-1">
+                        <h4 className="font-bold text-gray-800 text-xs line-clamp-1">
                           {item.productId?.name}
                         </h4>
-                        <p className="text-[10px] text-gray-500 italic mb-1">
+                        <p className="text-[10px] text-gray-400 italic mb-1">
                           {item.selectedAttributes.map(a => `${a.attributeName}: ${a.optionName}`).join(", ")}
                         </p>
                         <div className="flex justify-between items-end">
-                          <span className="text-xs font-semibold text-gray-600">Qty: {item.quantity}</span>
-                          <div className="flex flex-col items-end">
-                            {itemOriginalPrice > itemOfferPrice && (
-                              <span className="text-[10px] text-gray-400 line-through">
-                                {DisplayPriceInRupees(itemOriginalPrice)}
-                              </span>
-                            )}
-                            <span className="text-sm font-bold text-green-700">
-                              {DisplayPriceInRupees(itemOfferPrice)}
-                            </span>
-                          </div>
+                          <span className="text-[10px] font-bold text-gray-500">Qty: {item.quantity}</span>
+                          <span className="text-xs font-bold text-green-700">
+                            {DisplayPriceInRupees(itemOfferPrice)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -282,40 +330,52 @@ const CheckoutPage = () => {
             <div className="space-y-4 text-sm text-gray-700 mt-auto pt-4 border-t border-gray-100">
               <div className="flex justify-between">
                 <span>Items Total</span>
-                <span className="font-semibold text-gray-900">
-                  {DisplayPriceInRupees(displayTotalPrice)}
+                <span className="font-bold text-gray-900">
+                  {DisplayPriceInRupees(displayTotalOfferPrice)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>Total Quantity</span>
-                <span>{displayTotalQty} items</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span>Shipping</span>
-                <span className="text-green-600 font-medium tracking-wide">FREE</span>
-              </div>
 
-              <div className="pt-2 flex justify-between text-lg font-extrabold text-blue-700">
-                <span>Grand Total</span>
-                <span>{DisplayPriceInRupees(displayTotalPrice)}</span>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total Quantity</span>
+                <span className="font-medium">{displayTotalQty} {displayTotalQty > 1 ? "items" : "item"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Shipping</span>
+                <span className={`${shippingCharge === 0 ? "text-green-600 font-bold" : "text-gray-900 font-semibold"}`}>
+                  {shippingCharge === 0 ? "FREE" : DisplayPriceInRupees(shippingCharge)}
+                </span>
+              </div>
+              
+              {donationAmount > 0 && (
+                <div className="flex justify-between text-blue-600 font-bold bg-blue-50/50 px-3 py-2 rounded-lg border border-blue-100/50">
+                  <span>Donation</span>
+                  <span>+ {DisplayPriceInRupees(donationAmount)}</span>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-between items-center text-xl font-black text-slate-900 border-t-2 border-dashed border-slate-100 mt-2">
+                <span className="tracking-tight">Grand Total</span>
+                <span className="text-blue-700">{DisplayPriceInRupees(displayGrandTotal)}</span>
               </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3">
-              {/* Online Payment Button - Triggers address check and navigation */}
               <button
                 onClick={handleProceedToPayment}
-                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition flex items-center justify-center gap-2"
+                className="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold transition flex items-center justify-center gap-2 shadow-md shadow-green-100"
               >
-                <MdPayment size={20} />
+                <MdPayment size={18} />
                 <span>Online Payment</span>
               </button>
 
-              <div className="flex items-center justify-center gap-2 mt-1 py-2 border-t border-slate-50">
-                  <FiTruck className="text-black" size={12} />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-black opacity-80">Deliver within 2 to 5 days all over India</span>
-              </div>
+              <p className="text-[10px] text-slate-400 text-center mt-2 leading-relaxed">
+                By proceeding, you agree to our <NavLink to="/terms-and-conditions" className="underline hover:text-green-600">Terms & Conditions</NavLink> and <NavLink to="/privacy-policy" className="underline hover:text-green-600">Privacy Policy</NavLink>.
+              </p>
 
+              <div className="flex items-center justify-center gap-2 mt-1 py-1">
+                  <FiTruck className="text-black opacity-60" size={12} />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-black opacity-60">Deliver within 2 to 5 days all over India</span>
+              </div>
             </div>
           </div>
         </div>

@@ -22,6 +22,7 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
   const [imageFile, setImageFile] = useState(null);
   const [selectedCategoryDetails, setSelectedCategoryDetails] = useState(null); // To store name for display
   const allCategory = useSelector((state) => state.product.allCategory);
+  const allSubCategory = useSelector((state) => state.product.allSubCategory);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,6 +64,15 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
     if (!subCategoryData.name || !subCategoryData.image || !subCategoryData.category) {
       toast.error("Please fill all required fields");
       return;
+    }
+
+    const currentSubCategories = allSubCategory.filter(sub => 
+        (sub.category?.[0]?._id === subCategoryData.category) || (sub.category === subCategoryData.category)
+    );
+
+    if(currentSubCategories.length >= 10){
+        toast.error("Maximum 10 subcategories allowed for this category.");
+        return;
     }
 
     setLoading(true);
@@ -167,13 +177,7 @@ const UploadSubCategoryModel = ({ close, fetchData }) => {
           <div className='flex flex-col gap-1'>
             <div className='flex items-center justify-between'>
               <label className='text-base font-medium' htmlFor='altText'>SEO Alt Text</label>
-              <button 
-                type='button'
-                onClick={() => setSubCategoryData(prev => ({ ...prev, altText: prev.name }))}
-                className='text-[11px] font-bold text-indigo-600 hover:underline'
-              >
-                Auto-generate
-              </button>
+            
             </div>
             <div className='relative'>
               <input

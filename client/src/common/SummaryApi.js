@@ -249,6 +249,42 @@ const SummaryApi = {
   updateAnnouncement: {
     url: "/api/announcement/update",
     method: "put"
+  },
+  getAllProductReviews: {
+    url: "/api/product/all-reviews",
+    method: "get"
+  },
+  deleteProductReview: {
+    url: "/api/product/delete-review",
+    method: "delete"
+  },
+  updateProductReview: {
+    url: "/api/product/update-review",
+    method: "put"
+  },
+  getAllUsers: {
+    url: "/api/user/all-users",
+    method: "get"
+  },
+  getUserHistory: {
+    url: "/api/order/user-history",
+    method: "get"
+  },
+  getFoundation: {
+    url: "/api/foundation/get",
+    method: "get"
+  },
+  updateFoundation: {
+    url: "/api/foundation/update",
+    method: "post"
+  },
+  getSettings: {
+    url: "/api/settings/get",
+    method: "get"
+  },
+  updateSettings: {
+    url: "/api/settings/update",
+    method: "post"
   }
 };
 

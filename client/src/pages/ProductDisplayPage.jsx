@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import SummaryApi from "../common/SummaryApi";
 import Axios from "../utils/Axios";
 import AxiosToastError from "../utils/AxiosToastError";
-import { FaAngleRight, FaAngleLeft } from "react-icons/fa6";
+import { FaAngleRight, FaAngleLeft, FaPlay } from "react-icons/fa6";
 import { FiZap } from "react-icons/fi";
 import { DisplayPriceInRupees } from "../utils/DisplayPriceInRupees";
 import Divider from "../components/Divider";
@@ -83,7 +83,7 @@ const ReviewsSection = ({
                         size="small"
                       />
                     </div>
-                    <p className="mt-2 text-[#999999] text-[13px] leading-relaxed break-words">
+                    <p className="mt-2 text-[#999999] text-[13px] leading-relaxed break-words whitespace-pre-wrap">
                       {review.comment}
                     </p>
                   </div>
@@ -202,6 +202,8 @@ const ProductDisplayPage = () => {
     attributes: [],
     reviews: [],
     demoVideoLink: "",
+    storage_instructions: "",
+    storage_image: "",
   });
   const [image, setImage] = useState(0);
   const [isVideoSelected, setIsVideoSelected] = useState(false);
@@ -591,7 +593,7 @@ const ProductDisplayPage = () => {
                     onClick={() => setIsVideoSelected(true)}
                   >
                     <div className="flex flex-col items-center justify-center gap-1 text-gray-600">
-                       <FiZap className={`text-xl ${isVideoSelected ? "text-[#279d68]" : ""}`} />
+                       <FaPlay className={`text-sm ${isVideoSelected ? "text-[#279d68]" : ""}`} />
                        <span className="text-[10px] font-bold uppercase">Video</span>
                     </div>
                   </div>
@@ -635,7 +637,7 @@ const ProductDisplayPage = () => {
                            rel="noopener noreferrer"
                            className="bg-[#ffb703] hover:bg-[#e6a500] text-gray-900 px-8 py-3 rounded-full font-bold transition-all shadow-lg flex items-center gap-2"
                          >
-                           Watch Video <FiZap className="inline" />
+                           Watch Video <FaPlay className="inline text-sm" />
                          </a>
                       </div>
                     )}
@@ -709,7 +711,7 @@ const ProductDisplayPage = () => {
                   <p className="font-bold text-2xl lg:text-3xl text-gray-900 border-none pb-1 leading-normal">
                     {DisplayPriceInRupees(currentCalculatedPrice)}
                   </p>
-                  {currentCalculatedOriginalPrice > currentCalculatedPrice && (
+                  {currentCalculatedOriginalPrice > currentCalculatedPrice && currentCalculatedPrice > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-base lg:text-lg text-slate-400 line-through pb-1 leading-normal">
                           {DisplayPriceInRupees(currentCalculatedOriginalPrice)}
@@ -727,11 +729,6 @@ const ProductDisplayPage = () => {
                 Price not available from attributes
               </p>
             )}
-            <div className="mt-3">
-              <span className="bg-[#5DB02F] text-white text-xs font-bold px-3 py-1.5 rounded disabled:opacity-50">
-                Free Shipping
-              </span>
-            </div>
           </div>
 
           {/* Attributes / Net Quantity */}
@@ -740,7 +737,7 @@ const ProductDisplayPage = () => {
               {data.attributes.map((attrGroup) => (
                 <div key={attrGroup.name} className="mb-4">
                   <h6 className="text-sm font-semibold mb-2 text-gray-800">
-                    {attrGroup.name} :
+                    {attrGroup.name}
                   </h6>
                   <div className="flex flex-wrap gap-2">
                     {attrGroup.options.map((option, idx) => {
@@ -801,7 +798,7 @@ const ProductDisplayPage = () => {
           {/* Description */}
           <div className="my-8">
             <h6 className="font-bold text-lg text-gray-800 mb-3 border-b border-gray-200 pb-2">Product Description</h6>
-            <p className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light">
+            <p className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light whitespace-pre-wrap">
               {data.description}
             </p>
           </div>
@@ -828,43 +825,61 @@ const ProductDisplayPage = () => {
         </div>
       </div>
 
-      {/* Storage/Nutrition Section */}
+      {/* Storage Instructions Section */}
       {(data.storage_instructions || data.storage_image) && (
-        <div className="mt-12 mb-8 overflow-hidden relative">
-          <div className="paper-edge-top h-5 bg-[#f0f0f0] w-full mb-[-1px]"></div>
-          <div className="bg-[#f0f0f0] text-gray-800 p-6 md:p-14 relative z-[2]">
-            <div className="container mx-auto grid lg:grid-cols-2 gap-10 items-center">
-              {/* Left Side: Image */}
-              <div className="flex justify-center order-2 md:order-1">
-                {data.storage_image ? (
-                  <div className="relative group">
-                    <div className="absolute -inset-1 bg-gray-300/30 rounded-2xl blur opacity-25"></div>
-                    <img 
-                      src={data.storage_image} 
-                      alt="Storage/Nutrition Information" 
-                      className="relative w-full max-h-[250px] md:max-h-[400px] object-contain rounded-xl shadow-2xl border border-gray-200 transform transition-transform duration-500"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-64 bg-gray-200/50 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
-                    <p className="text-gray-500 font-outfit text-center px-4">Quality & Nutrition Information</p>
+        <div className="mt-16 mb-12 overflow-hidden relative">
+          <div className="paper-edge-top h-6 bg-[#f8f9fa] w-full mb-[-1px]"></div>
+          <div className="bg-[#f8f9fa] py-12 md:py-20 relative z-[2]">
+            <div className="container mx-auto px-4">
+              <div className="space-y-16">
+                
+                {/* Storage Section */}
+                {(data.storage_instructions || data.storage_image) && (
+                  <div className="space-y-12">
+                    {/* Centered Header */}
+                    <div className="text-center max-w-3xl mx-auto space-y-4">
+                      <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 leading-tight">
+                        Storage & Quality
+                        <span className="text-[#279d68]"> Care Instructions</span>
+                      </h3>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+                      <div className="order-1">
+                        {data.storage_image ? (
+                          <div className="relative group flex justify-center">
+                            <img 
+                              src={data.storage_image} 
+                              alt="Storage Information" 
+                              className="relative w-full max-h-[350px] lg:max-h-[450px] object-contain rounded-3xl"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-64 bg-white rounded-2xl flex items-center justify-center border-2 border-dashed border-gray-200 shadow-sm">
+                            <div className="text-center space-y-2">
+                               <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                               </div>
+                               <p className="text-gray-400 font-medium px-4">Storage & Quality Information</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="order-2 space-y-6">
+                        <div className="backdrop-blur-sm p-6 lg:p-8 rounded-3xl">
+                          <p className="text-gray-600 text-sm lg:text-base leading-relaxed font-outfit whitespace-pre-wrap">
+                            {data.storage_instructions || "Maintain product quality by following these storage guidelines."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
-
-              {/* Right Side: Content */}
-              <div className="flex flex-col gap-6 order-1 md:order-2 min-w-0">
-                <div className="space-y-4">
-                  <div 
-                    className="storage-instructions-content text-gray-800 text-lg md:text-xl leading-relaxed font-outfit whitespace-pre-wrap drop-shadow-sm break-words"
-                  >
-                    {data.storage_instructions}
-                  </div>
-                </div>
+                
               </div>
             </div>
           </div>
-          <div className="paper-edge-bottom h-5 bg-[#f0f0f0] w-full mt-[-1px]"></div>
+          <div className="paper-edge-bottom h-6 bg-[#f8f9fa] w-full mt-[-1px]"></div>
         </div>
       )}
 
