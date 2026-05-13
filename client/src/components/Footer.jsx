@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { Mail, Phone, Instagram, MapPin } from "lucide-react";
 
-const Logo = "/assets/common/logoheader.png";
+const Logo = "/assets/common/logoheader.webp";
 
 const Footer = () => {
   const date = new Date().getFullYear();

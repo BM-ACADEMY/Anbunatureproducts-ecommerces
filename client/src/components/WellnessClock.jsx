@@ -29,7 +29,7 @@ const WellnessClock = () => {
           className="relative max-w-3xl mx-auto shadow-2xl rounded-3xl overflow-hidden bg-slate-50 border-4 border-white"
         >
           <img 
-            src="/assets/wellness/daily_wellness_clock.jpg" 
+            src="/assets/wellness/daily_wellness_clock.webp" 
             alt="Anbu Natural Daily Wellness Clock - A guide to natural living through the day" 
             className="w-full h-auto object-cover"
             loading="lazy"

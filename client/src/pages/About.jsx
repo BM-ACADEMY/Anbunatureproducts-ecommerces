@@ -171,7 +171,7 @@ export default function AnbuNaturalAbout() {
           <motion.div initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 100, delay: 0.1 }}
             className="w-20 h-20 mx-auto mb-8 rounded-full flex items-center justify-center"
             style={{ background: "rgba(52,211,153,0.1)", border: "1.5px solid rgba(110,231,183,0.35)" }}>
-            <img src="/assets/common/logoheader.png" alt="Anbu Natural Logo" className="w-16 h-auto drop-shadow-lg" />
+            <img src="/assets/common/logoheader.webp" alt="Anbu Natural Logo" className="w-16 h-auto drop-shadow-lg" />
           </motion.div>
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             style={{ color: "#6ee7b7", letterSpacing: "0.35em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-4">About Us</motion.p>
@@ -259,7 +259,7 @@ export default function AnbuNaturalAbout() {
             className="max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white"
           >
             <img 
-              src="/assets/wellness/daily_wellness_clock.jpg" 
+              src="/assets/wellness/daily_wellness_clock.webp" 
               alt="Anbu Natural Daily Wellness Clock guide - Traditional herbal wellness routine from morning to night" 
               className="w-full h-auto"
             />
@@ -466,7 +466,7 @@ export default function AnbuNaturalAbout() {
       {/* ── Footer Banner ── */}
       <section className="py-20 px-6 text-center" style={{ background: "#0a2618" }}>
         <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
-          <img src="/assets/common/logoheader.png" alt="Anbu Natural Logo" className="w-16 h-auto mx-auto mb-6 drop-shadow-md" />
+          <img src="/assets/common/logoheader.webp" alt="Anbu Natural Logo" className="w-16 h-auto mx-auto mb-6 drop-shadow-md" />
           <h2 className="serif text-3xl md:text-4xl font-bold mb-4 leading-tight text-white">
             "Nature, Wellness &amp; Care —<br />
             <span style={{ color: "#34d399" }} className="italic">Together in Every Product."</span>

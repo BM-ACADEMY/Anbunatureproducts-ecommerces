@@ -3,7 +3,7 @@ import UserMenu from "../components/UserMenu";
 import DashboardHeader from "../components/DashboardHeader";
 import { Link, Outlet } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
-const logo = "/assets/common/logoheader.png";
+const logo = "/assets/common/logoheader.webp";
 import "../assets/css/dashboard.css";
 
 const Dashboard = () => {

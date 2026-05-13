@@ -264,7 +264,7 @@ const CheckoutPage = () => {
                     <h2 className="text-[15px] font-bold text-slate-800 leading-tight">{foundationSettings.title}</h2>
                     <p className="text-[12px] text-slate-500 font-medium leading-tight mt-0.5">{foundationSettings.description}</p>
                   </div>
-                  <img src="/assets/common/logoheader.png" alt="Logo" className="h-10 w-auto flex-shrink-0" />
+                  <img src="/assets/common/logoheader.webp" alt="Logo" className="h-10 w-auto flex-shrink-0" />
                 </div>
                 
                 <div className="grid grid-cols-4 gap-2 mb-4">
