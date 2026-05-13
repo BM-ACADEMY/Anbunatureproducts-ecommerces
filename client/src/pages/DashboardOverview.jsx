@@ -339,7 +339,7 @@ const DashboardOverview = () => {
                 <Col xs={24} lg={15}>
                     <Card 
                         title={<Space><LineChartOutlined /> Revenue Analysis</Space>}
-                        extra={<Button type="link">View Report</Button>}
+                       
                         bordered={true}
                         style={{ borderRadius: 16, border: '1px solid #e5e7eb', height: '100%' }}
                     >
@@ -515,9 +515,6 @@ const DashboardOverview = () => {
                 footer={[
                     <Space key="footer-actions" size="middle">
                         <Button onClick={() => setSelectedProduct(null)}>Close</Button>
-                        <Link to={`/dashboard/edit-product/${selectedProduct?._id}`}>
-                            <Button type="primary">Edit Product</Button>
-                        </Link>
                     </Space>
                 ]}
                 width={700}

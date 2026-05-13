@@ -11,7 +11,7 @@ import UploadProductModel from '../components/UploadProductModel';
 const ProductAdmin = () => {
   const [productData, setProductData] = useState([]);
   const [page, setPage] = useState(1);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || "";
   const [loading, setLoading] = useState(false);
   const [totalPageCount, setTotalPageCount] = useState(0);
@@ -60,11 +60,29 @@ const ProductAdmin = () => {
   return (
     <section className=''>
       {/* Header */}
-      <div className='p-2 flex items-center justify-between gap-4 bg-white shadow-sm rounded flex-wrap'>
-          <h2 className='font-semibold text-lg sm:text-xl'>Products</h2>
+      <div className='p-2 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white shadow-sm rounded flex-wrap'>
+          <div className='flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto'>
+              <h2 className='font-semibold text-lg sm:text-xl'>Products</h2>
+              <div className='relative w-full sm:w-64'>
+                  <input 
+                      type="text" 
+                      placeholder='Search product...' 
+                      value={searchQuery}
+                      onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                              setSearchParams({ search: val });
+                          } else {
+                              setSearchParams({});
+                          }
+                      }}
+                      className='w-full bg-slate-100 border border-slate-200 px-4 py-2 rounded outline-none focus:border-[#279d68] transition-all text-sm'
+                  />
+              </div>
+          </div>
           <button 
              onClick={() => setOpenUploadProductModel(true)}
-            className='bg-[#279d68] hover:bg-[#279d68]/90  text-white px-4 py-2 rounded flex items-center gap-2 transition-all font-medium text-sm sm:text-base'
+            className='w-full sm:w-auto bg-[#279d68] hover:bg-[#279d68]/90 text-white px-4 py-2 rounded flex items-center justify-center gap-2 transition-all font-medium text-sm sm:text-base'
           >
              <IoAdd size={22} />
              <span>Add Product</span>

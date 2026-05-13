@@ -46,7 +46,7 @@ const WhyChooseUs = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-[1.5rem] md:text-[2.25rem] font-medium text-center mb-1 md:mb-10 font-outfit text-[#1a1a1a] tracking-tight">
-            Why buy with Anbu Natural Products?
+            Why Families Trust Anbu Natural?
           </h2>
         </motion.div>
 

@@ -85,6 +85,9 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
 
+  const [isEditingOption, setIsEditingOption] = useState(false);
+  const [editingOptionOriginalName, setEditingOptionOriginalName] = useState('');
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData((prev) => ({ ...prev, [name]: value }));
@@ -305,6 +308,57 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     setNewOptionOfferPrice('');
     setNewOptionStock(null);
     setSelectedAttributeTypeForOption('');
+  };
+
+  const handleEditAttributeOption = (groupName, option) => {
+    setSelectedAttributeTypeForOption(groupName);
+    setNewOptionValue(option.name);
+    setEditingOptionOriginalName(option.name);
+    setNewOptionOriginalPrice(option.originalPrice);
+    setNewOptionOfferPrice(option.offerPrice);
+    setNewOptionStock(option.stock);
+    setIsEditingOption(true);
+  };
+
+  const handleUpdateAttributeOption = () => {
+    if (!selectedAttributeTypeForOption) return;
+    if (!newOptionValue.trim()) { toast.error('Value cannot be empty'); return; }
+
+    const offerPrice = newOptionOfferPrice === '' ? Number(newOptionOriginalPrice) : Number(newOptionOfferPrice);
+
+    setData(prev => ({
+      ...prev,
+      attributes: prev.attributes.map(attr => {
+        if (attr.name === selectedAttributeTypeForOption) {
+          return {
+            ...attr,
+            options: attr.options.map(opt => {
+              if (opt.name === editingOptionOriginalName) {
+                return {
+                  ...opt,
+                  name: newOptionValue.trim(),
+                  originalPrice: Number(newOptionOriginalPrice),
+                  offerPrice: offerPrice,
+                  price: offerPrice,
+                  stock: newOptionStock !== null ? Number(newOptionStock) : null,
+                };
+              }
+              return opt;
+            })
+          };
+        }
+        return attr;
+      })
+    }));
+
+    // Reset
+    setNewOptionValue('');
+    setNewOptionOriginalPrice('');
+    setNewOptionOfferPrice('');
+    setNewOptionStock(null);
+    setSelectedAttributeTypeForOption('');
+    setIsEditingOption(false);
+    setEditingOptionOriginalName('');
   };
 
   const handleDeleteAttributeOption = (attributeTypeName, optionValueToDelete) => {
@@ -542,10 +596,18 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
             <div className='flex flex-wrap items-center gap-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm'>
                 <div className='flex items-center gap-2'>
                   <input
-                    type='checkbox' id='editMegaCombo' checked={data.megaCombo} onChange={handleMegaComboToggle}
+                    type='checkbox' id='editComboOffer' checked={data.comboOffer} onChange={(e) => setData(prev => ({ ...prev, comboOffer: e.target.checked }))}
                     className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
                   />
-                  <label htmlFor='editMegaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo Offer</label>
+                  <label htmlFor='editComboOffer' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Combo Offer</label>
+                </div>
+
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='checkbox' id='editMegaCombo' checked={data.megaCombo} onChange={(e) => setData(prev => ({ ...prev, megaCombo: e.target.checked }))}
+                    className='w-5 h-5 text-[#279d68] border-gray-300 rounded-lg focus:ring-[#279d68] cursor-pointer'
+                  />
+                  <label htmlFor='editMegaCombo' className='text-sm font-bold text-slate-700 cursor-pointer uppercase tracking-tight'>Mega Combo</label>
                 </div>
 
                 <div className='flex items-center gap-2'>
@@ -787,9 +849,14 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                      <div className='p-4 space-y-4'>
                         <div className='flex flex-wrap gap-2'>
                            {attr.options.map((opt, ix) => (
-                             <span key={ix} className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2'>
+                             <span 
+                               key={ix} 
+                               className='bg-indigo-50/50 text-indigo-700 px-3 py-1.5 rounded-xl text-[12px] font-bold border border-indigo-100/50 flex items-center gap-2 cursor-pointer hover:bg-indigo-100/50 transition-colors group'
+                               onClick={() => handleEditAttributeOption(attr.name, opt)}
+                               title="Click to edit"
+                             >
                                 {opt.name} · ₹{opt.offerPrice} {opt.originalPrice > opt.offerPrice && <span className='line-through text-slate-400 font-medium ml-1'>₹{opt.originalPrice}</span>}
-                                <IoClose className='cursor-pointer hover:text-rose-500' onClick={() => handleDeleteAttributeOption(attr.name, opt.name)} />
+                                <IoClose className='cursor-pointer text-slate-400 hover:text-rose-500' onClick={(e) => { e.stopPropagation(); handleDeleteAttributeOption(attr.name, opt.name); }} />
                              </span>
                            ))}
                         </div>
@@ -812,8 +879,10 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                                  <input type='number' placeholder='∞' value={newOptionStock || ""} onChange={e => setNewOptionStock(e.target.value === "" ? null : Number(e.target.value))} className='w-full px-3 py-2 rounded-xl border border-gray-200 text-sm' />
                                </div>
                               <div className='col-span-2 md:col-span-4 flex justify-end gap-2 pt-2'>
-                                 <button type='button' onClick={() => setSelectedAttributeTypeForOption("")} className='px-4 py-2 text-xs font-bold text-slate-500'>Cancel</button>
-                                 <button type='button' onClick={handleAddAttributeOption} className='px-6 py-2 bg-[#279d68] text-white rounded-xl text-xs font-bold shadow-lg shadow-green-100 hover:bg-[#279d68]/90 transition-all'>Add Option</button>
+                                 <button type='button' onClick={() => { setSelectedAttributeTypeForOption(""); setIsEditingOption(false); setEditingOptionOriginalName(''); setNewOptionValue(''); setNewOptionOriginalPrice(''); setNewOptionOfferPrice(''); setNewOptionStock(null); }} className='px-4 py-2 text-xs font-bold text-slate-500'>Cancel</button>
+                                 <button type='button' onClick={isEditingOption ? handleUpdateAttributeOption : handleAddAttributeOption} className='px-6 py-2 bg-[#279d68] text-white rounded-xl text-xs font-bold shadow-lg shadow-green-100 hover:bg-[#279d68]/90 transition-all'>
+                                   {isEditingOption ? 'Update Option' : 'Add Option'}
+                                 </button>
                               </div>
                            </div>
                         ) : (

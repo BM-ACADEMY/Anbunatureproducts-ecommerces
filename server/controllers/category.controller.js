@@ -15,6 +15,15 @@ export const AddCategoryController = async(request,response)=>{
             })
         }
 
+        const categoryCount = await CategoryModel.countDocuments()
+        if(categoryCount >= 10){
+            return response.status(400).json({
+                message : "Maximum 10 categories allowed. Please delete existing ones to add more.",
+                error : true,
+                success : false
+            })
+        }
+
         const addCategory = new CategoryModel({
             name,
             image,
@@ -52,7 +61,15 @@ export const getCategoryController = async (request, response) => {
         const data = await CategoryModel.aggregate([
             {
                 $lookup: {
-                    from: "products", // Ensure this matches the Product model's collection name
+                    from: "subcategories",
+                    localField: "_id",
+                    foreignField: "category",
+                    as: "subCategories"
+                }
+            },
+            {
+                $lookup: {
+                    from: "products", 
                     localField: "_id",
                     foreignField: "category",
                     as: "products"
@@ -63,6 +80,7 @@ export const getCategoryController = async (request, response) => {
                     name: 1,
                     image: 1,
                     altText: 1,
+                    subCategoryCount: { $size: "$subCategories" },
                     productCount: { $size: "$products" }
                 }
             }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiMenu, FiHome, FiLogOut, FiHelpCircle, FiBell } from 'react-icons/fi';
+import { FiMenu, FiHome, FiLogOut } from 'react-icons/fi';
 import { BsLayoutSidebarInset, BsReverseLayoutSidebarInsetReverse } from "react-icons/bs";
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -163,14 +163,7 @@ const DashboardHeader = ({ onMenuClick, onSidebarToggle, isCollapsed }) => {
 
       {/* Right Section */}
       <div className={`header-right transition-all duration-300 ${isMobileSearchExpanded ? 'opacity-0 translate-x-full pointer-events-none' : 'opacity-100 flex items-center'}`}>
-        <div className="header-actions">
-          <button className="header-action-btn" title="Notifications">
-            <div className="custom-badge-container">
-              <FiBell size={20} />
-              <span className="custom-badge">5</span>
-            </div>
-          </button>
-        </div>
+        
 
         <div className="relative">
           <div 

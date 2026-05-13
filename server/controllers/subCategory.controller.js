@@ -13,6 +13,15 @@ export const AddSubCategoryController = async(request,response)=>{
             })
         }
 
+        const subCategoryCount = await SubCategoryModel.countDocuments({ category : category })
+        if(subCategoryCount >= 10){
+            return response.status(400).json({
+                message : "Maximum 10 subcategories allowed for this category.",
+                error : true,
+                success : false
+            })
+        }
+
         const payload = {
             name,
             image,
@@ -41,7 +50,36 @@ export const AddSubCategoryController = async(request,response)=>{
 
 export const getSubCategoryController = async(request,response)=>{
     try {
-        const data = await SubCategoryModel.find().sort({createdAt : -1}).populate('category')
+        const data = await SubCategoryModel.aggregate([
+            { $sort: { createdAt: -1 } },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "category"
+                }
+            },
+            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "subCategory",
+                    as: "products"
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    image: 1,
+                    altText: 1,
+                    category: 1,
+                    productCount: { $size: "$products" }
+                }
+            }
+        ]);
+
         return response.json({
             message : "Sub Category data",
             data : data,

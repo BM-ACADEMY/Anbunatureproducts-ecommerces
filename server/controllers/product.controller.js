@@ -99,6 +99,19 @@ export const createProductController = async (request, response) => {
       });
     }
 
+    if (subCategory && Array.isArray(subCategory)) {
+        for (const subId of subCategory) {
+            const productCount = await ProductModel.countDocuments({ subCategory: subId });
+            if (productCount >= 50) {
+                return response.status(400).json({
+                    message: `Subcategory is full. Maximum 50 products allowed per subcategory.`,
+                    error: true,
+                    success: false
+                });
+            }
+        }
+    }
+
     const attributeValidationError = validateAttributes(attributes);
     if (attributeValidationError) {
       return response.status(400).json({

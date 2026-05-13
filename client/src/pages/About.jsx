@@ -4,7 +4,7 @@ import {
   Leaf as LeafIcon, Heart, Baby, Sprout, Shield, Award, Smile, Handshake,
   TrendingUp, TreePine, UtensilsCrossed, Wheat, FlaskConical, Pill,
   Flag, Factory, Star, ClipboardList, Home, HeartHandshake, Salad,
-  CheckCircle2
+  CheckCircle2, X
 } from "lucide-react";
 
 const useScrollInView = (threshold = 0.15) => {
@@ -20,6 +20,8 @@ const fadeUp = {
     transition: { duration: 0.75, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }
   })
 };
+
+import FounderSection from "../components/FounderSection";
 
 const slideLeft = {
   hidden: { opacity: 0, x: -50 },
@@ -122,7 +124,7 @@ export default function AnbuNaturalAbout() {
 
   const certs = [
     { icon: <UtensilsCrossed size={30} />, name: "FSSAI", desc: "Food Safety & Standards Authority of India" },
-    { icon: <Factory size={30} />, name: "MSME", desc: "Ministry of Micro, Small & Medium Enterprises" },
+    { icon: <Factory size={30} />, name: "MSME", desc: "Ministry of Micro, Small & Medium Enterprises", file: "/assets/about/msme.pdf" },
     { icon: <Star size={30} />, name: "AGMARK", desc: "Agricultural Mark — Quality Guarantee" },
     { icon: <ClipboardList size={30} />, name: "ISO", desc: "Quality Management System Certified" },
   ];
@@ -231,6 +233,36 @@ export default function AnbuNaturalAbout() {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Daily Wellness Clock Section ── */}
+      <section className="py-24 px-6 bg-[#f0f9f4]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
+            <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Daily Routine</p>
+            <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              Daily Wellness <span style={{ color: "#059669" }} className="italic">Clock</span>
+            </h2>
+            <Divider />
+            <p className="mt-6 text-base text-gray-600 leading-relaxed font-light max-w-2xl mx-auto">
+              Goodness in every moment, wellness in every day. Our wellness clock is a guide to natural living, helping you stay balanced and healthy throughout the day with Anbu Natural's trusted formulations.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white"
+          >
+            <img 
+              src="/assets/wellness/daily_wellness_clock.jpg" 
+              alt="Anbu Natural Daily Wellness Clock guide - Traditional herbal wellness routine from morning to night" 
+              className="w-full h-auto"
+            />
           </motion.div>
         </div>
       </section>
@@ -359,7 +391,8 @@ export default function AnbuNaturalAbout() {
             {certs.map((c, i) => (
               <motion.div key={c.name} variants={fadeUp} custom={i} initial="hidden" animate={certInView ? "visible" : "hidden"}
                 whileHover={{ scale: 1.04, y: -4 }}
-                className="flex flex-col items-center gap-3 rounded-2xl p-6 cursor-pointer transition-all duration-300"
+                onClick={() => c.file && window.open(c.file, '_blank')}
+                className={`flex flex-col items-center gap-3 rounded-2xl p-6 transition-all duration-300 ${c.file ? 'cursor-pointer hover:bg-white/10' : 'cursor-default opacity-80'}`}
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)" }}>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center"
                   style={{ background: "rgba(52,211,153,0.15)", color: "#6ee7b7" }}>
@@ -369,6 +402,7 @@ export default function AnbuNaturalAbout() {
                   <div className="serif font-bold text-base text-white">{c.name}</div>
                   <div style={{ color: "#a7f3d0", fontSize: "0.75rem", fontWeight: 300 }} className="mt-1">{c.desc}</div>
                 </div>
+                {c.file && <span className="text-[10px] text-emerald-400 font-bold uppercase mt-1 tracking-widest">View Document</span>}
               </motion.div>
             ))}
           </div>
@@ -425,6 +459,9 @@ export default function AnbuNaturalAbout() {
           </motion.p>
         </div>
       </section>
+
+      {/* ── Founder Section ── */}
+      <FounderSection />
 
       {/* ── Footer Banner ── */}
       <section className="py-20 px-6 text-center" style={{ background: "#0a2618" }}>

@@ -34,7 +34,7 @@ const StarRating = ({ rating }) => {
 
 const CardProduct = ({ data }) => {
   const url = `/product/${valideURLConvert(data.name)}-${data._id}`;
-  const { comboOffer, reviews } = data;
+  const { comboOffer, megaCombo, reviews } = data;
 
   let displayPrice = 0;
   let displayOriginalPrice = 0;
@@ -88,11 +88,15 @@ const CardProduct = ({ data }) => {
       >
         <div className="relative w-full h-64 md:h-72 overflow-hidden bg-gray-50">
           <div className="absolute top-0 left-0 flex flex-col z-10">
-            {comboOffer && (
+            {megaCombo ? (
+              <div className="bg-purple-600 mb-2 text-white text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-br-lg w-fit">
+                Mega Combo
+              </div>
+            ) : comboOffer ? (
               <div className="bg-[#ea242b] mb-2 text-white text-[10px] md:text-xs font-semibold px-2.5 py-1.5 rounded-br-lg w-fit">
                 Combo offer
               </div>
-            )}
+            ) : null}
             {displayOriginalPrice > displayPrice && displayPrice > 0 && (
               <div className="bg-[#DC0000] text-white text-[10px] md:text-xs font-bold px-2.5 py-1.5 rounded-br-lg w-fit shadow-sm">
                 {Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)}% OFF

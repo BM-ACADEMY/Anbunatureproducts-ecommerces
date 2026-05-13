@@ -17,7 +17,8 @@ const WriteReview = () => {
 
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [visibleCount, setVisibleCount] = useState(6);
+    const [currentPage, setCurrentPage] = useState(1);
+    const reviewsPerPage = 6;
     
     const navigate = useNavigate();
 
@@ -40,9 +41,10 @@ const WriteReview = () => {
         }
     };
 
-    const handleLoadMore = () => {
-        setVisibleCount(prev => prev + 6);
-    };
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+    const indexOfLastReview = currentPage * reviewsPerPage;
+    const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+    const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
 
 
     const handleRatingChange = (newRating) => {
@@ -99,11 +101,11 @@ const WriteReview = () => {
                     {/* Left side: Existing reviews grid */}
                     <div className="w-full lg:w-[65%] flex flex-col gap-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-fit">
-                            {reviews.length > 0 ? (
-                                reviews.slice(0, visibleCount).map((review) => (
-                                    <div key={review._id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[180px]">
+                            {currentReviews.length > 0 ? (
+                                currentReviews.map((review) => (
+                                    <div key={review._id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[180px] hover:shadow-md transition-all duration-300">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                                            <div className="w-10 h-10 rounded-full bg-[#fdf5e6] flex items-center justify-center text-[#88b04b]">
                                                 <FaUser size={18} />
                                             </div>
                                             <div className="flex flex-col">
@@ -116,27 +118,64 @@ const WriteReview = () => {
                                             </div>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-slate-600 text-sm leading-relaxed mb-2 line-clamp-3">
-                                                {review.comment}
+                                            <p className="text-slate-600 text-sm leading-relaxed mb-2 line-clamp-4 italic">
+                                                "{review.comment}"
                                             </p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-full h-64 flex items-center justify-center border-2 border-dashed border-slate-100 rounded-3xl text-slate-400">
+                                <div className="col-span-full h-64 flex items-center justify-center border-2 border-dashed border-slate-100 rounded-3xl text-slate-400 bg-white/50">
                                     No reviews to display yet.
                                 </div>
                             )}
                         </div>
                         
-                        {reviews.length > visibleCount && (
-                            <div className="flex justify-center mt-4">
-                                <button 
-                                    onClick={handleLoadMore}
-                                    className="bg-[#76a33a] hover:bg-[#688f33] text-white font-bold py-2.5 px-10 rounded-[10px] shadow-sm transition-all transform hover:scale-105 active:scale-95"
-                                >
-                                    Load More
-                                </button>
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-8 bg-white/50 p-4 rounded-2xl border border-slate-100">
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Page <span className="text-[#88b04b]">{currentPage}</span> of {totalPages}
+                                </p>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        disabled={currentPage === 1}
+                                        onClick={() => {
+                                            setCurrentPage(prev => prev - 1);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className="px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-[#88b04b] hover:text-white hover:border-[#88b04b] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+                                    >
+                                        Prev
+                                    </button>
+                                    
+                                    <div className="flex items-center gap-1.5 mx-2">
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button
+                                                key={i + 1}
+                                                onClick={() => {
+                                                    setCurrentPage(i + 1);
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                                    currentPage === i + 1 ? "w-6 bg-[#88b04b]" : "bg-slate-300 hover:bg-slate-400"
+                                                }`}
+                                                aria-label={`Page ${i + 1}`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => {
+                                            setCurrentPage(prev => prev + 1);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className="px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-[#88b04b] hover:text-white hover:border-[#88b04b] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

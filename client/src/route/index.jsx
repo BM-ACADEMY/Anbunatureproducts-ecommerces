@@ -24,7 +24,6 @@ import Success from "../pages/Success";
 import Cancel from "../pages/Cancel";
 import AllOrders from "../pages/AllOrders";
 import About from "../pages/About";
-import Manufacturing from "../pages/Manufacturing";
 import Contact from "../pages/Contact";
 import Processing from "../pages/Processing";
 import DashboardOverview from "../pages/DashboardOverview";
@@ -69,10 +68,6 @@ const router = createBrowserRouter([
       {
         path: "processing",
         element: <Processing />,
-      },
-      {
-        path: "manufacturing",
-        element: <Manufacturing />,
       },
       {
         path: "contact",
@@ -159,7 +154,11 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        element: <Dashboard />,
+        element: (
+          <AdminPermision>
+            <Dashboard />
+          </AdminPermision>
+        ),
         children: [
           {
             index: true,
