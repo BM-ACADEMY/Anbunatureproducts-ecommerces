@@ -258,9 +258,9 @@ export default function AnbuNaturalAbout() {
             transition={{ duration: 0.8 }}
             className="max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white"
           >
-            <img 
-              src="/assets/wellness/daily_wellness_clock.webp" 
-              alt="Anbu Natural Daily Wellness Clock guide - Traditional herbal wellness routine from morning to night" 
+            <img
+              src="/assets/wellness/daily_wellness_clock.webp"
+              alt="Anbu Natural Daily Wellness Clock guide - Traditional herbal wellness routine from morning to night"
               className="w-full h-auto"
             />
           </motion.div>
@@ -382,7 +382,7 @@ export default function AnbuNaturalAbout() {
               </motion.div>
             ))}
           </div>
-          
+
           <motion.div ref={certRef} variants={fadeUp} initial="hidden" animate={trustInView ? "visible" : "hidden"}>
             <h3 className="serif text-2xl font-bold mb-2 text-white">Our Certificates</h3>
             <p style={{ color: "#6ee7b7", fontSize: "0.85rem", opacity: 0.8 }} className="mb-8 font-light">Click any certificate to view</p>
