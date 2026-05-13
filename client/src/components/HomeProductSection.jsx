@@ -94,7 +94,7 @@ const HomeProductSection = ({ title, apiEndpoint, isSliderOnMobile = true, barCo
                 "--swiper-pagination-bullet-size": "8px",
                 "--swiper-pagination-bullet-horizontal-gap": "4px",
               }}
-              className="mySwiper"
+              className="mySwiper pb-12"
             >
               {loading
                 ? loadingCardNumber.map((_, index) => (

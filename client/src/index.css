@@ -13,6 +13,12 @@ html {
   display: none !important;
 }
 
+/* Ensure swiper slides have equal height */
+.mySwiper .swiper-slide {
+  height: auto !important;
+  display: flex !important;
+}
+
 /* --- Global CSS for ProductDisplayPage enhancements --- */
 
 /* Main Image Fade Transition */

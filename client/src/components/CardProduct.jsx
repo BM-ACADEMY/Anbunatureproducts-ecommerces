@@ -4,19 +4,30 @@ import { Link } from "react-router-dom";
 import { valideURLConvert } from "../utils/valideURLConvert";
 import AddToCartButton from "./AddToCartButton";
 import { formatReviewCount } from "../utils/formatReviewCount";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+
 const StarRating = ({ rating }) => {
   return (
-    <div className="flex items-center gap-0.5">
-      {[...Array(5)].map((_, index) => (
-        <span
-          key={index}
-          className={`text-lg ${
-            index < Math.round(rating) ? "text-amber-400" : "text-gray-300"
-          }`}
-        >
-          ★
-        </span>
-      ))}
+    <div className="flex items-center gap-1">
+      <div className="flex items-center">
+        {[...Array(5)].map((_, index) => {
+          const starValue = index + 1;
+          return (
+            <span key={index} className="text-amber-400 text-sm">
+              {rating >= starValue ? (
+                <FaStar />
+              ) : rating >= starValue - 0.5 ? (
+                <FaStarHalfAlt />
+              ) : (
+                <FaRegStar className="text-gray-300" />
+              )}
+            </span>
+          );
+        })}
+      </div>
+      <span className="text-xs font-bold text-amber-600 ml-1 bg-amber-50 px-1.5 py-0.5 rounded">
+        {rating.toFixed(1)}
+      </span>
     </div>
   );
 };
@@ -69,10 +80,10 @@ const CardProduct = ({ data }) => {
   const formattedReviewCount = formatReviewCount(reviewCount);
 
   return (
-    <div className="flex flex-col bg-white shadow-md w-full max-w-[450px] h-[520px] mx-auto rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300 my-4 group/card">
+    <div className="flex flex-col bg-white shadow-md w-full max-w-[450px] h-full min-h-[460px] md:min-h-[520px] mx-auto rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300 mb-6 md:mb-8 group/card">
       <Link
         to={url}
-        className="flex flex-col flex-grow h-full"
+        className="flex flex-col flex-grow"
         aria-label={`View ${data.name} product`}
       >
         <div className="relative w-full h-64 md:h-72 overflow-hidden bg-gray-50">
@@ -104,34 +115,35 @@ const CardProduct = ({ data }) => {
           )}
         </div>
 
-        <div className="p-4 font-outfit flex flex-col flex-grow">
-          <div className="flex items-center mb-1.5">
+        <div className="p-5 font-outfit flex flex-col flex-grow">
+          <div className="flex items-center mb-2.5">
             <StarRating rating={averageRating} />
-            <p className="ml-1.5 text-[0.85rem] text-gray-500">
-              {reviewCount > 0 ? `(${formattedReviewCount} reviews)` : "(No reviews)"}
-            </p>
+            <span className="ml-2 text-[11px] font-bold text-gray-400 uppercase tracking-tight">
+              {reviewCount > 0 ? `${formattedReviewCount} reviews` : "New Product"}
+            </span>
           </div>
 
-          <h3 className="text-slate-900 text-[16px] font-bold line-clamp-2 leading-snug mb-1.5">
+          <h3 className="text-slate-800 text-[17px] font-bold line-clamp-2 leading-snug mb-3 group-hover/card:text-[#70a139] transition-colors">
             {data.name}
           </h3>
 
-          <div className="mt-auto pt-2 flex flex-col gap-1">
+          <div className="mt-auto flex flex-col gap-2">
             {displayUnit && (
-              <p className="text-[0.85rem] font-bold text-[#419864]/80 uppercase tracking-wider">
-                {displayUnit}
-              </p>
+              <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-50 border border-gray-100 w-fit">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  {displayUnit}
+                </span>
+              </div>
             )}
-            <div className='flex items-baseline gap-2'>
-              <p className="text-[#16a34a] font-bold text-xl leading-none">
+            <div className='flex items-end gap-2.5'>
+              <p className="text-[#16a34a] font-black text-2xl leading-none">
                 {DisplayPriceInRupees(displayPrice)}
               </p>
               {displayOriginalPrice > displayPrice && displayPrice > 0 && (
-                <p className="text-slate-400 line-through text-xs font-medium">
+                <p className="text-slate-400 line-through text-sm font-medium pb-0.5">
                   {DisplayPriceInRupees(displayOriginalPrice)}
                 </p>
               )}
-              
             </div>
           </div>
         </div>
@@ -139,7 +151,7 @@ const CardProduct = ({ data }) => {
 
       <div className="px-4 pb-4 pt-1">
         {displayStock !== null && displayStock <= 0 ? (
-          <div className="w-full py-2.5 text-center text-sm font-bold text-red-600 bg-red-50 rounded-lg">
+          <div className="w-full h-9 lg:h-10 flex items-center justify-center text-sm font-bold text-red-600 bg-red-50 rounded-lg">
             Out of stock
           </div>
         ) : (

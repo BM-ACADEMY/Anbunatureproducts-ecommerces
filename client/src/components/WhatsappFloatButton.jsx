@@ -5,7 +5,7 @@ import { ArrowUp, PhoneCall } from "lucide-react";
 
 const WhatsappFloatButton = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const phoneNumber = "7338886850"; // Corrected number from user data
+  const phoneNumber = "9488549948"; // Corrected number from user data
 
   // Show the scroll-to-top button after scrolling 200px
   useEffect(() => {

@@ -100,7 +100,7 @@ const CategoryWiseProductDisplay = ({ id, name }) => {
             "--swiper-pagination-bullet-size": "8px",
             "--swiper-pagination-bullet-horizontal-gap": "4px",
           }}
-          className="mySwiper"
+          className="mySwiper pb-10"
         >
           {loading
             ? loadingCardNumber.map((_, index) => (

@@ -505,7 +505,7 @@ export const getRecentProducts = async (request, response) => {
 
 export const getProductByCategory = async (request, response) => {
   try {
-    let { page = 1, limit = 10, categoryId, minPrice, maxPrice, minRating } = request.body;
+    let { page = 1, limit = 10, categoryId, minPrice, maxPrice, minRating, inStock, sort } = request.body;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
@@ -531,6 +531,10 @@ export const getProductByCategory = async (request, response) => {
       if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
     }
 
+    if (inStock) {
+      matchQuery["attributes.options.stock"] = { $gt: 0 };
+    }
+
     const maxPriceResult = await ProductModel.aggregate([
       { $match: baseMatchQuery },
       { $unwind: "$attributes" },
@@ -551,7 +555,8 @@ export const getProductByCategory = async (request, response) => {
               then: { $avg: "$reviews.stars" },
               else: 0
             }
-          }
+          },
+          minOfferPrice: { $min: "$attributes.options.offerPrice" }
         }
       }
     ];
@@ -560,10 +565,16 @@ export const getProductByCategory = async (request, response) => {
       pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
     }
 
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sort === "priceLowToHigh") sortObj = { minOfferPrice: 1 };
+    else if (sort === "priceHighToLow") sortObj = { minOfferPrice: -1 };
+    else if (sort === "rating") sortObj = { averageRating: -1 };
+
     const countPipeline = [...pipeline, { $count: "total" }];
 
     pipeline.push(
-      { $sort: { createdAt: -1 } },
+      { $sort: sortObj },
       { $skip: skip },
       { $limit: limit },
       {
@@ -777,7 +788,7 @@ export const getAllProductReviewsController = async (request, response) => {
 };
 export const getProductController = async (request, response) => {
   try {
-    let { page = 1, limit = 10, search, minPrice, maxPrice, minRating } = request.body;
+    let { page = 1, limit = 10, search, minPrice, maxPrice, minRating, inStock, sort } = request.body;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
@@ -796,6 +807,10 @@ export const getProductController = async (request, response) => {
       matchQuery["attributes.options.offerPrice"] = {};
       if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
       if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
+    }
+
+    if (inStock) {
+      matchQuery["attributes.options.stock"] = { $gt: 0 };
     }
 
     const maxPriceResult = await ProductModel.aggregate([
@@ -818,7 +833,9 @@ export const getProductController = async (request, response) => {
               then: { $avg: "$reviews.stars" },
               else: 0
             }
-          }
+          },
+          // Add a minPrice field for sorting
+          minOfferPrice: { $min: "$attributes.options.offerPrice" }
         }
       }
     ];
@@ -827,11 +844,17 @@ export const getProductController = async (request, response) => {
       pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
     }
 
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sort === "priceLowToHigh") sortObj = { minOfferPrice: 1 };
+    else if (sort === "priceHighToLow") sortObj = { minOfferPrice: -1 };
+    else if (sort === "rating") sortObj = { averageRating: -1 };
+
     // Clone pipeline for count
     const countPipeline = [...pipeline, { $count: "total" }];
 
     pipeline.push(
-      { $sort: { createdAt: -1 } },
+      { $sort: sortObj },
       { $skip: skip },
       { $limit: limit },
       {
@@ -1060,7 +1083,7 @@ export const deleteProductDetails = async (request, response) => {
 
 export const searchProduct = async (request, response) => {
   try {
-    let { search, page = 1, limit = 10 } = request.body;
+    let { search, page = 1, limit = 10, minPrice, maxPrice, minRating, inStock, sort } = request.body;
 
     if (!search || search.trim() === "") {
       return response.json({
@@ -1077,19 +1100,84 @@ export const searchProduct = async (request, response) => {
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
 
-    const query = {
+    const baseMatchQuery = {
+      publish: true,
       $or: [
         { name: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } }
       ]
     };
 
+    const matchQuery = { ...baseMatchQuery };
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      matchQuery["attributes.options.offerPrice"] = {};
+      if (minPrice !== undefined) matchQuery["attributes.options.offerPrice"].$gte = Number(minPrice);
+      if (maxPrice !== undefined) matchQuery["attributes.options.offerPrice"].$lte = Number(maxPrice);
+    }
+
+    if (inStock) {
+      matchQuery["attributes.options.stock"] = { $gt: 0 };
+    }
+
     const skip = (page - 1) * limit;
 
-    const [data, totalCount] = await Promise.all([
-      ProductModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('category subCategory'),
-      ProductModel.countDocuments(query)
+    const pipeline = [
+      { $match: matchQuery },
+      {
+        $addFields: {
+          averageRating: {
+            $cond: {
+              if: { $gt: [{ $size: "$reviews" }, 0] },
+              then: { $avg: "$reviews.stars" },
+              else: 0
+            }
+          },
+          minOfferPrice: { $min: "$attributes.options.offerPrice" }
+        }
+      }
+    ];
+
+    if (minRating) {
+      pipeline.push({ $match: { averageRating: { $gte: Number(minRating) } } });
+    }
+
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sort === "priceLowToHigh") sortObj = { minOfferPrice: 1 };
+    else if (sort === "priceHighToLow") sortObj = { minOfferPrice: -1 };
+    else if (sort === "rating") sortObj = { averageRating: -1 };
+
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push(
+      { $sort: sortObj },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      {
+        $lookup: {
+          from: 'subcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory'
+        }
+      }
+    );
+
+    const [data, countResult] = await Promise.all([
+      ProductModel.aggregate(pipeline),
+      ProductModel.aggregate(countPipeline)
     ]);
+
+    const totalCount = countResult.length > 0 ? countResult[0].total : 0;
 
     return response.json({
       message: "Product search results",

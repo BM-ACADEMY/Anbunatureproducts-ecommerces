@@ -658,13 +658,13 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
             {/* Storage Instructions */}
             <div className='space-y-4'>
-               <h4 className='text-[15px] font-bold text-gray-800'>Storage & Usage Instructions</h4>
+               <h4 className='text-[15px] font-bold text-gray-800'>Storage & Quality Instructions</h4>
                <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
                   <div className='flex flex-col gap-1.5'>
                     <label className='text-[13px] font-bold text-gray-500' htmlFor='storage_instructions'>Instructions</label>
                     <textarea
                       id='storage_instructions' name='storage_instructions' value={data.storage_instructions} onChange={handleChange} rows={4}
-                      placeholder='Enter storage or usage instructions...'
+                      placeholder='Enter storage or quality instructions...'
                       className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all text-sm font-medium resize-none'
                     />
                   </div>
@@ -677,7 +677,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
                              type='button' onClick={handleDeleteStorageImage}
                              className='absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10'
                           >
-                            <IoClose size={14} />
+                             <IoClose size={14} />
                           </button>
                        </div>
                     ) : (

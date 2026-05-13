@@ -50,7 +50,8 @@ const AllProducts = () => {
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
     const [maxPriceLimit, setMaxPriceLimit] = useState(5000);
-    const [minRating, setMinRating] = useState(0);
+    const [inStockOnly, setInStockOnly] = useState(false);
+    const [sortBy, setSortBy] = useState("newest");
     
     const allCategory = useSelector((state) => state.product.allCategory || []);
 
@@ -62,7 +63,8 @@ const AllProducts = () => {
                 limit,
                 minPrice: minPrice ? Number(minPrice) : undefined,
                 maxPrice: maxPrice ? Number(maxPrice) : undefined,
-                minRating: minRating > 0 ? minRating : undefined
+                inStock: inStockOnly ? true : undefined,
+                sort: sortBy
             };
 
             let apiCall;
@@ -99,7 +101,7 @@ const AllProducts = () => {
 
     useEffect(() => {
         fetchProducts();
-    }, [page, selectedCategory, searchQuery, minPrice, maxPrice, minRating]);
+    }, [page, selectedCategory, searchQuery, minPrice, maxPrice, inStockOnly, sortBy]);
 
     const handleCategoryChange = (e) => {
         setSelectedCategory(e.target.value);
@@ -116,7 +118,8 @@ const AllProducts = () => {
     const clearFilters = () => {
         setMinPrice("");
         setMaxPrice("");
-        setMinRating(0);
+        setInStockOnly(false);
+        setSortBy("newest");
         setSelectedCategory("");
         setSearchQuery("");
         setData([]); // Clear data before resetting page
@@ -125,33 +128,47 @@ const AllProducts = () => {
 
     return (
         <div className="min-h-screen bg-[#fcf8ed]">
-            <div className="container mx-auto px-6 lg:px-10 py-8">
+            <div className="container mx-auto px-4 md:px-10 py-8">
                 <Breadcrumbs />
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between mt-6 mb-10 gap-6">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <div className="max-w-2xl">
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight flex flex-wrap items-center gap-3">
                             {searchQuery 
                                 ? `Results for "${searchQuery}"`
                                 : selectedCategory 
                                 ? allCategory.find(c => c._id === selectedCategory)?.name 
                                 : "All Products"
                             }
-                            <span className="ml-3 text-sm font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full whitespace-nowrap">
                                 {totalCount} items
                             </span>
                         </h1>
-                        <p className="text-gray-500 mt-1">Discover our authentic and natural product range.</p>
+                        <p className="text-gray-500 mt-2 text-sm md:text-base">Discover our authentic and natural product range.</p>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                        {/* Mobile category select - keeping for mobile users */}
-                        <div className="flex lg:hidden items-center space-x-2 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-green-500">
-                            <FiFilter className="text-gray-400" size={18} />
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex-1 min-w-[140px] flex items-center space-x-2 bg-white px-3 md:px-4 py-2.5 rounded-xl border border-gray-100 shadow-sm transition-all focus-within:ring-2 focus-within:ring-green-500/20">
+                            <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-tight whitespace-nowrap">Sort By:</span>
+                            <select 
+                                value={sortBy} 
+                                onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+                                className="bg-transparent border-none outline-none text-xs md:text-sm text-gray-700 font-bold cursor-pointer w-full pr-1"
+                            >
+                                <option value="newest">Newest First</option>
+                                <option value="priceLowToHigh">Price: Low to High</option>
+                                <option value="priceHighToLow">Price: High to Low</option>
+                                <option value="rating">Top Rated</option>
+                            </select>
+                        </div>
+
+                        {/* Mobile category select - visible only when sidebar is hidden (below lg) */}
+                        <div className="flex-1 min-w-[140px] flex lg:hidden items-center space-x-2 bg-white px-3 md:px-4 py-2.5 rounded-xl border border-gray-100 shadow-sm transition-all focus-within:ring-2 focus-within:ring-green-500/20">
+                            <FiFilter className="text-gray-400 flex-shrink-0" size={16} />
                             <select 
                                 value={selectedCategory} 
                                 onChange={handleCategoryChange}
-                                className="bg-transparent border-none outline-none text-sm text-gray-700 font-semibold cursor-pointer pr-4"
+                                className="bg-transparent border-none outline-none text-xs md:text-sm text-gray-700 font-bold cursor-pointer w-full pr-1"
                             >
                                 <option value="">All Categories</option>
                                 {allCategory.map(category => (
@@ -167,98 +184,130 @@ const AllProducts = () => {
                 <div className="flex flex-col lg:flex-row gap-10">
                     {/* Filter Sidebar - Large screens only */}
                     <aside className="hidden lg:block w-72 flex-shrink-0">
-                        <div className="sticky top-24 bg-white rounded-3xl p-7 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
-                                <h3 className="text-lg font-bold text-gray-800">Filters</h3>
-                                <button 
-                                    onClick={clearFilters}
-                                    className="text-xs font-bold text-[#EA580C] hover:underline"
-                                >
-                                    Reset All
-                                </button>
-                            </div>
-
-                            {/* Category Filter */}
-                            <div className="mb-10">
-                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Category</h4>
-                                <div className="space-y-3">
+                        <div className="sticky top-24 space-y-6">
+                            <div className="bg-white rounded-3xl p-7 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                                <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+                                    <div className="flex items-center gap-2">
+                                        <FiFilter className="text-[#70a139]" size={20} />
+                                        <h3 className="text-lg font-bold text-gray-800">Filters</h3>
+                                    </div>
                                     <button 
-                                        onClick={() => { setSelectedCategory(""); setPage(1); }}
-                                        className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${selectedCategory === "" ? 'bg-[#98c17b] text-white shadow-md shadow-green-100' : 'text-gray-600 hover:bg-gray-50'}`}
+                                        onClick={clearFilters}
+                                        className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors bg-red-50 px-2 py-1 rounded-lg"
                                     >
-                                        All Products
+                                        Clear All
                                     </button>
-                                    {allCategory.map(category => (
-                                        <button
-                                            key={category._id}
-                                            onClick={() => { setSelectedCategory(category._id); setPage(1); }}
-                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${selectedCategory === category._id ? 'bg-[#98c17b] text-white shadow-md shadow-green-100' : 'text-gray-600 hover:bg-gray-50'}`}
-                                        >
-                                            {category.name}
-                                        </button>
-                                    ))}
                                 </div>
-                            </div>
 
-                            {/* Price Range */}
-                            <div className="mb-10">
-                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Price Range</h4>
-                                <div className="px-2">
-                                    <Slider
-                                        value={[minPrice || 0, maxPrice || maxPriceLimit]}
-                                        onChange={(e, newValue) => {
-                                            setMinPrice(newValue[0]);
-                                            setMaxPrice(newValue[1]);
-                                            setPage(1);
-                                        }}
-                                        valueLabelDisplay="auto"
-                                        min={0}
-                                        max={maxPriceLimit}
-                                        sx={{
-                                            color: '#98c17b',
-                                            '& .MuiSlider-thumb': {
-                                                backgroundColor: '#98c17b',
-                                            },
-                                            '& .MuiSlider-track': {
-                                                backgroundColor: '#98c17b',
-                                            },
-                                        }}
-                                    />
-                                    <div className="flex justify-between mt-2">
-                                        <span className="text-xs font-bold text-gray-600 font-outfit">₹{minPrice || 0}</span>
-                                        <span className="text-xs font-bold text-gray-600 font-outfit">₹{maxPrice || maxPriceLimit}</span>
+                                {/* Availability Filter */}
+                                <div className="mb-10">
+                                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Availability</h4>
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                        <div className="relative">
+                                            <input 
+                                                type="checkbox" 
+                                                className="sr-only"
+                                                checked={inStockOnly}
+                                                onChange={(e) => { setInStockOnly(e.target.checked); setPage(1); }}
+                                            />
+                                            <div className={`w-11 h-6 rounded-full transition-colors ${inStockOnly ? 'bg-[#98c17b]' : 'bg-gray-200'}`} />
+                                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${inStockOnly ? 'translate-x-5' : ''}`} />
+                                        </div>
+                                        <span className="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">In Stock Only</span>
+                                    </label>
+                                </div>
+
+                                {/* Category Filter */}
+                                <div className="mb-10">
+                                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Category</h4>
+                                    <div className="flex flex-col gap-1.5">
+                                        <button 
+                                            onClick={() => { setSelectedCategory(""); setPage(1); }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-between group ${selectedCategory === "" ? 'bg-[#98c17b] text-white shadow-lg shadow-green-100' : 'text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            <span>All Products</span>
+                                            <LuChevronRight size={16} className={`transition-transform ${selectedCategory === "" ? 'translate-x-0.5' : 'opacity-0 group-hover:opacity-100'}`} />
+                                        </button>
+                                        {allCategory.map(category => (
+                                            <button
+                                                key={category._id}
+                                                onClick={() => { setSelectedCategory(category._id); setPage(1); }}
+                                                className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-between group ${selectedCategory === category._id ? 'bg-[#98c17b] text-white shadow-lg shadow-green-100' : 'text-gray-600 hover:bg-gray-50'}`}
+                                            >
+                                                <span className="truncate">{category.name}</span>
+                                                <LuChevronRight size={16} className={`transition-transform ${selectedCategory === category._id ? 'translate-x-0.5' : 'opacity-0 group-hover:opacity-100'}`} />
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Rating Filter */}
-                            <div>
-                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5">Minimum Rating</h4>
-                                <div className="space-y-2">
-                                    {[5, 4, 3, 2, 1].map((rating) => (
-                                        <button
-                                            key={rating}
-                                            onClick={() => { setMinRating(rating); setPage(1); }}
-                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all ${minRating === rating ? 'bg-orange-50 text-orange-700' : 'hover:bg-gray-50 text-gray-600'}`}
-                                        >
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="flex text-orange-400">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <svg 
-                                                            key={i} 
-                                                            className={`w-4 h-4 ${i < rating ? 'fill-current' : 'fill-gray-200'}`} 
-                                                            viewBox="0 0 20 20"
-                                                        >
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                        </svg>
-                                                    ))}
-                                                </div>
-                                                <span className="text-xs font-bold">& Up</span>
+                                {/* Price Range */}
+                                <div className="mb-10">
+                                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Price Range</h4>
+                                    <div className="px-2 mb-6">
+                                        <Slider
+                                            value={[minPrice || 0, maxPrice || maxPriceLimit]}
+                                            onChange={(e, newValue) => {
+                                                setMinPrice(newValue[0]);
+                                                setMaxPrice(newValue[1]);
+                                                setPage(1);
+                                            }}
+                                            valueLabelDisplay="auto"
+                                            min={0}
+                                            max={maxPriceLimit}
+                                            sx={{
+                                                color: '#98c17b',
+                                                height: 6,
+                                                '& .MuiSlider-thumb': {
+                                                    width: 20,
+                                                    height: 20,
+                                                    backgroundColor: '#fff',
+                                                    border: '3px solid #98c17b',
+                                                    '&:hover, &.Mui-focusVisible': {
+                                                        boxShadow: '0 0 0 8px rgba(152, 193, 123, 0.16)',
+                                                    },
+                                                },
+                                                '& .MuiSlider-track': {
+                                                    border: 'none',
+                                                },
+                                                '& .MuiSlider-rail': {
+                                                    opacity: 0.3,
+                                                    backgroundColor: '#bfbfbf',
+                                                },
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Min</label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">₹</span>
+                                                <input 
+                                                    type="number"
+                                                    value={minPrice}
+                                                    onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
+                                                    className="w-full pl-6 pr-2 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/50 transition-all"
+                                                    placeholder="0"
+                                                />
                                             </div>
-                                            {minRating === rating && <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />}
-                                        </button>
-                                    ))}
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Max</label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">₹</span>
+                                                <input 
+                                                    type="number"
+                                                    value={maxPrice}
+                                                    onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
+                                                    className="w-full pl-6 pr-2 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/50 transition-all"
+                                                    placeholder={maxPriceLimit}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+
                             </div>
                         </div>
                     </aside>
@@ -304,7 +353,7 @@ const AllProducts = () => {
                         ) : (
                             <NoData 
                                 message="No Products Matched"
-                                description="We couldn't find any products matching your current filters. Try adjusting your price range or rating selection."
+                                description="We couldn't find any products matching your current filters. Try adjusting your price range or category."
                             >
                                 <button 
                                     onClick={clearFilters}

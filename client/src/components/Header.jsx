@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-const logo = "/assets/common/logo.png";
+const logo = "/assets/common/logoheader.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LuUserRound, LuSearch, LuTruck, LuChevronRight } from "react-icons/lu";
 import useMobile from "../hooks/useMobile";

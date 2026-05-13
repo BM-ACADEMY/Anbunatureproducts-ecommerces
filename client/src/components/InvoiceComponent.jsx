@@ -118,7 +118,7 @@ const InvoiceModal = ({ open, handleClose, orderGroup }) => {
             </Box>
             <Box sx={{ textAlign: "right" }}>
               <img
-                src="/assets/common/logo.png"
+                src="/assets/common/logoheader.png"
                 alt="Company Logo"
                 style={{ width: 80, height: "auto" }}
               />

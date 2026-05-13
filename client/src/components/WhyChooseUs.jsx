@@ -9,27 +9,27 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 // Import assets
-const manImg = "/assets/whychoose/man.webp";
+const manImg = "/assets/whychoose/man.png";
 const leafImg = "/assets/whychoose/leaf.webp";
 const chemicalImg = "/assets/whychoose/chemical.webp";
-const truckImg = "/assets/whychoose/truck.webp";
+const familyImg = "/assets/whychoose/health_living.png";
 
 const features = [
   {
     icon: leafImg,
-    title: "100% organic",
-  },
-  {
-    icon: manImg,
-    title: "Direct from farmers",
+    title: "Carefully Prepared with selected Natural Ingredients",
   },
   {
     icon: chemicalImg,
-    title: "Zero chemicals",
+    title: "Traditional Wellness for Modern Families so (No added artificial colors or preservatives)",
   },
   {
-    icon: truckImg,
-    title: "Fast delivery",
+    icon: familyImg,
+    title: "Supporting Healthier Everyday Living for all ages",
+  },
+  {
+    icon: manImg,
+    title: "Created with Care, Trust & Responsibility",
   },
 ];
 
@@ -46,7 +46,7 @@ const WhyChooseUs = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-[1.5rem] md:text-[2.25rem] font-medium text-center mb-1 md:mb-10 font-outfit text-[#1a1a1a] tracking-tight">
-            Why buy with Anbu Nature Products?
+            Why buy with Anbu Natural Products?
           </h2>
         </motion.div>
 
@@ -74,7 +74,7 @@ const WhyChooseUs = () => {
                         className="max-w-full max-h-full object-contain"
                       />
                     </div>
-                    <p className="font-semibold font-outfit text-[#333] text-[0.85rem] leading-tight">
+                    <p className="font-semibold font-outfit text-[#333] text-[0.9rem] leading-tight px-1">
                       {feature.title}
                     </p>
                   </div>
@@ -100,7 +100,7 @@ const WhyChooseUs = () => {
                     className="max-w-full max-h-full object-contain"
                   />
                 </div>
-                <p className="font-semibold font-outfit text-[#333] text-[1.1rem] max-w-[150px] leading-tight">
+                <p className="font-semibold font-outfit text-[#333] text-[1.1rem] max-w-[200px] leading-[1.2]">
                   {feature.title}
                 </p>
               </motion.div>
