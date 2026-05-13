@@ -239,7 +239,7 @@ export default function AnbuNaturalAbout() {
 
       {/* ── Daily Wellness Clock Section ── */}
       <section className="py-24 px-6 bg-[#f0f9f4]">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
             <p style={{ color: "#059669", letterSpacing: "0.3em", fontSize: "0.7rem" }} className="uppercase font-semibold mb-3">Daily Routine</p>
             <h2 className="serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
@@ -256,7 +256,7 @@ export default function AnbuNaturalAbout() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white"
+            className="max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white"
           >
             <img 
               src="/assets/wellness/daily_wellness_clock.jpg" 

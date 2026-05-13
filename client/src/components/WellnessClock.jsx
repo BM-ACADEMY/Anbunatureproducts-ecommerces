@@ -26,7 +26,7 @@ const WellnessClock = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative max-w-4xl mx-auto shadow-2xl rounded-3xl overflow-hidden bg-slate-50 border-4 border-white"
+          className="relative max-w-3xl mx-auto shadow-2xl rounded-3xl overflow-hidden bg-slate-50 border-4 border-white"
         >
           <img 
             src="/assets/wellness/daily_wellness_clock.jpg" 
