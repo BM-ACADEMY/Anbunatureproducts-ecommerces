@@ -22,7 +22,7 @@ const Footer = () => {
                 />
               </div>
               <p className="text-slate-300 leading-relaxed">
-                Anbu Natural Products is dedicated to providing high-quality, pure, and natural products that promote a healthy and sustainable lifestyle. We believe in the power of nature to nourish and heal.
+                Anbu Natural Products is dedicated to providing high-quality, pure, and natural products that promote a healthy and sustainable lifestyle. Inspired by nature, crafted with care.
               </p>
             </div>
           </div>

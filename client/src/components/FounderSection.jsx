@@ -31,10 +31,8 @@ const FounderSection = () => {
                             <Quote className="absolute -top-6 -left-6 w-12 h-12 text-emerald-600/10" />
                             <h2 className="text-lg md:text-xl lg:text-[1.35rem] font-medium leading-relaxed text-gray-800 font-serif italic mb-8">
                                 My journey as a graduated nurse and a mother helped me understand the importance of natural, organic, traditional, and healthy living. I have always believed that health and wellness begin at home. My concern for families and society inspired me to start Anbu Natural with a vision to provide natural, traditional, trustworthy, and wellness-focused products made with love and responsibility.
-                            </h2>
-                            <p className="text-sm md:text-base text-gray-600 font-light leading-relaxed mb-8">
                                 Through this journey, I hope to support healthier lifestyles and create a positive impact in the lives of people and communities through our products.
-                            </p>
+                            </h2>
                         </div>
 
                         <div className="mt-auto">
