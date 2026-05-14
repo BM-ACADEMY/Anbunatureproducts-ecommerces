@@ -78,8 +78,7 @@ const Contact = () => {
                   <div>
                     <h3 className="font-medium text-emerald-100 text-sm mb-1">Ring us</h3>
                     <div className="flex flex-col space-y-1">
-                      <a href="tel:7338886850" className="text-white hover:text-emerald-300 transition-colors">7338886850</a>
-                      <a href="tel:9944736850" className="text-white hover:text-emerald-300 transition-colors">9944736850</a>
+                      <a href="tel:9488549948" className="text-white hover:text-emerald-300 transition-colors">9488549948</a>
                     </div>
                   </div>
                 </div>

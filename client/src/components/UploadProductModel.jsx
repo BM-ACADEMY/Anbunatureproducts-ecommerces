@@ -98,6 +98,11 @@ const UploadProductModel = ({ close, fetchData }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (data.image.length >= 10) {
+      toast.error("You can only upload a maximum of 10 images.");
+      return;
+    }
+
     const MAX_SIZE = 2 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       toast.error(`Image exceeds the 2MB limit: ${file.name}`);
@@ -322,6 +327,7 @@ const UploadProductModel = ({ close, fetchData }) => {
     setSubmitLoading(true);
     try {
       if (!data.image.length) { toast.error('Please upload at least one image.'); setSubmitLoading(false); return; }
+      if (data.image.length > 10) { toast.error('You can only upload a maximum of 10 images.'); setSubmitLoading(false); return; }
       if (!data.category) { toast.error('Please select a main category.'); setSubmitLoading(false); return; }
       if (!data.name.trim() || !data.description.trim()) { toast.error('Fill Name and Description.'); setSubmitLoading(false); return; }
 

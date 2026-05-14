@@ -3,7 +3,8 @@ import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { Toaster } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
+import Loading from './components/Loading';
 import fetchUserDetails from './utils/fetchUserDetails';
 import { setUserDetails } from './store/userSlice';
 import { setAllCategory, setAllSubCategory, setLoadingCategory } from './store/productSlice';
@@ -78,7 +79,13 @@ function App() {
       <div className="min-h-screen flex flex-col">
         {!hideHeaderFooter && <Header />}
         <main className="flex-grow">
-          <Outlet />
+          <Suspense fallback={
+            <div className='flex items-center justify-center h-[70vh]'>
+              <Loading />
+            </div>
+          }>
+            <Outlet />
+          </Suspense>
         </main>
         {!hideHeaderFooter && <Footer />}
         <Toaster position="top-right" duration={1000} />
