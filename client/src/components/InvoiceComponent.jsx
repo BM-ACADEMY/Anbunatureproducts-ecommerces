@@ -24,7 +24,7 @@ const InvoiceModal = ({ open, handleClose, orderGroup }) => {
   const companyDetails = {
     name: "Anbu Natural",
     address: "30, veerachi south Street, Vellakal, Manaparai tk, Trichy dt, pin. 621307",
-    phone: "9488549948, 7338886850",
+    phone: "9488549948",
     email: "anbunaturalproducts@gmail.com",
   };
 

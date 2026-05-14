@@ -117,6 +117,11 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (data.image.length >= 10) {
+      toast.error("You can only upload a maximum of 10 images.");
+      return;
+    }
+
     const MAX_SIZE = 2 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       toast.error(`Image exceeds the 2MB limit: ${file.name}`);
@@ -442,6 +447,11 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
     e.preventDefault();
     setSubmitLoading(true);
     try {
+      if (data.image.length > 10) {
+        toast.error('You can only upload a maximum of 10 images.');
+        setSubmitLoading(false);
+        return;
+      }
       const filteredMoreDetails = Object.fromEntries(
         Object.entries(data.more_details).filter(([, value]) => value !== '')
       );

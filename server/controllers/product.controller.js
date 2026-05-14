@@ -99,6 +99,14 @@ export const createProductController = async (request, response) => {
       });
     }
 
+    if (image.length > 10) {
+      return response.status(400).json({
+        message: "You can upload a maximum of 10 images per product.",
+        error: true,
+        success: false
+      });
+    }
+
     if (subCategory && Array.isArray(subCategory)) {
         for (const subId of subCategory) {
             const productCount = await ProductModel.countDocuments({ subCategory: subId });
@@ -275,6 +283,14 @@ export const updateProductDetails = async (request, response) => {
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return response.status(400).json({
         message: "Invalid Product ID format.",
+        error: true,
+        success: false
+      });
+    }
+
+    if (image && image.length > 10) {
+      return response.status(400).json({
+        message: "You can upload a maximum of 10 images per product.",
         error: true,
         success: false
       });
