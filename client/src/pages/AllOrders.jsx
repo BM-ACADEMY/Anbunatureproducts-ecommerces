@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText, FiPackage } from "react-icons/fi";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { FiMoreVertical, FiEye, FiTrash2, FiActivity, FiSearch, FiX, FiFilter, FiDownload, FiTruck, FiClock, FiCheckCircle, FiFileText, FiPackage, FiCalendar } from "react-icons/fi";
 import { LayoutList, ArrowUpDown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
@@ -24,6 +24,7 @@ const AllOrders = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("Newest");
+  const [selectedMonth, setSelectedMonth] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(10);
   const location = useLocation();
@@ -165,16 +166,53 @@ const AllOrders = () => {
 
   const groupedOrdersList = groupedOrders ? Object.values(groupedOrders) : [];
 
+  const monthFilteredOrdersList = groupedOrdersList.filter((group) => {
+    if (selectedMonth === "All") return true;
+    if (!group.createdAt) return false;
+    const date = new Date(group.createdAt);
+    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return monthYear === selectedMonth;
+  });
+
   const statusCounts = {
-    All: groupedOrdersList.length,
-    Pending: groupedOrdersList.filter(o => o.tracking_status === "Pending").length,
-    Processing: groupedOrdersList.filter(o => o.tracking_status === "Processing").length,
-    Shipped: groupedOrdersList.filter(o => o.tracking_status === "Shipped").length,
-    Delivered: groupedOrdersList.filter(o => o.tracking_status === "Delivered").length,
-    Cancelled: groupedOrdersList.filter(o => o.isCancelled || o.tracking_status === "Cancelled").length,
+    All: monthFilteredOrdersList.length,
+    Pending: monthFilteredOrdersList.filter(o => o.tracking_status === "Pending").length,
+    Processing: monthFilteredOrdersList.filter(o => o.tracking_status === "Processing").length,
+    Shipped: monthFilteredOrdersList.filter(o => o.tracking_status === "Shipped").length,
+    Delivered: monthFilteredOrdersList.filter(o => o.tracking_status === "Delivered").length,
+    Cancelled: monthFilteredOrdersList.filter(o => o.isCancelled || o.tracking_status === "Cancelled").length,
   };
 
-  const filteredOrders = groupedOrdersList
+  const availableMonths = useMemo(() => {
+    const months = new Set();
+    groupedOrdersList.forEach(group => {
+      if (group.createdAt) {
+        const date = new Date(group.createdAt);
+        const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        months.add(monthYear);
+      }
+    });
+    return Array.from(months).sort((a, b) => b.localeCompare(a));
+  }, [groupedOrdersList]);
+
+  const formatMonth = (monthYearString) => {
+    const [year, month] = monthYearString.split('-');
+    const date = new Date(year, parseInt(month, 10) - 1);
+    
+    const now = new Date();
+    const currentMonthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(now.getMonth() - 1);
+    const lastMonthYear = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+    if (monthYearString === currentMonthYear) return "This Month";
+    if (monthYearString === lastMonthYear) return "Last Month";
+
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+  };
+
+  const filteredOrders = monthFilteredOrdersList
     .filter((group) => {
       if (activeTab === "Pending") return group.tracking_status === "Pending";
       if (activeTab === "Processing") return group.tracking_status === "Processing";
@@ -201,7 +239,7 @@ const AllOrders = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, selectedMonth]);
 
   // Pagination Logic
   const indexOfLastOrder = currentPage * ordersPerPage;
@@ -324,12 +362,29 @@ const AllOrders = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
+          <div className="relative w-full sm:w-auto">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none text-xs font-semibold text-slate-600 shadow-sm cursor-pointer min-w-[140px]"
+            >
+              <option value="All">All Months</option>
+              {availableMonths.map((month) => (
+                <option key={month} value={month}>
+                  {formatMonth(month)}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <FiCalendar size={12} />
+            </div>
+          </div>
+          <div className="relative w-full sm:w-auto">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none text-xs font-semibold text-slate-600 shadow-sm cursor-pointer min-w-[120px]"
+              className="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none text-xs font-semibold text-slate-600 shadow-sm cursor-pointer min-w-[120px]"
             >
               <option>Newest</option>
               <option>Oldest</option>
