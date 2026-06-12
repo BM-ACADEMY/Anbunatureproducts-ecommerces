@@ -3,7 +3,7 @@ import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { Toaster } from 'sonner';
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import Loading from './components/Loading';
 import fetchUserDetails from './utils/fetchUserDetails';
 import { setUserDetails } from './store/userSlice';
@@ -15,9 +15,11 @@ import { handleAddItemCart } from './store/cartProduct';
 import GlobalProvider from './provider/GlobalProvider';
 import { FaCartShopping } from "react-icons/fa6";
 import WhatsappFloatButton from './components/WhatsappFloatButton';
-// import CartMobileLink from './components/CartMobile';
+import SplashScreen from './components/SplashScreen';
+import { AnimatePresence } from 'framer-motion';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const dispatch = useDispatch();
   const location = useLocation();
 
@@ -75,23 +77,31 @@ function App() {
   const hideHeaderFooter = isDashboardPage || isSearchPage;
 
   return (
-    <GlobalProvider>
-      <div className="min-h-screen flex flex-col">
-        {!hideHeaderFooter && <Header />}
-        <main className="flex-grow">
-          <Suspense fallback={
-            <div className='flex items-center justify-center h-[70vh]'>
-              <Loading />
-            </div>
-          }>
-            <Outlet />
-          </Suspense>
-        </main>
-        {!hideHeaderFooter && <Footer />}
-        <Toaster position="top-right" duration={1000} />
-        <WhatsappFloatButton/>
-      </div>
-    </GlobalProvider>
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen finishLoading={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
+
+      <GlobalProvider>
+        <div className="min-h-screen flex flex-col">
+          {!hideHeaderFooter && <Header />}
+          <main className="flex-grow">
+            <Suspense fallback={
+              <div className='flex items-center justify-center h-[70vh]'>
+                <Loading />
+              </div>
+            }>
+              <Outlet />
+            </Suspense>
+          </main>
+          {!hideHeaderFooter && <Footer />}
+          <Toaster position="top-right" duration={1000} />
+          <WhatsappFloatButton />
+        </div>
+      </GlobalProvider>
+    </>
   );
 }
 
