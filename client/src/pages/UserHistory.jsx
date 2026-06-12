@@ -183,12 +183,6 @@ const UserHistory = () => {
                             </Space>
                         </Space>
                     </Col>
-                    <Col>
-                        <Space>
-                            <Button icon={<MailOutlined />} size="large" style={{ borderRadius: 10 }}>Email User</Button>
-                            <Button type="primary" size="large" style={{ borderRadius: 10, background: '#4f46e5' }}>Edit Profile</Button>
-                        </Space>
-                    </Col>
                 </Row>
             </div>
 
