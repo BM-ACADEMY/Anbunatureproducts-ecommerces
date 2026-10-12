@@ -7,6 +7,7 @@ import { logout } from "../store/userSlice";
 import { toast } from "sonner";
 import isAdmin from "../utils/isAdmin";
 import { FiUser, FiLogOut, FiGrid, FiLayers, FiUpload, FiPackage, FiList, FiHome, FiShoppingCart, FiMessageSquare, FiVolume2, FiUsers, FiImage, FiStar, FiMessageCircle, FiTag, FiHeart, FiSettings } from "react-icons/fi";
+import { RiCoupon3Line } from "react-icons/ri";
 import { useGlobalContext } from "../provider/GlobalProvider";
 
 
@@ -82,7 +83,9 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
     { text: "Product Reviews", icon: <FiStar size={20} />, path: "/dashboard/product-reviews" },
     { text: "Announcement", icon: <FiVolume2 size={20} />, path: "/dashboard/announcement" },
     { text: "Foundation", icon: <FiHeart size={20} />, path: "/dashboard/foundation" },
+    { text: "Coupons", icon: <RiCoupon3Line size={20} />, path: "/dashboard/coupon" },
     { text: "General Settings", icon: <FiSettings size={20} />, path: "/dashboard/settings" },
+    { text: "Profile Settings", icon: <FiUser size={20} />, path: "/user/profile" },
   ];
 
 
@@ -93,7 +96,7 @@ const UserMenu = ({ close, isSidebar = false, isCollapsed = false, isHome = fals
   ];
 
   const menuItems = isAdmin(user?.role) 
-    ? (isHome ? [adminItems[0]] : adminItems)
+    ? (isHome ? [adminItems[0], { text: "Profile Settings", icon: <FiUser size={20} />, path: "/user/profile" }] : adminItems)
     : userItems;
 
   // Sidebar mode

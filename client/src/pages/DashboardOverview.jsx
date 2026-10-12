@@ -256,7 +256,7 @@ const DashboardOverview = () => {
 
             {/* Top Stat Cards */}
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={4}>
                     <Card 
                         hoverable 
                         bordered={true} 
@@ -271,11 +271,30 @@ const DashboardOverview = () => {
                             valueStyle={{ color: '#52c41a', fontWeight: 'bold' }}
                         />
                         <div style={{ marginTop: 12 }}>
-                            <Tag color="success" icon={<ArrowUpOutlined />}>Sales Insight</Tag>
+                            <Tag color="success" icon={<ArrowUpOutlined />}>All-time Sales</Tag>
                         </div>
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={4}>
+                    <Card 
+                        hoverable 
+                        bordered={true} 
+                        className="stat-card" 
+                        style={{ borderRadius: 16, border: '1px solid #e5e7eb', cursor: 'default' }}
+                    >
+                        <Statistic
+                            title={<Text type="secondary">Today's Revenue</Text>}
+                            value={stats?.todayRevenue}
+                            precision={2}
+                            prefix="₹"
+                            valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                        />
+                        <div style={{ marginTop: 12 }}>
+                            <Tag color="blue" icon={<ArrowUpOutlined />}>Today's Earnings</Tag>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={4}>
                     <Card 
                         hoverable 
                         onClick={() => navigate('/dashboard/allorders')}
@@ -287,14 +306,52 @@ const DashboardOverview = () => {
                             title={<Text type="secondary">Total Orders</Text>}
                             value={stats?.totalOrders}
                             valueStyle={{ fontWeight: 'bold' }}
-                            prefix={<ShoppingCartOutlined style={{ color: '#1890ff' }} />}
+                            prefix={<ShoppingCartOutlined style={{ color: '#fa8c16' }} />}
                         />
                         <div style={{ marginTop: 12 }}>
                             <Text type="secondary" size="small">{stats?.deliveredOrders} Delivered</Text>
                         </div>
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={4}>
+                    <Card 
+                        hoverable 
+                        onClick={() => navigate('/dashboard/allorders')}
+                        bordered={true} 
+                        className="stat-card" 
+                        style={{ borderRadius: 16, border: '1px solid #e5e7eb', cursor: 'pointer' }}
+                    >
+                        <Statistic
+                            title={<Text type="secondary">Today's Orders</Text>}
+                            value={stats?.todayOrders}
+                            valueStyle={{ fontWeight: 'bold' }}
+                            prefix={<ShoppingCartOutlined style={{ color: '#1890ff' }} />}
+                        />
+                        <div style={{ marginTop: 12 }}>
+                            <Tag color="blue">New today</Tag>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={4}>
+                    <Card 
+                        hoverable 
+                        onClick={() => navigate('/dashboard/allorders?status=Processing')}
+                        bordered={true} 
+                        className="stat-card" 
+                        style={{ borderRadius: 16, border: '1px solid #e5e7eb', cursor: 'pointer' }}
+                    >
+                        <Statistic
+                            title={<Text type="secondary">Due / In Progress</Text>}
+                            value={stats?.receivedOrders}
+                            valueStyle={{ fontWeight: 'bold' }}
+                            prefix={<ReloadOutlined style={{ color: '#fa8c16' }} />}
+                        />
+                        <div style={{ marginTop: 12 }}>
+                            <Text type="secondary" style={{ fontSize: 13 }}>{stats?.canceledOrders} Cancelled</Text>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={4}>
                     <Card 
                         hoverable 
                         onClick={() => navigate('/dashboard/users')}
@@ -310,25 +367,6 @@ const DashboardOverview = () => {
                         />
                         <div style={{ marginTop: 12 }}>
                             <Badge status="processing" text="Platform Users" />
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card 
-                        hoverable 
-                        onClick={() => navigate('/dashboard/allorders?status=Processing')}
-                        bordered={true} 
-                        className="stat-card" 
-                        style={{ borderRadius: 16, border: '1px solid #e5e7eb', cursor: 'pointer' }}
-                    >
-                        <Statistic
-                            title={<Text type="secondary">In Progress</Text>}
-                            value={stats?.receivedOrders}
-                            valueStyle={{ fontWeight: 'bold' }}
-                            prefix={<ReloadOutlined style={{ color: '#fa8c16' }} />}
-                        />
-                        <div style={{ marginTop: 12 }}>
-                            <Text type="secondary">{stats?.canceledOrders} Cancelled</Text>
                         </div>
                     </Card>
                 </Col>

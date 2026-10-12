@@ -569,7 +569,7 @@ const MyOrders = () => {
       {openDetailsModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onClick={() => setOpenDetailsModal(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden z-10 animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden z-10 animate-in fade-in zoom-in duration-300 max-h-[90dvh] flex flex-col">
             <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">

@@ -39,7 +39,7 @@ const SummaryApi = {
     method: "put",
   },
   forgot_password_otp_verification: {
-    url: "api/user/verify-forgot-password-otp",
+    url: "/api/user/verify-forgot-password-otp",
     method: "put",
   },
   resetPassword: {
@@ -47,7 +47,7 @@ const SummaryApi = {
     method: "put",
   },
   refreshToken: {
-    url: "api/user/refresh-token",
+    url: "/api/user/refresh-token",
     method: "post",
   },
   userDetails: {
@@ -285,6 +285,26 @@ const SummaryApi = {
   updateSettings: {
     url: "/api/settings/update",
     method: "post"
+  },
+  getActiveCoupons: {
+    url: "/api/coupon/active",
+    method: "get"
+  },
+  getAllCouponsAdmin: {
+    url: "/api/coupon/admin/all",
+    method: "get"
+  },
+  createCoupon: {
+    url: "/api/coupon/admin/create",
+    method: "post"
+  },
+  updateCoupon: {
+    url: "/api/coupon/admin/update",
+    method: "put"
+  },
+  deleteCoupon: {
+    url: "/api/coupon/admin/delete",
+    method: "delete"
   }
 };
 

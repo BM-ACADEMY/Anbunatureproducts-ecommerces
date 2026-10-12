@@ -29,6 +29,7 @@ const sendEmail = async ({ sendTo, subject, html }) => {
     return info;
   } catch (error) {
     console.error("❌ Email failed to send:", error.message);
+    throw new Error("Failed to send email. Please check server email credentials.");
   }
 };
 

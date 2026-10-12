@@ -9,7 +9,7 @@ import SummaryApi from "../common/SummaryApi";
 import { toast } from "sonner";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
-import { FiEdit2, FiTrash2, FiPlus, FiTruck, FiHeart } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiPlus, FiTruck, FiHeart, FiTag, FiCheck, FiX } from "react-icons/fi";
 import { MdPayment } from "react-icons/md";
 import EditAddressDetails from "../components/EditAddressDetails";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -18,7 +18,7 @@ import AddressCard from "../components/AddressCard";
 
 
 const CheckoutPage = () => {
-  const { notDiscountTotalPrice, fetchCartItem, fetchOrder, totalQty, totalPrice, settings } =
+  const { notDiscountTotalPrice, fetchCartItem, fetchOrder, totalQty, totalPrice, settings, coupons } =
     useGlobalContext();
 
   const [openAddress, setOpenAddress] = useState(false);
@@ -61,6 +61,10 @@ const CheckoutPage = () => {
     fetchFoundation();
   }, []);
 
+  // Coupon state
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+
   // Single item override from Buy Now
   const singleItem = location.state?.singleItem;
 
@@ -83,9 +87,41 @@ const CheckoutPage = () => {
     ? Math.round((totalDiscount / displayTotalOriginalPrice) * 100) 
     : 0;
 
-  const displayGrandTotal = displayTotalOfferPrice + donationAmount + (displayTotalOfferPrice >= (settings?.freeShippingThreshold || 0) && settings?.freeShippingThreshold > 0 ? 0 : (settings?.shippingCharge || 0));
-
   const shippingCharge = (displayTotalOfferPrice >= (settings?.freeShippingThreshold || 0) && settings?.freeShippingThreshold > 0) ? 0 : (settings?.shippingCharge || 0);
+
+  // Calculate coupon discount
+  const couponDiscountAmount = appliedCoupon ? Math.min(appliedCoupon.discountAmount, displayTotalOfferPrice) : 0;
+
+  const displayGrandTotal = Math.max(
+    0,
+    displayTotalOfferPrice - couponDiscountAmount + donationAmount + shippingCharge
+  );
+
+  const handleApplyCoupon = (couponToApply) => {
+    const coupon = couponToApply || (coupons || []).find(
+      (c) => c.name.toUpperCase() === couponCodeInput.trim().toUpperCase() && c.isActive
+    );
+
+    if (!coupon) {
+      toast.error("Invalid coupon code");
+      return;
+    }
+
+    if (coupon.minOrderAmount && displayTotalOfferPrice < coupon.minOrderAmount) {
+      toast.error(`Minimum order amount of ₹${coupon.minOrderAmount} required for this coupon`);
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setCouponCodeInput(coupon.name);
+    toast.success(`Coupon "${coupon.name}" applied! You saved ₹${coupon.discountAmount}`);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCodeInput("");
+    toast.info("Coupon removed");
+  };
 
   // Helper function to check if an address is currently selected
   const isAddressSelected = () => {
@@ -135,6 +171,9 @@ const CheckoutPage = () => {
           list_items: displayCartItems,
           addressId: selectAddress,
           donationAmount: donationAmount,
+          shippingCharge: shippingCharge,
+          couponName: appliedCoupon?.name || "",
+          couponDiscount: couponDiscountAmount,
         },
       });
 
@@ -190,7 +229,14 @@ const CheckoutPage = () => {
       toast.error("Please select a delivery address first.");
       return;
     }
-    navigate("/processing", { state: { singleItem, donationAmount } });
+    navigate("/processing", {
+      state: {
+        singleItem,
+        donationAmount,
+        appliedCoupon,
+        couponDiscount: couponDiscountAmount,
+      },
+    });
   };
 
   return (
@@ -327,6 +373,115 @@ const CheckoutPage = () => {
               </div>
             </div>
 
+            {/* Coupons Section */}
+            <div className="mb-6 bg-gradient-to-br from-emerald-50/60 to-green-50/30 rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-2xs">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <FiTag size={15} />
+                </div>
+                <h3 className="font-bold text-slate-800 text-sm">Apply Coupon</h3>
+              </div>
+
+              {/* Coupon Input Box */}
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  placeholder="Enter coupon code"
+                  value={couponCodeInput}
+                  onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                  disabled={!!appliedCoupon}
+                  className="flex-1 px-3.5 py-2 text-xs font-semibold uppercase tracking-wider bg-white border border-gray-200 rounded-xl outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:bg-gray-100 disabled:text-gray-500"
+                />
+                {appliedCoupon ? (
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl border border-rose-200 transition-all flex items-center gap-1"
+                  >
+                    <FiX size={14} />
+                    <span>Remove</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleApplyCoupon()}
+                    disabled={!couponCodeInput.trim()}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95 disabled:cursor-not-allowed"
+                  >
+                    Apply
+                  </button>
+                )}
+              </div>
+
+              {/* Applied Coupon Banner */}
+              {appliedCoupon && (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300 text-emerald-800 text-xs font-bold mb-3 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2">
+                    <FiCheck size={16} className="text-emerald-700" />
+                    <span>Code <span className="font-black tracking-wider uppercase">{appliedCoupon.name}</span> applied!</span>
+                  </div>
+                  <span className="text-emerald-900 font-extrabold">- ₹{appliedCoupon.discountAmount}</span>
+                </div>
+              )}
+
+              {/* Available Coupons List */}
+              {coupons && coupons.filter(c => c.isActive).length > 0 && (
+                <div className="mt-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Available Offers
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                    {coupons.filter(c => c.isActive).map((coupon) => {
+                      const isEligible = displayTotalOfferPrice >= (coupon.minOrderAmount || 0);
+                      const isSelected = appliedCoupon?.name === coupon.name;
+
+                      return (
+                        <div
+                          key={coupon._id || coupon.name}
+                          className={`p-2.5 rounded-xl border text-xs transition-all flex items-center justify-between gap-3 ${
+                            isSelected
+                              ? "bg-emerald-100/60 border-emerald-400 text-emerald-900"
+                              : isEligible
+                              ? "bg-white border-dashed border-gray-300 hover:border-emerald-500 hover:bg-emerald-50/30"
+                              : "bg-gray-50/70 border-gray-200 opacity-60"
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-xs text-emerald-700 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                {coupon.name}
+                              </span>
+                              <span className="font-bold text-gray-800 text-xs">
+                                Flat ₹{coupon.discountAmount} OFF
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-1 leading-tight">
+                              {coupon.description || (coupon.minOrderAmount > 0 ? `Valid on orders above ₹${coupon.minOrderAmount}` : "No minimum order requirement")}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => isSelected ? handleRemoveCoupon() : handleApplyCoupon(coupon)}
+                            disabled={!isEligible}
+                            className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all flex-shrink-0 ${
+                              isSelected
+                                ? "text-rose-600 hover:bg-rose-50"
+                                : isEligible
+                                ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-300"
+                                : "text-gray-400 cursor-not-allowed"
+                            }`}
+                          >
+                            {isSelected ? "Remove" : isEligible ? "Apply" : `Min ₹${coupon.minOrderAmount}`}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-4 text-sm text-gray-700 mt-auto pt-4 border-t border-gray-100">
               <div className="flex justify-between">
                 <span>Items Total</span>
@@ -339,12 +494,23 @@ const CheckoutPage = () => {
                 <span className="text-gray-500">Total Quantity</span>
                 <span className="font-medium">{displayTotalQty} {displayTotalQty > 1 ? "items" : "item"}</span>
               </div>
+
               <div className="flex justify-between">
                 <span className="text-gray-500">Shipping</span>
                 <span className={`${shippingCharge === 0 ? "text-green-600 font-bold" : "text-gray-900 font-semibold"}`}>
                   {shippingCharge === 0 ? "FREE" : DisplayPriceInRupees(shippingCharge)}
                 </span>
               </div>
+
+              {couponDiscountAmount > 0 && (
+                <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50/80 px-3 py-2 rounded-lg border border-emerald-200">
+                  <span className="flex items-center gap-1.5">
+                    <FiTag size={13} />
+                    <span>Coupon ({appliedCoupon?.name})</span>
+                  </span>
+                  <span>- {DisplayPriceInRupees(couponDiscountAmount)}</span>
+                </div>
+              )}
               
               {donationAmount > 0 && (
                 <div className="flex justify-between text-blue-600 font-bold bg-blue-50/50 px-3 py-2 rounded-lg border border-blue-100/50">

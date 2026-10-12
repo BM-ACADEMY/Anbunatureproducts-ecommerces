@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
+// Reload configuration
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import helmet from "helmet";
@@ -23,6 +24,7 @@ import siteReviewRouter from "./route/siteReview.route.js";
 import announcementRouter from "./route/announcement.route.js";
 import foundationRouter from "./route/foundation.route.js";
 import settingsRouter from "./route/settings.route.js";
+import couponRouter from "./route/coupon.route.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -105,6 +107,7 @@ app.use("/api/site-review", siteReviewRouter);
 app.use("/api/announcement", announcementRouter);
 app.use("/api/foundation", foundationRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/coupon", couponRouter);
 
 
 // Connect DB + Start server

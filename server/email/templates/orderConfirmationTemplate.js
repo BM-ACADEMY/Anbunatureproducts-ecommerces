@@ -72,7 +72,8 @@ const orderConfirmationTemplate = ({
           <div style="background-color: #f9fafb; padding: 20px; border-radius: 12px; border: 1px solid #f3f4f6;">
             <h4 style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Delivery Address</h4>
             <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">${deliveryAddress.fullName}</p>
-            <p style="margin: 4px 0; font-size: 13px; color: #4b5563;">${deliveryAddress.mobile}</p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #4b5563;">${deliveryAddress.mobile}</p>
+            ${deliveryAddress.email ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #4b5563;">${deliveryAddress.email}</p>` : ''}
             <p style="margin: 0; font-size: 13px; color: #6b7280; line-height: 1.5;">
               ${deliveryAddress.address_line}<br>
               ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}<br>
