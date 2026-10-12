@@ -33,27 +33,44 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // ✅ CORS setup
-const allowedOrigins = [
+const defaultAllowedOrigins = [
+  "https://anbunatural.com",
+  "https://www.anbunatural.com",
+  "http://anbunatural.com",
+  "http://www.anbunatural.com",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:8090",
+];
+
+const envAllowedOrigins = [
   process.env.FRONTEND_URL?.trim().replace(/\/$/, ""),
   process.env.PRODUCTION_URL?.trim().replace(/\/$/, ""),
 ].filter(Boolean);
 
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins]));
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., Postman/Mobile)
+      // Allow requests with no origin (e.g., Postman/Mobile apps/Server-to-server)
       if (!origin) return callback(null, true);
 
       // Allow any localhost origin during development
-      if (origin.startsWith("http://localhost:")) {
+      if (origin.startsWith("http://localhost:") || origin.startsWith("https://localhost:")) {
         return callback(null, true);
       }
 
       const normalizedOrigin = origin.trim().replace(/\/$/, "");
-      if (allowedOrigins.includes(normalizedOrigin)) {
+      if (
+        allowedOrigins.includes(normalizedOrigin) ||
+        normalizedOrigin.endsWith(".anbunatural.com") ||
+        normalizedOrigin === "https://anbunatural.com"
+      ) {
         callback(null, true);
       } else {
-        callback(new Error(`❌ Not allowed by CORS: ${origin}`));
+        console.warn(`⚠️ Blocked by CORS origin: ${origin}`);
+        callback(null, false);
       }
     },
     credentials: true,
@@ -70,6 +87,9 @@ app.use(
     ],
   })
 );
+
+// Pre-flight handling
+app.options("*", cors());
 
 // Middleware
 app.use(express.json());

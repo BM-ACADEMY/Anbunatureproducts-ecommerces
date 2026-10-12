@@ -46,7 +46,7 @@ const Header = () => {
     const fetchAnnouncement = async () => {
       try {
         const response = await Axios({ ...SummaryApi.getAnnouncement });
-        if (response.data.success && response.data.data?.text) {
+        if (response && response.data && response.data.success && response.data.data?.text) {
           setAnnouncementText(response.data.data.text);
         }
       } catch (error) {
