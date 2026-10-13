@@ -34,6 +34,10 @@ const app = express();
 const allowedOrigins = [
   process.env.FRONTEND_URL?.trim().replace(/\/$/, ""),
   process.env.PRODUCTION_URL?.trim().replace(/\/$/, ""),
+  "https://anbunatural.com",
+  "https://www.anbunatural.com",
+  "http://anbunatural.com",
+  "http://www.anbunatural.com",
 ].filter(Boolean);
 
 app.use(
