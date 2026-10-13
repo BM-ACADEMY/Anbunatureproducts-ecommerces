@@ -71,7 +71,7 @@ const AddAddress = ({ close }) => {
 
     return (
         <section className='fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-hidden'>
-            <div className='bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col'>
+            <div className='bg-white w-full max-w-2xl max-h-[90dvh] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col'>
 
                 {/* Header */}
                 <div className='px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50'>

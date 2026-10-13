@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 const logo = "/assets/common/logo.webp";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LuUserRound, LuSearch, LuTruck, LuChevronRight } from "react-icons/lu";
+import { LuUserRound, LuSearch, LuTruck, LuChevronRight, LuTag } from "react-icons/lu";
 import useMobile from "../hooks/useMobile";
 import { useSelector } from "react-redux";
 import { AiOutlineMenu } from "react-icons/ai";
@@ -33,7 +33,7 @@ const Header = () => {
   const cartItem = useSelector((state) => state.cartItem.cart);
   const totalQty = cartItem?.reduce((prev, curr) => prev + curr.quantity, 0);
 
-  const { isCartOpen, setIsCartOpen } = useGlobalContext();
+  const { isCartOpen, setIsCartOpen, coupons } = useGlobalContext();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
@@ -46,7 +46,7 @@ const Header = () => {
     const fetchAnnouncement = async () => {
       try {
         const response = await Axios({ ...SummaryApi.getAnnouncement });
-        if (response.data.success && response.data.data?.text) {
+        if (response && response.data && response.data.success && response.data.data?.text) {
           setAnnouncementText(response.data.data.text);
         }
       } catch (error) {
@@ -56,11 +56,16 @@ const Header = () => {
     fetchAnnouncement();
   }, []);
 
+  // Filter coupons designated to be shown in the top marquee
+  const marqueeCoupons = (coupons || []).filter(
+    (c) => c.isActive && c.showInMarquee !== false
+  );
+
   // Close menus when navigating
   useEffect(() => {
+    setShowMobileMenu(false);
     setOpenUserMenu(false);
     setShowSearch(false);
-    setShowMobileMenu(false);
   }, [location.pathname]);
 
   // Close user menu when user logs out
@@ -130,17 +135,35 @@ const Header = () => {
 
   return (
     <>
-      {/* Announcement Bar with Marquee Effect */}
-      <div className="w-full bg-[#fdf5e6] py-1 overflow-hidden whitespace-nowrap border-b border-gray-100">
+      {/* Announcement Bar with Marquee Effect & Coupons */}
+      <div className="w-full bg-[#fdf5e6] py-1.5 overflow-hidden whitespace-nowrap border-b border-amber-100/60 shadow-xs">
         <div className="inline-block animate-marquee hover:pause-marquee cursor-default">
           <div className="flex items-center space-x-12">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <LuTruck size={18} className="text-green-700" />
-                <span className="text-sm font-semibold text-gray-800 uppercase tracking-widest whitespace-nowrap">
-                  {announcementText}
-                </span>
-              </div>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <React.Fragment key={i}>
+                <div className="flex items-center space-x-2">
+                  <LuTruck size={17} className="text-green-700 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-gray-800 uppercase tracking-wider whitespace-nowrap">
+                    {announcementText}
+                  </span>
+                </div>
+
+                {marqueeCoupons.map((coupon) => (
+                  <div
+                    key={`${i}-${coupon._id || coupon.name}`}
+                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-green-700 text-white px-3 py-0.5 rounded-full shadow-xs text-xs font-bold tracking-wide"
+                  >
+                    <LuTag size={13} className="text-amber-200" />
+                    <span>USE CODE:</span>
+                    <span className="bg-white/20 text-white px-1.5 py-0.5 rounded font-black tracking-widest uppercase">
+                      {coupon.name}
+                    </span>
+                    <span className="text-amber-200">
+                      (FLAT ₹{coupon.discountAmount} OFF{coupon.minOrderAmount > 0 ? ` ON ORDERS ₹${coupon.minOrderAmount}+` : ""})
+                    </span>
+                  </div>
+                ))}
+              </React.Fragment>
             ))}
           </div>
         </div>

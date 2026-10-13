@@ -75,6 +75,24 @@ const AllUsers = () => {
             ),
         },
         {
+            title: 'Joined Date',
+            key: 'joinedDate',
+            render: (_, record) => (
+                <Text style={{ fontSize: '13px' }}>
+                    {new Date(record.createdAt).toLocaleDateString()}
+                </Text>
+            )
+        },
+        {
+            title: 'Last Login',
+            key: 'lastLogin',
+            render: (_, record) => (
+                <Text style={{ fontSize: '13px', color: '#8c8c8c' }}>
+                    {record.last_login_date ? new Date(record.last_login_date).toLocaleDateString() : 'Never'}
+                </Text>
+            )
+        },
+        {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',

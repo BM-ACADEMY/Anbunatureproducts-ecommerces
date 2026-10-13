@@ -8,6 +8,7 @@ import TrackingStepper from "./TrackingStepper";
 const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
   const [selectedStatus, setSelectedStatus] = useState(order?.tracking_status || "");
   const [trackingId, setTrackingId] = useState(order?.trackingId || "");
+  const [cancellationReason, setCancellationReason] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
           groupId: order.groupId,
           tracking_status: selectedStatus,
           trackingId: trackingId,
+          cancellationReason: selectedStatus === "Cancelled" ? cancellationReason : undefined,
         },
       });
 
@@ -40,9 +42,9 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
     }
   };
 
-  const statuses = ["Pending", "Processing", "Shipped", "Delivered"];
+  const statuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
   const currentIndex = statuses.indexOf(order?.tracking_status);
-  const availableStatuses = statuses.slice(currentIndex === -1 ? 0 : currentIndex);
+  const availableStatuses = statuses;
 
   if (!open) return null;
 
@@ -53,7 +55,7 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
         onClick={handleClose} 
       />
 
-      <div className="relative bg-white w-full max-w-md rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative bg-white w-full max-w-md max-h-[90dvh] flex flex-col rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
@@ -69,7 +71,7 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="p-5 flex-1 overflow-y-auto">
           {/* Progress Section */}
           <div className="mb-6 p-4 bg-slate-50/50 rounded-lg border border-slate-100">
             <TrackingStepper
@@ -120,6 +122,18 @@ const TrackingModal = ({ open, handleClose, order, onUpdate }) => {
                   );
                 })}
               </div>
+
+              {selectedStatus === "Cancelled" && (
+                <div className="mt-4 space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider ml-1">Cancellation Reason</p>
+                  <textarea
+                    placeholder="Provide a reason for cancellation..."
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-slate-900 transition-all min-h-[80px]"
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="py-6 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50/30">

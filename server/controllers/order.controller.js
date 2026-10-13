@@ -13,7 +13,7 @@ import SubCategoryModel from "../models/subCategory.model.js";
 export async function CashOnDeliveryOrderController(req, res) {
   try {
     const userId = req.userId;
-    const { list_items, addressId, customImage, donationAmount, shippingCharge } = req.body;
+    const { list_items, addressId, customImage, donationAmount, shippingCharge, couponName, couponDiscount } = req.body;
 
     if (!list_items || !addressId) {
       return res.status(400).json({
@@ -24,6 +24,8 @@ export async function CashOnDeliveryOrderController(req, res) {
     }
 
     const commonGroupId = `GRP-${new mongoose.Types.ObjectId()}`;
+    const appliedCouponDiscount = Number(couponDiscount) || 0;
+    const appliedCouponName = couponName ? String(couponName).trim() : "";
 
     const payload = await Promise.all(
       list_items.map(async (el, index) => {
@@ -53,6 +55,9 @@ export async function CashOnDeliveryOrderController(req, res) {
 
         const itemTotal = productBasePrice * el.quantity;
 
+        // Apply additional charges and coupon discount on the first line item
+        const firstItemTotal = Math.max(0, itemTotal + (Number(donationAmount) || 0) + (Number(shippingCharge) || 0) - appliedCouponDiscount);
+
         return {
           userId,
           orderId: `ORD-${new mongoose.Types.ObjectId()}`,
@@ -68,9 +73,11 @@ export async function CashOnDeliveryOrderController(req, res) {
           payment_status: "Online Payment",
           delivery_address: addressId,
           subTotalAmt: itemTotal,
-          totalAmt: index === 0 ? itemTotal + (Number(donationAmount) || 0) + (Number(shippingCharge) || 0) : itemTotal,
+          totalAmt: index === 0 ? firstItemTotal : itemTotal,
           donationAmount: index === 0 ? (Number(donationAmount) || 0) : 0,
           shippingCharge: index === 0 ? (Number(shippingCharge) || 0) : 0,
+          couponName: index === 0 ? appliedCouponName : "",
+          couponDiscount: index === 0 ? appliedCouponDiscount : 0,
           customImage: customImage || "",
         };
       })
@@ -138,6 +145,7 @@ export async function CashOnDeliveryOrderController(req, res) {
         // --- ADDED fullName and mobile HERE ---
         fullName: delivery?.fullName || user.name, // Use delivery's full name, fallback to user's name
         mobile: delivery?.mobile || user.mobile, // Use delivery's mobile, fallback to user's mobile
+        email: user.email,
         address_line: delivery.address_line,
         city: delivery.city,
         state: delivery.state,
@@ -500,7 +508,7 @@ export async function cancelOrderController(request, response) {
 
 export async function updateTrackingStatusController(request, response) {
     try {
-        const { orderId, tracking_status, groupId, trackingId } = request.body;
+        const { orderId, tracking_status, groupId, trackingId, cancellationReason } = request.body;
         const userId = request.userId;
 
         if (!orderId && !groupId) {
@@ -511,7 +519,7 @@ export async function updateTrackingStatusController(request, response) {
             });
         }
 
-        const validStatuses = ["Pending", "Processing", "Shipped", "Delivered"];
+        const validStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
         if (!validStatuses.includes(tracking_status)) {
             return response.status(400).json({
                 message: "Invalid tracking status",
@@ -534,7 +542,7 @@ export async function updateTrackingStatusController(request, response) {
 
         // Check if any order in the group is cancelled
         const hasCancelled = orders.some(o => o.isCancelled);
-        if (hasCancelled && !groupId) { // For individual order, block if cancelled
+        if (hasCancelled && !groupId && tracking_status !== "Cancelled") { // For individual order, block if cancelled
              return response.status(400).json({
                 message: "Cannot update tracking for cancelled order",
                 error: true,
@@ -544,7 +552,7 @@ export async function updateTrackingStatusController(request, response) {
         
         // For groups, we only update non-cancelled ones later, or block if all are cancelled
         const nonCancelledOrders = orders.filter(o => !o.isCancelled);
-        if (!nonCancelledOrders.length) {
+        if (!nonCancelledOrders.length && tracking_status !== "Cancelled") {
              return response.status(400).json({
                 message: "All items in this group are cancelled",
                 error: true,
@@ -553,14 +561,14 @@ export async function updateTrackingStatusController(request, response) {
         }
 
         // Prevent moving backward (check against each order)
-        const statusOrder = ["Pending", "Processing", "Shipped", "Delivered"];
+        const statusOrder = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
         const newIndex = statusOrder.indexOf(tracking_status);
         
-        for (const order of nonCancelledOrders) {
+        for (const order of (tracking_status === "Cancelled" ? orders : nonCancelledOrders)) {
             const currentIndex = statusOrder.indexOf(order.tracking_status);
-            if (newIndex < currentIndex && order.tracking_status !== "Pending") {
+            if (newIndex < currentIndex && order.tracking_status !== "Pending" && tracking_status !== "Cancelled") {
                 return response.status(400).json({
-                    message: `Cannot revert ${order.product_details.name} to a previous tracking status`,
+                    message: `Cannot revert ${order.product_details?.name || 'product'} to a previous tracking status`,
                     error: true,
                     success: false,
                 });
@@ -577,6 +585,12 @@ export async function updateTrackingStatusController(request, response) {
                 },
             },
         };
+
+        if (tracking_status === "Cancelled") {
+            updateData.isCancelled = true;
+            updateData.cancellationDate = new Date();
+            updateData.cancellationReason = cancellationReason || "Cancelled by admin";
+        }
 
         if (trackingId !== undefined) {
             updateData.trackingId = trackingId;
@@ -685,6 +699,18 @@ export async function getOrderStatsController(request, response) {
             tracking_status: "Delivered",
         });
 
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+        const todayOrders = await OrderModel.countDocuments({
+            ...dateFilter,
+            createdAt: {
+                $gte: startOfToday,
+                $lte: endOfToday
+            }
+        });
+
         // Calculate total revenue from non-cancelled orders with date filter
         const revenueData = await OrderModel.aggregate([
             {
@@ -703,6 +729,29 @@ export async function getOrderStatsController(request, response) {
         ]);
 
         const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+
+        // Calculate today's revenue
+        const todayRevenueData = await OrderModel.aggregate([
+            {
+                $match: {
+                    ...dateFilter,
+                    isCancelled: false,
+                    createdAt: {
+                        $gte: startOfToday,
+                        $lte: endOfToday
+                    },
+                    payment_status: { $in: ["Online Payment", "paid", "COD", "Cash On Delivery"] }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    todayRevenue: { $sum: "$totalAmt" }
+                }
+            }
+        ]);
+
+        const todayRevenue = todayRevenueData.length > 0 ? todayRevenueData[0].todayRevenue : 0;
         const totalProducts = await ProductModel.countDocuments({ publish: true });
         const totalCategories = await CategoryModel.countDocuments();
         const totalSubCategories = await SubCategoryModel.countDocuments();
@@ -823,6 +872,8 @@ export async function getOrderStatsController(request, response) {
             data: {
                 totalUsers,
                 totalOrders,
+                todayOrders,
+                todayRevenue,
                 canceledOrders,
                 deliveredOrders,
                 receivedOrders: totalOrders - canceledOrders - deliveredOrders,

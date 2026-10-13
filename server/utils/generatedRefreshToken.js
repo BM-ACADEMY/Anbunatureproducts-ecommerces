@@ -18,7 +18,7 @@ const generatedRefreshToken = async (userId) => {
       { refresh_token: token }
     );
 
-    if (!update.modifiedCount) {
+    if (!update.matchedCount) {
       throw new Error("Failed to update refresh token in database");
     }
 

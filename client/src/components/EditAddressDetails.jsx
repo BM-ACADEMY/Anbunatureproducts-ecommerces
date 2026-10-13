@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from "react-hook-form";
 // Removed PhoneInput
 import Axios from '../utils/Axios';
@@ -73,7 +73,7 @@ const EditAddressDetails = ({ close, data }) => {
 
   return (
     <section className='fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-hidden'>
-      <div className='bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col'>
+      <div className='bg-white w-full max-w-2xl max-h-[90dvh] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 flex flex-col'>
 
         {/* Header */}
         <div className='px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50'>
@@ -198,7 +198,7 @@ const EditAddressDetails = ({ close, data }) => {
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Mobile Number <span className="text-red-500">*</span></label>
                                 <div className="relative group/phone">
                                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none border-r border-slate-200 pr-3">
-                                        <span className="text-xl">🇮🇳</span>
+                                        <span className="text-xl">ðŸ‡®ðŸ‡³</span>
                                         <span className="text-sm font-bold text-slate-400">+91</span>
                                     </div>
                                     <input
@@ -227,7 +227,7 @@ const EditAddressDetails = ({ close, data }) => {
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Alt. Mobile (Optional)</label>
                                 <div className="relative group/phone">
                                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none border-r border-slate-200 pr-3">
-                                        <span className="text-xl">🇮🇳</span>
+                                        <span className="text-xl">ðŸ‡®ðŸ‡³</span>
                                         <span className="text-sm font-bold text-slate-400">+91</span>
                                     </div>
                                     <input
@@ -281,4 +281,5 @@ const EditAddressDetails = ({ close, data }) => {
 };
 
 export default EditAddressDetails;
+
 

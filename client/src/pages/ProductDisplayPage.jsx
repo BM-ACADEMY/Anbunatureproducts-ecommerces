@@ -11,7 +11,9 @@ import { DisplayPriceInRupees } from "../utils/DisplayPriceInRupees";
 import Divider from "../components/Divider";
 import AddToCartButton from "../components/AddToCartButton";
 import CategoryWiseProductDisplay from "../components/CategoryWiseProductDisplay";
+import ViewImage from "../components/ViewImage";
 import { FaStar } from "react-icons/fa";
+import 'react-quill/dist/quill.snow.css';
 
 // --- StarRating Component ---
 const StarRating = ({ value, onChange, readOnly = false, size = "large" }) => {
@@ -231,6 +233,7 @@ const ProductDisplayPage = () => {
   const [reviewError, setReviewError] = useState(null);
   const [reviewSuccess, setReviewSuccess] = useState(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [fullScreenImage, setFullScreenImage] = useState(false);
 
   // Memoized callback for submitting a review
   const memoizedHandleReviewSubmit = useCallback(async (e) => {
@@ -645,10 +648,11 @@ const ProductDisplayPage = () => {
               ) : data.image.length > 0 ? (
                 <img
                   src={data.image[image]}
-                  className={`w-full max-h-[300px] md:max-h-[400px] lg:max-h-[500px] object-contain rounded-lg ${
+                  className={`w-full max-h-[300px] md:max-h-[400px] lg:max-h-[500px] object-contain rounded-lg cursor-pointer ${
                     isFading ? "image-fade-out" : "image-fade-in"
                   }`}
                   alt="product"
+                  onClick={() => setFullScreenImage(true)}
                 />
               ) : (
                 <img
@@ -656,6 +660,10 @@ const ProductDisplayPage = () => {
                   className="w-full max-h-[300px] md:max-h-[400px] lg:max-h-[500px] object-contain rounded-lg"
                   alt="placeholder"
                 />
+              )}
+
+              {fullScreenImage && (
+                <ViewImage url={data.image[image]} close={() => setFullScreenImage(false)} />
               )}
 
                {/* Navigation Buttons for Main Image */}
@@ -798,9 +806,10 @@ const ProductDisplayPage = () => {
           {/* Description */}
           <div className="my-8">
             <h6 className="font-bold text-lg text-gray-800 mb-3 border-b border-gray-200 pb-2">Product Description</h6>
-            <p className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light whitespace-pre-wrap">
-              {data.description}
-            </p>
+            <div 
+              className="text-sm lg:text-base text-justify text-gray-600 leading-relaxed font-light whitespace-pre-wrap ql-editor px-0"
+              dangerouslySetInnerHTML={{ __html: data.description }}
+            />
           </div>
 
           {/* Specifications Table */}

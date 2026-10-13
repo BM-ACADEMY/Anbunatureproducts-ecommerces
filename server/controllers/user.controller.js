@@ -339,11 +339,11 @@ export async function forgotPasswordController(request, response) {
         }
 
         const otp = generatedOtp();
-        const expireTime = new Date() + 60 * 60 * 1000; // 1hr
+        const expireTime = new Date(Date.now() + 60 * 60 * 1000); // 1hr
 
         const update = await UserModel.findByIdAndUpdate(user._id, {
             forgot_password_otp: otp,
-            forgot_password_expiry: new Date(expireTime).toISOString()
+            forgot_password_expiry: expireTime.toISOString()
         });
 
         await sendEmail({
@@ -392,9 +392,7 @@ export async function verifyForgotPasswordOtp(request, response) {
             });
         }
 
-        const currentTime = new Date().toISOString();
-
-        if (user.forgot_password_expiry < currentTime) {
+        if (!user.forgot_password_expiry || new Date(user.forgot_password_expiry).getTime() < Date.now()) {
             return response.status(400).json({
                 message: "Otp is expired",
                 error: true,
@@ -461,7 +459,7 @@ export async function resetpassword(request, response) {
         const salt = await bcryptjs.genSalt(10);
         const hashPassword = await bcryptjs.hash(newPassword, salt);
 
-        const update = await UserModel.findOneAndUpdate(user._id, {
+        const update = await UserModel.findByIdAndUpdate(user._id, {
             password: hashPassword
         });
 
@@ -573,7 +571,15 @@ export async function googleAuthController(request, response) {
             audience: clientId,
         });
         const payload = ticket.getPayload();
-        const { email, name, picture } = payload;
+        if (!payload || !payload.email) {
+            return response.status(400).json({
+                message: "Invalid Google token payload",
+                error: true,
+                success: false
+            });
+        }
+        const { email, name, picture, given_name } = payload;
+        const userName = name || given_name || email.split('@')[0] || "User";
 
         let user = await UserModel.findOne({ email });
 
@@ -584,14 +590,23 @@ export async function googleAuthController(request, response) {
             const hashPassword = await bcryptjs.hash(generatedPassword, salt);
 
             const newUser = new UserModel({
-                name,
+                name: userName,
                 email,
                 password: hashPassword,
-                avatar: picture,
+                avatar: picture || "",
                 verify_email: true,
                 is_temp: false
             });
             user = await newUser.save();
+        } else if (user.is_temp || !user.verify_email) {
+            // If user exists but is temporary/unverified, verify them through Google Auth
+            user = await UserModel.findByIdAndUpdate(user._id, {
+                verify_email: true,
+                is_temp: false,
+                email_verification_otp: null,
+                email_verification_expiry: null,
+                ...(user.name ? {} : { name: userName })
+            }, { new: true });
         }
 
         if (user.status !== "Active") {
@@ -629,6 +644,7 @@ export async function googleAuthController(request, response) {
             }
         });
     } catch (error) {
+        console.error("Google auth error:", error);
         return response.status(500).json({
             message: error.message || error,
             error: true,
@@ -640,7 +656,7 @@ export async function googleAuthController(request, response) {
 
 export async function getAllUsersController(request, response) {
     try {
-        const users = await UserModel.find({ is_temp: false }).select('-password -refresh_token -forgot_password_otp -email_verification_otp').sort({ createdAt: -1 });
+        const users = await UserModel.find({}).select('-password -refresh_token -forgot_password_otp -email_verification_otp').sort({ createdAt: -1 });
 
         return response.json({
             message: "All users",

@@ -40,6 +40,7 @@ const AllUsers = lazy(() => import("../pages/AllUsers"));
 const UserHistory = lazy(() => import("../pages/UserHistory"));
 const FoundationAdmin = lazy(() => import("../pages/FoundationAdmin"));
 const GeneralSettingsAdmin = lazy(() => import("../pages/GeneralSettingsAdmin"));
+const CouponAdmin = lazy(() => import("../pages/CouponAdmin"));
 const TermsAndConditions = lazy(() => import("../pages/TermsAndConditions"));
 const ShippingPolicy = lazy(() => import("../pages/ShippingPolicy"));
 const ReturnRefundPolicy = lazy(() => import("../pages/ReturnRefundPolicy"));
@@ -271,6 +272,14 @@ const router = createBrowserRouter([
             element: (
               <AdminPermision>
                 <GeneralSettingsAdmin />
+              </AdminPermision>
+            ),
+          },
+          {
+            path: "coupon",
+            element: (
+              <AdminPermision>
+                <CouponAdmin />
               </AdminPermision>
             ),
           },

@@ -44,7 +44,7 @@ const ProductListPage = () => {
           page,
           limit: 8,
           minPrice: debouncedPriceRange[0],
-          maxPrice: debouncedPriceRange[1],
+          maxPrice: debouncedPriceRange[1] === maxPriceLimit ? undefined : debouncedPriceRange[1],
         },
       });
 
@@ -58,6 +58,11 @@ const ProductListPage = () => {
         }
         if (responseData.maxPriceLimit !== undefined && responseData.maxPriceLimit !== maxPriceLimit) {
           setMaxPriceLimit(responseData.maxPriceLimit);
+          // If we were at the old max limit, expand it to the new max limit
+          if (debouncedPriceRange[1] === maxPriceLimit) {
+            setPriceRange([debouncedPriceRange[0], responseData.maxPriceLimit]);
+            setDebouncedPriceRange([debouncedPriceRange[0], responseData.maxPriceLimit]);
+          }
         }
         setTotalPages(responseData.totalPages);
       }
@@ -172,7 +177,7 @@ const ProductListPage = () => {
                             <img
                               src={s.image || '/placeholder.png'}
                               alt={s.altText || s.name || 'Subcategory'}
-                              className="w-full h-full object-scale-down p-2 transition-transform duration-700 group-hover:scale-110"
+                              className="w-full h-full object-contain p-1 rounded-full transition-transform duration-700 group-hover:scale-110"
                             />
                             {/* Hover Overlay */}
                             <div className={`absolute inset-0 bg-black/40 flex items-center justify-center p-2 transition-all duration-500 rounded-full ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100'}`}>

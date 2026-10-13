@@ -152,6 +152,12 @@ const InvoiceModal = ({ open, handleClose, orderGroup }) => {
                 Address: {firstItem?.delivery_address?.address_line}, {firstItem?.delivery_address?.city}{" "}
                 {firstItem?.delivery_address?.state}, {firstItem?.delivery_address?.pincode}
               </Typography>
+              <Typography variant="body2" sx={{ fontSize: "10px", color: "#555", mt: 0.5 }}>
+                Mobile: {firstItem?.delivery_address?.mobile || firstItem?.userId?.mobile || 'N/A'}
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>
+                Email: {firstItem?.userId?.email || 'N/A'}
+              </Typography>
             </Grid>
             <Grid item xs={6} sx={{ textAlign: "left" }}>
               <Typography variant="body2" sx={{ fontSize: "10px", color: "#555" }}>

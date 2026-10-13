@@ -14,6 +14,19 @@ import { toast } from 'sonner';
 import CategoryDropdown from './CategoryDropdown';
 import Cropper from 'react-easy-crop';
 import { getCroppedImgBlob } from '../utils/cropImage';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['clean']
+  ],
+  clipboard: {
+    matchVisual: false,
+  }
+};
 
 const predefinedAttributeNames = ['Size', 'Weight', 'Material', 'Memory', 'Storage', 'Processor', 'Color', 'Capacity'];
 
@@ -543,7 +556,7 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-zoom-in'>
+      <div className='relative bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90dvh] overflow-hidden flex flex-col animate-zoom-in'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b bg-white'>
           <h3 className='text-lg font-bold text-gray-800'>Edit Product</h3>
@@ -587,10 +600,13 @@ const EditProductAdmin = ({ close, data: propsData, fetchProductData }) => {
 
             <div className='flex flex-col gap-1.5'>
               <label className='text-[15px] font-bold text-gray-700' htmlFor='description'>Description</label>
-              <textarea
-                id='description' name='description' value={data.description} onChange={handleChange} required rows={6}
-                placeholder='Enter product description'
-                className='bg-white px-4 py-2.5 outline-none border border-gray-200 rounded-xl focus:border-indigo-500 transition-all font-medium resize-none'
+              <ReactQuill 
+                theme="snow"
+                modules={quillModules}
+                value={data.description} 
+                onChange={(content) => setData(prev => ({ ...prev, description: content }))} 
+                className="bg-white"
+                placeholder='Enter product description (supports rich text)'
               />
             </div>
 

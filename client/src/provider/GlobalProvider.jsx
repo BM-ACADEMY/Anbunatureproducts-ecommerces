@@ -175,8 +175,20 @@ const GlobalProvider = ({ children }) => {
   const [totalQty, setTotalQty] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [settings, setSettings] = useState({ shippingCharge: 0, freeShippingThreshold: 0 });
+  const [coupons, setCoupons] = useState([]);
   const cartItem = useSelector((state) => state.cartItem.cart);
   const user = useSelector((state) => state?.user);
+
+  const fetchActiveCoupons = async () => {
+    try {
+      const response = await Axios(SummaryApi.getActiveCoupons);
+      if (response.data.success) {
+        setCoupons(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching active coupons", error);
+    }
+  };
 
   const fetchCartItem = async () => {
     try {
@@ -307,6 +319,7 @@ const GlobalProvider = ({ children }) => {
 
   useEffect(() => {
     fetchSettings();
+    fetchActiveCoupons();
   }, []);
 
   useEffect(() => {
@@ -333,6 +346,8 @@ const GlobalProvider = ({ children }) => {
         setIsCartOpen,
         settings,
         fetchSettings,
+        coupons,
+        fetchActiveCoupons,
       }}
     >
       {children}

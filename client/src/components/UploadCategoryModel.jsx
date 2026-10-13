@@ -96,7 +96,7 @@ const UploadCategoryModel = ({ close, fetchData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded shadow-lg w-full max-w-lg overflow-hidden flex flex-col'>
+      <div className='relative bg-white rounded shadow-lg w-full max-w-lg max-h-[90dvh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b'>
           <h3 className='text-lg font-medium text-gray-800'>Add Category</h3>
@@ -105,7 +105,7 @@ const UploadCategoryModel = ({ close, fetchData }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className='p-6 space-y-5'>
+        <form onSubmit={handleSubmit} className='flex-1 overflow-y-auto p-6 space-y-5'>
           {/* Image Upload */}
           <div>
             <p className='text-base font-medium mb-2'>Category Image</p>

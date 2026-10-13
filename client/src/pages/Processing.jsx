@@ -31,6 +31,8 @@ const Processing = () => {
   const [donationAmount, setDonationAmount] = useState(
     location.state?.donationAmount || 0,
   );
+  const appliedCoupon = location.state?.appliedCoupon || null;
+  const couponDiscount = Number(location.state?.couponDiscount) || 0;
   const [foundationSettings, setFoundationSettings] = useState(null);
 
   const displayTotalOfferPrice = singleItem
@@ -46,8 +48,10 @@ const Processing = () => {
       ? 0
       : settings?.shippingCharge || 0;
 
-  const displayTotalPrice =
-    displayTotalOfferPrice + donationAmount + shippingCharge;
+  const displayTotalPrice = Math.max(
+    0,
+    displayTotalOfferPrice - couponDiscount + donationAmount + shippingCharge
+  );
 
   const [step, setStep] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState(0);
@@ -137,6 +141,8 @@ const Processing = () => {
         donationAmount: donationAmount,
         subTotal: displayTotalOfferPrice,
         shippingCharge: shippingCharge,
+        couponName: appliedCoupon?.name || "",
+        couponDiscount: couponDiscount,
         totalPrice: displayTotalPrice, // This matches server expectation for grand total usually
       };
 
@@ -321,7 +327,7 @@ const Processing = () => {
                       onClick={() => setStep(2)}
                       className="w-full py-4 bg-[#196806] text-white rounded-2xl hover:bg-[#104a02] font-bold text-lg shadow-lg shadow-green-100 transition-all transform hover:-translate-y-1 active:scale-95"
                     >
-                      I Have Paid, Proceed
+                      Pay through the details and proceed
                     </button>
                   </div>
                 </div>
@@ -331,11 +337,11 @@ const Processing = () => {
         );
       case 2:
         return (
-          <div className="bg-white shadow-2xl rounded-3xl p-8 md:p-10 animate-in slide-in-from-right duration-300">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-4">
+          <div className="bg-white shadow-2xl rounded-3xl p-5 md:p-10 animate-in slide-in-from-right duration-300">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-4 text-center md:text-left">
               Upload Payment Details
             </h2>
-            <p className="text-gray-500 mb-8 max-w-lg">
+            <p className="text-gray-500 mb-8 max-w-lg text-sm md:text-base text-center md:text-left">
               To verify your transaction, please upload a screenshot of your
               payment confirmation screen.
             </p>
@@ -351,15 +357,15 @@ const Processing = () => {
                 />
                 <label
                   htmlFor="payment-upload"
-                  className={`flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-300 ${
+                  className={`flex flex-col items-center justify-center p-6 md:p-12 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-300 ${
                     imageFile
                       ? "bg-green-50 border-green-400"
                       : "bg-gray-50 border-gray-200 hover:bg-white hover:border-blue-300"
                   }`}
                 >
-                  <div className="w-16 h-16 bg-red-500 text-white rounded-full flex items-center justify-center mb-4 transition-transform group-hover:scale-110 shadow-lg shadow-red-100">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-red-500 text-white rounded-full flex items-center justify-center mb-4 transition-transform group-hover:scale-110 shadow-lg shadow-red-100">
                     <svg
-                      className="w-8 h-8"
+                      className="w-6 h-6 md:w-8 md:h-8"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -372,7 +378,7 @@ const Processing = () => {
                       />
                     </svg>
                   </div>
-                  <span className="text-gray-900 font-bold mb-1">
+                  <span className="text-gray-900 font-bold mb-1 text-center text-sm md:text-base">
                     Upload Payment Screenshot
                   </span>
                   <span className="text-gray-400 text-sm font-medium">
@@ -578,6 +584,12 @@ const Processing = () => {
                       {shippingCharge === 0 ? "FREE" : DisplayPriceInRupees(shippingCharge)}
                     </span>
                   </div>
+                  {couponDiscount > 0 && (
+                    <div className="flex justify-between text-[15px] text-emerald-700 font-bold">
+                      <span>Coupon Discount ({appliedCoupon?.name})</span>
+                      <span>- {DisplayPriceInRupees(couponDiscount)}</span>
+                    </div>
+                  )}
                   {donationAmount > 0 && (
                     <div className="flex justify-between text-[15px] text-blue-600 font-bold">
                       <span>Donation</span>

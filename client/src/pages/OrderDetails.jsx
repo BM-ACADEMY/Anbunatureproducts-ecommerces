@@ -235,7 +235,7 @@ const OrderDetails = () => {
                         <FiActivity size={16} />
                         <span className="sm:hidden text-xs font-bold uppercase">Track</span>
                       </button>
-                      {!item.isCancelled && userRole !== "ADMIN" && (
+                      {!item.isCancelled && (
                         <button 
                           onClick={() => handleOpenCancelModal(item)}
                           className="flex-1 sm:flex-none p-2.5 sm:p-2 text-rose-500 hover:bg-rose-50 rounded-lg border border-rose-50 transition-all flex items-center justify-center gap-2 sm:gap-0"
@@ -312,6 +312,16 @@ const OrderDetails = () => {
                 </div>
               </div>
             </div>
+
+            {mainGroupInfo.customImage && (
+              <div className="space-y-4 md:col-span-1 lg:col-span-1">
+                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Payment Screenshot</h4>
+                <div className="bg-white rounded-2xl p-2 border border-slate-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.open(mainGroupInfo.customImage, '_blank')}>
+                  <img src={mainGroupInfo.customImage} alt="Payment Screenshot" className="w-full h-auto rounded-xl max-h-48 object-cover" />
+                  <p className="text-center text-xs font-bold text-slate-500 mt-2 pb-2">Click to View Full</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

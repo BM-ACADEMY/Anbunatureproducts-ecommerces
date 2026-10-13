@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 
 import uploadImage from '../utils/UploadImage';
@@ -85,7 +85,7 @@ const EditCategory = ({ close, fetchData, data: CategoryData }) => {
 
   return (
     <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-      <div className='relative bg-white rounded shadow-lg w-full max-w-lg overflow-hidden flex flex-col'>
+      <div className='relative bg-white rounded shadow-lg w-full max-w-lg max-h-[90dvh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b'>
           <h3 className='text-lg font-medium text-gray-800'>Edit Category</h3>
@@ -94,7 +94,7 @@ const EditCategory = ({ close, fetchData, data: CategoryData }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className='p-6 space-y-5'>
+        <form onSubmit={handleSubmit} className='flex-1 overflow-y-auto p-6 space-y-5'>
           {/* Image Upload */}
           <div>
             <p className='text-base font-medium mb-2'>Category Image</p>
@@ -123,7 +123,7 @@ const EditCategory = ({ close, fetchData, data: CategoryData }) => {
                   />
                   {data.image ? 'Replace Image' : 'Upload Image'}
                 </label>
-                <span className='text-[11px] text-slate-400 font-medium'>Max 2MB • JPG, PNG, WebP</span>
+                <span className='text-[11px] text-slate-400 font-medium'>Max 2MB â€¢ JPG, PNG, WebP</span>
               </div>
               {loading && <div className='w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin' />}
             </div>
@@ -183,3 +183,4 @@ const EditCategory = ({ close, fetchData, data: CategoryData }) => {
 };
 
 export default EditCategory;
+
